@@ -1,2 +1,2 @@
-# Digital-UV-sterilizer
-Develop SW for Control system required for UV lamp based on user input for UV sterilizer. 
+#Automatic Water Purifier
+Develop SW for Control system required for Automatic Water Purifier for Home Use using ESP 32.
