@@ -49,7 +49,7 @@ void loop() {
 /*
 ===========================================================================
 ===========================================================================
-                      Custome Functions
+                      Custom Functions
 ===========================================================================
 ==========================================================================
 */
@@ -71,7 +71,7 @@ void Debug_Trace(const char *fmt, ...)
     Ret_Var = vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
 
-    /* Print Timing related infor*/
+    /* Print Timing related inform*/
     sprintf(Timming_Buffer,"%011ld: ", millis());
     Serial.write(Timming_Buffer);
 
