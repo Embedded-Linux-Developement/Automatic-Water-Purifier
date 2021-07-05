@@ -2,6 +2,9 @@
 #ifndef Automatic_Water_Purifier_H
 #define Automatic_Water_Purifier_H
 
+#include "MyStdTypes.h"
+
+
 /*******************************************************************************
  *  Configuration Start
 *******************************************************************************/
@@ -54,8 +57,39 @@
 *******************************************************************************/
 /* This Macro represent the maximum available, For ESP32, Its 512Bytes */
 #define Max_Available_EEPROM 512
+#define Total_NVM_Paramaters 14   /* Represent Max NVM paramater, Please make sure shall same as NVM_ID_Max*/
 
+const NVM_Param_Config_Table_Type NVM_Param_Config_Table[Total_NVM_Paramaters] = {
 
+   /*
+     How to Update:- 
+       1. Each Paramater shall have a 2 byte CRC attached for error detection.
+       2. Address shall be calculated by itself at the time of Readingand Writting, Its to avoid the possible mistack.
+       3. Please make sure total sizes shall ot exceed "Max_Available_EEPROM" value, if so shall give error and stop operatations.
+   
+   */
+
+/* NVMParam_ID                                 , NVMParam_Length ,  NVMParam_Type   ,  &NVMParam_Default     */
+{NVM_ID_Value_WiFiSSIDName                     ,        75U       ,  NVM_StringType  ,     CharNULLPtr                },   
+{NVM_ID_Value_WiFiSSIDPasword                  ,        75U       ,  NVM_StringType  ,     CharNULLPtr                },   
+{NVM_ID_Value_WiFiStsticIP                     ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },   
+{NVM_ID_Value_WiFiServerName                   ,        75U       ,  NVM_StringType  ,     CharNULLPtr                },   
+
+/* For Calibratation */
+{NVM_ID_Calibration_FlowMeaterFactor           ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+{NVM_ID_Calibration_LowFlowRate                ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+{NVM_ID_Calibration_HighFlowRate               ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+{NVM_ID_Calibration_HighPresureCollingTime     ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+{NVM_ID_Calibration_WaterTankOverflowCapacity  ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+
+/*For settings*/
+{NVM_ID_Seting_WaterTankOverflowAction         ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+{NVM_ID_Seting_HighPresureAction               ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+{NVM_ID_Seting_OperatationMode                 ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+{NVM_ID_Seting_LowFlowRateWarningAction        ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+{NVM_ID_Seting_HighFlowRateWarningAction       ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+
+};
 
 /*-----------------------------------------------------------------------------
  *  Configuration END
@@ -65,56 +99,16 @@
  *  Program Specific Macros.
 *******************************************************************************/
 
-/* Macro to represent the config ON/OFF status*/
-#define STD_ON 0x22
-#define STD_OFF 0x55
-
-/* Macro to represent On OFF Relay status*/
-#define Relay_ON LOW
-#define Relay_OFF HIGH
-
-/* Macro to represent Button ON /OFF status*/
-#define Button_ON LOW
-#define Button_OFF HIGH
-
-/* Limit Switch ON/ OFF ranges*/
-#define Button_ON LOW
-#define Button_OFF HIGH
 
 /*******************************************************************************
  *  Macro Functions
 *******************************************************************************/
 
+
+
 /*******************************************************************************
- *  Enums and typedefs
+ *  Public Function Definations Functions
 *******************************************************************************/
-/*Following is the Enum for NVM Paramater ID.*/
-enum  NVMParam_ID_Enum{
-  NVM_ID_Value_WiFiSSIDName,                     /* This NVM paramater is storing the WiFi SSID Name set by the user.*/
-  NVM_ID_Value_WiFiSSIDPasword,                  /* This NVM paramater is storing the WiFi SSID Pasword set by the user. Pasword shall Not store Securely*/
-  NVM_ID_Value_WiFiStsticIP,                     /* This NVM paramater is storing the Server IP, If user specify then only same shall be considered, Else shall ignore.*/
-  NVM_ID_Value_WiFiServerName,                   /* This NVM paramater is storing the Server Custom Server Name, If user want to, Else Shall use default Server Name.*/
-
-  NVM_ID_Calibration_FlowMeaterFactor,             /* This NVM paramater is storing the convertion factor for the flow meter.*/
-  NVM_ID_Calibration_LowFlowRate,                  /* This NVM paramater is storing the Lowest Flow rate allowed without any warning.*/
-  NVM_ID_Calibration_HighFlowRate,                 /* This NVM paramater is storing the Higest Flow rate allowed without any warning.*/
-  NVM_ID_Calibration_HighPresureCollingTime,       /* This NVM paramater is storing the Cool off time in Second after High presure is being detected.*/
-  NVM_ID_Calibration_WaterTankOverflowCapacity,    /* This NVM paramater is storing the Maximum Tank Capacity. After reaching this level if float sensor is not detected, Then will take action*/
-      
-  NVM_ID_Seting_WaterTankOverflowAction,          /* This NVM paramater is storing Action to me considered once Potential Overflow is detected.*/
-  NVM_ID_Seting_HighPresureAction,                /* This NVM paramater is storing Action to me considered once High presure is detected detected.*/
-  NVM_ID_Seting_OperatationMode,                  /* This NVM paramater is storing Operatation mode of the filter.*/
-  NVM_ID_Seting_LowFlowRateWarningAction,         /* This NVM paramater is storing Action to me considered once low Flow rate is detected.*/
-  NVM_ID_Seting_HighFlowRateWarningAction        /* This NVM paramater is storing Action to me considered once High Flow rate is detected.*/
-  
-};
-
-/* Structure to Configuration paramaters for NVM Paramaters.*/
-typedef struct NVM_Param_Config_Table_Tag {
-   NVMParam_ID_Enum NVMParam_ID;     /* Variable to st*/
-
-
-}NVM_Param_Config_Table_Type;
 
 
 
