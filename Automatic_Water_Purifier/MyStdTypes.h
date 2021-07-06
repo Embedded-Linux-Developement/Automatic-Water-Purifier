@@ -15,7 +15,7 @@ typedef  signed long long   sint64;    /* Slandered Data type for signed 64 bit 
 
 typedef  unsigned char      uint8;     /* Slandered Data type for unsigned 8 bit   / 1 byte variable.*/  
 typedef  unsigned short     uint16;    /* Slandered Data type for unsigned 16 bit  / 2 byte variable.*/
-typedef  unsigned long      uint32     /* Slandered Data type for unsigned 32 bit  / 4 byte variable.*/
+typedef  unsigned long      uint32;     /* Slandered Data type for unsigned 32 bit  / 4 byte variable.*/
 typedef  unsigned long long uint64;    /* Slandered Data type for unsigned 64 bit  / 8 byte variable.*/
 
 
@@ -31,6 +31,7 @@ enum  NVMParam_ID_Enum{
   NVM_ID_Calibration_LowFlowRate,                  /* This NVM paramater is storing the Lowest Flow rate allowed without any warning.*/
   NVM_ID_Calibration_HighFlowRate,                 /* This NVM paramater is storing the Higest Flow rate allowed without any warning.*/
   NVM_ID_Calibration_HighPresureCollingTime,       /* This NVM paramater is storing the Cool off time in Second after High presure is being detected.*/
+  NVM_ID_Calibration_FlowRateWarningCollingTime,   /* This NVM paramater is storing the Cool off time in Second after High / Low flow rate detected.*/
   NVM_ID_Calibration_WaterTankOverflowCapacity,    /* This NVM paramater is storing the Maximum Tank Capacity. After reaching this level if float sensor is not detected, Then will take action*/
       
   NVM_ID_Seting_WaterTankOverflowAction,          /* This NVM paramater is storing Action to me considered once Potential Overflow is detected.*/
@@ -58,6 +59,22 @@ typedef struct NVM_Param_Config_Table_Tag {
 }NVM_Param_Config_Table_Type;
 
 
+/*Following Enumerators are to Set the recovery Actions.*/
+enum  Setting_Recovery_Actions{
+  Recovery_None       = 0x55,  /* Represent No recovery is configured, Or Bo nothing*/
+  Recovery_Time_Bound = 0x89, /* Recover after certain configured time */
+  Recovery_On_PowerOn = 0xAA  /* Recover only after a power on cycle.*/
+};
+
+/*Following Enumerators are to Set Different Functional Mode.*/
+enum  WP_Operatation_Mode{
+  WF_Mode_Auto     = 0x5A, /* Indicate Select the different Mode automaticaly. */
+  WF_Mode_Inline   = 0x47, /* Indicate the mode in which Only Inline water shall be used.*/
+  WF_Mode_Via_Pump = 0xA9  /* Indicate the mode in which Only Pump shall be used to deef water supplay.*/
+};
+
+
+
 
 
 /*******************************************************************************
@@ -67,6 +84,10 @@ typedef struct NVM_Param_Config_Table_Tag {
 /* Macro to represent the config ON/OFF status*/
 #define STD_ON 0x22
 #define STD_OFF 0x55
+
+/* Macro to represent the error flags*/
+#define E_OK      0x25   /* Represent starte is OK*/
+#define E_NOT_OK  0x5A   /* Represent starte is NOT OK*/
 
 /* Macro to represent On OFF Relay status*/
 #define Relay_ON LOW
