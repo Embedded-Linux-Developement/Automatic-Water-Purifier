@@ -70,26 +70,44 @@ const NVM_Param_Config_Table_Type NVM_Param_Config_Table[Total_NVM_Paramaters] =
    */
 
 /* NVMParam_ID                                 , NVMParam_Length ,  NVMParam_Type   ,  &NVMParam_Default     */
-{NVM_ID_Value_WiFiSSIDName                     ,        75U       ,  NVM_StringType  ,     CharNULLPtr                },   
-{NVM_ID_Value_WiFiSSIDPasword                  ,        75U       ,  NVM_StringType  ,     CharNULLPtr                },   
-{NVM_ID_Value_WiFiStsticIP                     ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },   
-{NVM_ID_Value_WiFiServerName                   ,        75U       ,  NVM_StringType  ,     CharNULLPtr                },   
-
-/* For Calibratation */
-{NVM_ID_Calibration_FlowMeaterFactor           ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },  
-{NVM_ID_Calibration_LowFlowRate                ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },  
-{NVM_ID_Calibration_HighFlowRate               ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },  
-{NVM_ID_Calibration_HighPresureCollingTime     ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },  
-{NVM_ID_Calibration_WaterTankOverflowCapacity  ,        04U       ,  NVM_VoidType    ,     CharNULLPtr                },  
-
-/*For settings*/
-{NVM_ID_Seting_WaterTankOverflowAction         ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                },  
-{NVM_ID_Seting_HighPresureAction               ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                },  
-{NVM_ID_Seting_OperatationMode                 ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                },  
-{NVM_ID_Seting_LowFlowRateWarningAction        ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                },  
-{NVM_ID_Seting_HighFlowRateWarningAction       ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                },  
+{NVM_ID_Value_WiFiSSIDName                     ,        75U       ,  NVM_StringType  ,     NVM_Default_Value_WiFiSSIDName                          },   
+{NVM_ID_Value_WiFiSSIDPasword                  ,        75U       ,  NVM_StringType  ,     NVM_Default_Value_WiFiSSIDPasword                       },   
+{NVM_ID_Value_WiFiStsticIP                     ,        04U       ,  NVM_VoidType    ,     NVM_Default_Value_WiFiStsticIP                          },   
+{NVM_ID_Value_WiFiServerName                   ,        75U       ,  NVM_StringType  ,     NVM_Default_Value_WiFiServerName                        },   
+{NVM_ID_Value_AdminPasword                     ,        30U       ,  NVM_StringType  ,     NVM_Default_Value_AdminPasword                          },   
+                             
+/* For Calibratation */                             
+{NVM_ID_Calibration_FlowMeaterFactor           ,        04U       ,  NVM_VoidType    ,     NVM_Default_Calibration_FlowMeaterFactor                },  
+{NVM_ID_Calibration_LowFlowRate                ,        04U       ,  NVM_VoidType    ,     NVM_Default_Calibration_LowFlowRate                     },  
+{NVM_ID_Calibration_HighFlowRate               ,        04U       ,  NVM_VoidType    ,     NVM_Default_Calibration_HighFlowRate                    },  
+{NVM_ID_Calibration_HighPresureCollingTime     ,        04U       ,  NVM_VoidType    ,     NVM_Default_Calibration_HighPresureCollingTime          },  
+{NVM_ID_Calibration_WaterTankOverflowCapacity  ,        04U       ,  NVM_VoidType    ,     NVM_Default_Calibration_WaterTankOverflowCapacity       },  
+                             
+/*For settings*/                             
+{NVM_ID_Seting_WaterTankOverflowAction         ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                                             },  
+{NVM_ID_Seting_HighPresureAction               ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                                             },  
+{NVM_ID_Seting_OperatationMode                 ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                                             },  
+{NVM_ID_Seting_LowFlowRateWarningAction        ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                                             },  
+{NVM_ID_Seting_HighFlowRateWarningAction       ,        01U       ,  NVM_VoidType    ,     CharNULLPtr                                             },  
 
 };
+
+/* Following are the default Value for each NVM paramaters.*/
+const uint8 NVM_Default_Value_WiFiSSIDName[75]    = "Test";                       /*String to hold the default value for the NVM_ID_Value_WiFiSSIDName NVM paramater.*/
+const uint8 NVM_Default_Value_WiFiSSIDPasword[75] = "Test";                       /*String to hold the default value for the NVM_ID_Value_WiFiSSIDPasword NVM paramater.*/
+const uint8 NVM_Default_Value_WiFiStsticIP[4]     = {198,168,1,10};               /*Array to hold the default value for the NVM_ID_Value_WiFiStsticIP NVM paramater.*/
+const uint8 NVM_Default_Value_WiFiServerName[75]  = "Automatic Water Purifier";   /*String to hold the default value for the NVM_ID_Value_WiFiServerName NVM paramater.*/
+const uint8 NVM_Default_Value_AdminPasword[30]    = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
+
+
+const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
+const uint8 NVM_Default_Calibration_LowFlowRate[4]               = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_LowFlowRate NVM paramater.*/
+const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_HighFlowRate NVM paramater.*/
+const uint8 NVM_Default_Calibration_HighPresureCollingTime[4]    = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_HighPresureCollingTime NVM paramater.*/
+const uint8 NVM_Default_Calibration_WaterTankOverflowCapacity[4] = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_WaterTankOverflowCapacity NVM paramater.*/
+
+
+
 
 /*-----------------------------------------------------------------------------
  *  Configuration END

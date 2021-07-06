@@ -4,38 +4,20 @@
 
 
 /*******************************************************************************
- *  Program Specific Macros.
-*******************************************************************************/
-
-/* Macro to represent the config ON/OFF status*/
-#define STD_ON 0x22
-#define STD_OFF 0x55
-
-/* Macro to represent On OFF Relay status*/
-#define Relay_ON LOW
-#define Relay_OFF HIGH
-
-/* Macro to represent Button ON /OFF status*/
-#define Button_ON LOW
-#define Button_OFF HIGH
-
-/* Limit Switch ON/ OFF ranges*/
-#define Button_ON LOW
-#define Button_OFF HIGH
-
-
-
-#define CharNULLPtr (char *)0x00  /* MAcro to represent the Null pointer within this program. */
-
-/*******************************************************************************
- *  Macro Functions
-*******************************************************************************/
-
-
-
-/*******************************************************************************
  *  Enums and typedefs
 *******************************************************************************/
+
+/*following are the Standard type */
+typedef  signed char        sint8;     /* Slandered Data type for signed 8 bit   / 1 byte variable.*/
+typedef  signed short       sint16;    /* Slandered Data type for signed 16 bit  / 2 byte variable.*/
+typedef  signed long        sint32;    /* Slandered Data type for signed 32 bit  / 4 byte variable.*/
+typedef  signed long long   sint64;    /* Slandered Data type for signed 64 bit  / 8 byte variable.*/
+
+typedef  unsigned char      uint8;     /* Slandered Data type for unsigned 8 bit   / 1 byte variable.*/  
+typedef  unsigned short     uint16;    /* Slandered Data type for unsigned 16 bit  / 2 byte variable.*/
+typedef  unsigned long      uint32     /* Slandered Data type for unsigned 32 bit  / 4 byte variable.*/
+typedef  unsigned long long uint64;    /* Slandered Data type for unsigned 64 bit  / 8 byte variable.*/
+
 
 /*Following is the Enum for NVM Paramater ID.*/
 enum  NVMParam_ID_Enum{
@@ -43,6 +25,7 @@ enum  NVMParam_ID_Enum{
   NVM_ID_Value_WiFiSSIDPasword,                  /* This NVM paramater is storing the WiFi SSID Pasword set by the user. Pasword shall Not store Securely*/
   NVM_ID_Value_WiFiStsticIP,                     /* This NVM paramater is storing the Server IP, If user specify then only same shall be considered, Else shall ignore.*/
   NVM_ID_Value_WiFiServerName,                   /* This NVM paramater is storing the Server Custom Server Name, If user want to, Else Shall use default Server Name.*/
+  NVM_ID_Value_AdminPasword,                     /* This NVM paramater is storing the Admin pasword User has been set. Default password shall be "Admin"*/
 
   NVM_ID_Calibration_FlowMeaterFactor,             /* This NVM paramater is storing the convertion factor for the flow meter.*/
   NVM_ID_Calibration_LowFlowRate,                  /* This NVM paramater is storing the Lowest Flow rate allowed without any warning.*/
@@ -68,11 +51,43 @@ enum  NVMParam_Type_Enum{
 /* Structure to Configuration paramaters for NVM Paramaters.*/
 typedef struct NVM_Param_Config_Table_Tag {
    NVMParam_ID_Enum    NVMParam_ID;             /* Variable to store the NVM paramater ID.*/
-   unsigned short      NVMParam_Length;         /* Variable to store the length of NVM paramater. Address shall calculate at run time, when ever there is a NVM read operatation*/
+   uint16              NVMParam_Length;         /* Variable to store the length of NVM paramater. Address shall calculate at run time, when ever there is a NVM read operatation*/
    NVMParam_Type_Enum  NVMParam_Type;           /* Variable to store the type of NVM paramater.*/
-   char              * NVMParam_Default;        /* Variable store the pointer of default value, If configured as NULL then shall be set as 0x00 as default value.*/
+   const uint8       * NVMParam_Default;        /* Variable store the pointer of default value, If configured as NULL then shall be set as 0x00 as default value.*/
 
 }NVM_Param_Config_Table_Type;
+
+
+
+
+/*******************************************************************************
+ *  Program Specific Macros.
+*******************************************************************************/
+
+/* Macro to represent the config ON/OFF status*/
+#define STD_ON 0x22
+#define STD_OFF 0x55
+
+/* Macro to represent On OFF Relay status*/
+#define Relay_ON LOW
+#define Relay_OFF HIGH
+
+/* Macro to represent Button ON /OFF status*/
+#define Button_ON LOW
+#define Button_OFF HIGH
+
+/* Limit Switch ON/ OFF ranges*/
+#define Button_ON LOW
+#define Button_OFF HIGH
+
+
+
+#define CharNULLPtr (uint8 *)0x00  /* MAcro to represent the Null pointer within this program. */
+
+/*******************************************************************************
+ *  Macro Functions
+*******************************************************************************/
+
 
 
 
