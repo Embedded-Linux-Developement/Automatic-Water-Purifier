@@ -43,7 +43,16 @@ CRC16 MY_CRC;
 *******************************************************************************/
 void setup()
 {
-  // put your setup code here, to run once:
+  /* Start the Serial Port*/
+  Serial.begin(115200);
+
+  /* Initate the Micro Settings. */
+  Init_MCU();
+  /* Perform NVM read operatations.*/
+  Init_NVM_Stack();
+
+  /* Initialise all timmer and External interrupts*/
+  Init_GPT_ICU();
 }
 
 void loop()
@@ -204,9 +213,8 @@ void Init_NVM_Stack(void)
   {
     Perform_Reset();
   }
-  NvmUtilization = (Max_Available_EEPROM / TotalNvm_Memory) * 100;
-  Debug_Trace("NVM configuration Basic Check is OK, And Total NVM Utilization is %f2 ...",NvmUtilization);
-
+  NvmUtilization = ((float)((float)TotalNvm_Memory / (float)Max_Available_EEPROM) )* 100;
+  Debug_Trace("NVM configuration Basic Check is OK, Total Consumed is %d Bytes out of %d. And Total NVM Utilization is %f ...",TotalNvm_Memory, Max_Available_EEPROM, NvmUtilization);
   /* Trigger NVM read all to update the RAM mirroe after reading from NVM.*/
   Nvm_Read_All();
 }
@@ -224,6 +232,15 @@ void Nvm_Read_All(void)
   uint16 Current_Mirror_Start_Address;
   NVM_CRC_DataType Calculated_NVM_CRC;
   NVM_CRC_DataType Stored_NVM_CRC;
+  /* Variable required only when its enebled.*/
+#if Debug_Print_All_NVM_Read_All_Value == STD_ON
+   uint8 TempValue;
+   uint16 Inner_Loop_Index;
+#endif
+
+
+   /* Initialise the NVM*/
+    EEPROM.begin(Max_Available_EEPROM);
 
   /* Loop for all NVM paramaters. */
   for (NVMParam_LoopIndex = 0, Current_Mirror_Start_Address = 0, Current_ParamLength = 0;
@@ -315,7 +332,33 @@ void Nvm_Read_All(void)
       Perform_Reset();
     }
 
+/* Print Respective mirror value and its check sums based on the type.*/
+#if Debug_Print_All_NVM_Read_All_Value == STD_ON
+    Debug_Trace("Info:- NVM Mirror final value for paramater %d is as mentioned below", NVMParam_LoopIndex);
+    
+    /* If type is string then Print it as a string, Else print all value.*/
+    /* If data type is of String*/
+     if ( NVM_StringType == NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Type)
+     {
+        Serial.write("      Value In string :- ");
+        /*Use Direct Print without using debug function such that intermidate buffer use can reduce.*/
+        Serial.write((char *)NVM_ParamaterMirror[NVMParam_LoopIndex]);
+     }
+     else /* It's a Normal array, needs to copy all data*/
+     {
+       Serial.write("      Values In HEX (0th Index to Max) :- ");
+        /* Loop for each byte and write*/
+        for (Inner_Loop_Index = 0; Inner_Loop_Index < NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Length;Inner_Loop_Index++)
+        {
+          TempValue = * ((uint8 *)(NVM_ParamaterMirror[NVMParam_LoopIndex] + Inner_Loop_Index));
+          Serial.print(TempValue, HEX); 
+          Serial.write(" ");
+        }
+     }
 
+     /* Add New Line */
+     Serial.write("\n");
+#endif
 
 
     }
@@ -339,7 +382,22 @@ void Init_MCU(void)
 {
   /* Start WDG */
 
-  /* Start Timmer for Functional operation.*/
+
+  /* Initializes all port settings.*/
+
+
+
+}
+
+/* ************************************************************************
+ * Function to Initialise all Timmer and External Interrupt related settings.
+ * *************************************************************************/
+void Init_GPT_ICU(void)
+{
+  /* Initializes all timer related settings.*/
+
+ /* Initializes all External interrupts.*/
+
 }
 
 /* ************************************************************************

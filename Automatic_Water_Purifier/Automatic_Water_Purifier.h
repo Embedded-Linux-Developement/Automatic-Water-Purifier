@@ -61,7 +61,7 @@
 #define NVM_CRC_NoOfBytes    2    /* Number of bytes required to store CRC of each paramater.*/
 #define NVM_CRC_Polynomial   0x2867 /* Polynomial for calculate the CRC*/
 
-
+#define Debug_Print_All_NVM_Read_All_Value STD_ON   /* This paramater is to indicate wheather all NVM mirror values to be printed. */
 
 
 /* Following are the default Value for each NVM paramaters.*/
