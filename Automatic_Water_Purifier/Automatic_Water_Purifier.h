@@ -61,7 +61,33 @@
 #define NVM_CRC_NoOfBytes    2    /* Number of bytes required to store CRC of each paramater.*/
 #define NVM_CRC_Polynomial   0x2867 /* Polynomial for calculate the CRC*/
 
-#define Debug_Print_All_NVM_Read_All_Value STD_ON   /* This paramater is to indicate wheather all NVM mirror values to be printed. */
+/* 
+ * This paramater is to indicate wheather all NVM mirror values to be printed. 
+ *  Recommenced to be STD_OFF on production, As it can compermise the Security Informatations in NVM.
+*/
+#define Debug_Print_All_NVM_Read_All_Value STD_ON   
+/* 
+ * This paramater is to perform the destractive Test, Will write New Data and read it back to verify.
+ *   Its always Recomented to STD_OFF, Because will corrept the NVM data on every restart, Only meant for testing NVM stack.. 
+ *   Prolonged use can reduce the longed cycle of the NVM.
+*/
+#define NVM_Stack_Distractive_Test STD_ON   
+
+/* 
+ * This paramater is to perform the check for Default value.
+*     1. Its always Recomented to STD_OFF, Because Once configured default value Check shall be always fails.
+*     2. Its just considered to validate default value update after any code update, As validatation.
+*/
+#define NVM_Stack_Distractive_Test STD_ON   
+
+/* 
+ * This paramater is to Validate the Signature, 
+ *   1. By writting and reading a specific data at start and end Address of the NVM memort block.
+ *   2. For the same Will have 2 Reserved NVM paramater one at start and one at End.
+ *   3. It shall use Update interface, which will not write to EEPROM id data is same. 
+ *   4. And we will keep same data, else will affect the endurance of the Prodect.
+*/
+#define NVM_Stack_Signature_Test STD_ON   
 
 
 /* Following are the default Value for each NVM paramaters.*/
@@ -72,7 +98,7 @@ const uint8 NVM_Default_Value_WiFiServerName[75]  = "Automatic Water Purifier"; 
 const uint8 NVM_Default_Value_AdminPasword[30]    = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
 
 
-const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
+const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x76,0x54,0x32,0x10};  /*Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
 const uint8 NVM_Default_Calibration_LowFlowRate[4]               = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_LowFlowRate NVM paramater.*/
 const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_HighFlowRate NVM paramater.*/
 const uint8 NVM_Default_Calibration_HighPresureCollingTime[4]    = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_HighPresureCollingTime NVM paramater.*/

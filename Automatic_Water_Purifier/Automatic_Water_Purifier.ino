@@ -50,6 +50,8 @@ void setup()
   Init_MCU();
   /* Perform NVM read operatations.*/
   Init_NVM_Stack();
+  /* Test NVM based on the configuration.*/
+  NVM_READ_Write_Test();
 
   /* Initialise all timmer and External interrupts*/
   Init_GPT_ICU();
@@ -236,6 +238,7 @@ void Nvm_Read_All(void)
 #if Debug_Print_All_NVM_Read_All_Value == STD_ON
    uint8 TempValue;
    uint16 Inner_Loop_Index;
+   uint8 Current_Length;
 #endif
 
 
@@ -346,9 +349,11 @@ void Nvm_Read_All(void)
      }
      else /* It's a Normal array, needs to copy all data*/
      {
-       Serial.write("      Values In HEX (0th Index to Max) :- ");
+        Serial.write("      Values In HEX (0th Index to Max) :- ");
+        /* Copy to local variable to save Excitation time, to read every time from ROM. */
+        Current_Length = NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Length;
         /* Loop for each byte and write*/
-        for (Inner_Loop_Index = 0; Inner_Loop_Index < NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Length;Inner_Loop_Index++)
+        for (Inner_Loop_Index = 0; Inner_Loop_Index < Current_Length;Inner_Loop_Index++)
         {
           TempValue = ((uint8 *)NVM_ParamaterMirror[NVMParam_LoopIndex])[Inner_Loop_Index];
           Serial.print(TempValue, HEX); 
@@ -388,11 +393,13 @@ uint32 Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam)
   if (Requested_NVMParam < NVM_ID_Max)
   {
     /* Checking of type is not required because any way convertion is performing based on the data length only.*/
+    /* Validate the NVM mirror */
+    Nvm_Validate_CRC_And_Recover(Requested_NVMParam);
 
     /* If its a one byte data.*/
     if (NoOf_Byte_One == NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length)
     {
-      Return_Value = ((uint8 *)NVM_ParamaterMirror[NVMParam_LoopIndex])[Int_Zero]
+      Return_Value = ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Int_Zero]
     }
     /* If number of byte is grater than 2 and less than 4, if more than 4, only consider upto 4*/
     else
@@ -402,7 +409,7 @@ uint32 Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam)
       for (Loop_Index = 0, Split_Var.U32_Data = uint32_Min; Loop_Index < Current_Length; Loop_Index++)
       {
         /* Read each data from mirror and store in t split array.*/
-        Split_Var.U8_Data[Loop_Index] = ((uint8 *)NVM_ParamaterMirror[NVMParam_LoopIndex])[Loop_Index];
+        Split_Var.U8_Data[Loop_Index] = ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index];
       }
 
       Return_Value = Split_Var.U32_Data;
@@ -422,13 +429,92 @@ uint32 Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam)
  *        And of type NVM_StringType in configuration. 
  *  2. If requested for paramater with type NVM_VoidType is requested, 
  *       then based on length each element shall store into output array.
+ *  3. Its responsibilty of user to give adequate sizes to Second Input argument 
+ *       Return_Nvm_Value.
  * *********************************************************************************/
-void  Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam, uint8 * Return_Nvm_Value)
+void Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam, uint8 *Return_Nvm_Value)
 {
 
+  uint8 Loop_Index;
+  uint8 Current_Length;
+
+  /* Check if requested paramater is valied.*/
+  if (Requested_NVMParam < NVM_ID_Max)
+  {
+    /* Validate the NVM mirror */
+    Nvm_Validate_CRC_And_Recover(Requested_NVMParam);
+    /* If its a String, Then do a string copy.*/
+    if (NVM_StringType == NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Type)
+    {
+      /* Do string copy */
+      strcpy((char *)Return_Nvm_Value, (char *)NVM_ParamaterMirror[Requested_NVMParam]);
+    }
+    /* for any other type copy all data back.*/
+    else
+    {
+      /* Copy to local variable to save Excitation time, to read every time from ROM. */
+      Current_Length = NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
+      /* Loop for each variable and store, Expecting the length of buffer is enough.*/
+      for (Loop_Index = 0; Loop_Index < Current_Length; Loop_Index++)
+      {
+        /* Read each data from mirror and store in to return array.*/
+        Return_Nvm_Value[Loop_Index] = ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index];
+      }
+    }
+  }
+  else /* Wrong paramater passed.*/
+  {
+    Debug_Trace("Dev Error:- Requested Paramater ID %d to function %s is wrong...", Requested_NVMParam, __func__);
+  }
+}
+
+
+/* ********************************************************************************
+ * Function to validate NVM CRC status based on the Paramater ID. 
+ *     And trigger Nvm Read all service if fault is detected.
+ * *********************************************************************************/
+void Nvm_Validate_CRC_And_Recover(NVMParam_ID_Enum Requested_NVMParam)
+{
+  NVM_CRC_DataType Calculated_NVM_CRC;
+  NVM_CRC_DataType Stored_NVM_CRC;
+  uint8 Loop_Index;
+  uint8 Current_Length;
+
+      /* Copy to local variable to save Excitation time, to read every time from ROM. */
+      Current_Length = NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
+
+     /* Calculate New check sum and store.*/
+     /* Calculate the CRC.*/
+     MY_CRC.setPolynome(NVM_CRC_Polynomial);
+     MY_CRC.add((uint8_t *)NVM_ParamaterMirror[Requested_NVMParam], Current_Length);
+     Calculated_NVM_CRC = MY_CRC.getCRC();
+     MY_CRC.restart();
+
+    /* Read Stored CRC from mirror*/
+    Stored_NVM_CRC = Convert_STR_2_CRC((uint8 *)(NVM_ParamaterMirror[Requested_NVMParam] + Current_Length));
+    /* Check if CRC is matching..*/
+    if (Stored_NVM_CRC != Calculated_NVM_CRC)
+    {
+      Debug_Trace("Error:- CRC calculation for paramater with ID %d is Not Successful, So triggering NVM Real All Service...", Requested_NVMParam);
+      Nvm_Read_All();
+    }
+
+    /* Return is Not considered as same, shall not make any sense, As recovert action already performed... */
+}
+
+/* ********************************************************************************
+ * Function to validate different aspect of NVM paramaters.
+ * *********************************************************************************/
+void NVM_READ_Write_Test(void)
+{
+  NVM_CRC_DataType Calculated_NVM_CRC;
+  NVM_CRC_DataType Stored_NVM_CRC;
+  uint8 Loop_Index;
+  uint8 Current_Length;
 
 
 
+    /* Return is Not considered as same, shall not make any sense, As recovert action already performed... */
 }
 
 
