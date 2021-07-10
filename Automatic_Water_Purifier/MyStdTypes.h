@@ -74,7 +74,15 @@ enum  WP_Operatation_Mode{
 };
 
 
+/* This union data type split the uint16 / uint32 variable to string and Vise versa. */
+typedef union Data_Split_Tag
+{
+    uint8  U8_Data;
+    uint16 U16_Data;
+    uint32 U32_Data;
+    uint8  SplitArray[4];
 
+}Data_Split_t;
 
 
 /*******************************************************************************
@@ -102,8 +110,22 @@ enum  WP_Operatation_Mode{
 #define Button_OFF HIGH
 
 
-
 #define CharNULLPtr (uint8 *)0x00  /* MAcro to represent the Null pointer within this program. */
+
+/* Internal Macros used for indicate different Magic Number.*/
+#define NoOf_Byte_One   1U
+#define NoOf_Byte_Two   2U
+#define NoOf_Byte_Three 3U
+#define NoOf_Byte_Four  4U
+
+#define Int_Zero        0U
+#define Int_One         1U
+#define Int_Two         2U
+
+#define uint32_Max        0xFFFFFFFFU
+#define uint32_Min        (uint32)0x00000000U
+
+
 
 /*******************************************************************************
  *  Macro Functions

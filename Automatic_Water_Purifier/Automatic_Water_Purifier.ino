@@ -65,7 +65,7 @@ void loop()
 ===========================================================================
                       Custom Functions
 ===========================================================================
-==========================================================================
+===========================================================================
 */
 
 /* ************************************************************************
@@ -130,7 +130,7 @@ unsigned long Get_Time_Elapse(unsigned long Reference_Time)
 }
 
 
-/* ************************************************************************
+/* *************************************************************************
  * Function to convert CRC in buffer to respective CRC value.
  * *************************************************************************/
 NVM_CRC_DataType Convert_STR_2_CRC(uint8 * InputBuffer)
@@ -170,10 +170,10 @@ void Convert_CRC_2_STR(NVM_CRC_DataType CRC_Value, uint8 * OutputBuffer)
 ===========================================================================
           Public functions related to NVM data Processing.
 ===========================================================================
-==========================================================================
+===========================================================================
 */
 
-/* ************************************************************************
+/* *************************************************************************
  * Function to Process the NVM data, Validate Configuration and store.
  * *************************************************************************/
 
@@ -219,10 +219,10 @@ void Init_NVM_Stack(void)
   Nvm_Read_All();
 }
 
-/* ************************************************************************
+/* ****************************************************************************
  * Function to read all data from NVM and store in mirror if CRC is correct, 
  *    else update with default value.
- * *************************************************************************/
+ * ****************************************************************************/
 void Nvm_Read_All(void)
 {
 
@@ -350,7 +350,7 @@ void Nvm_Read_All(void)
         /* Loop for each byte and write*/
         for (Inner_Loop_Index = 0; Inner_Loop_Index < NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Length;Inner_Loop_Index++)
         {
-          TempValue = * ((uint8 *)(NVM_ParamaterMirror[NVMParam_LoopIndex] + Inner_Loop_Index));
+          TempValue = ((uint8 *)NVM_ParamaterMirror[NVMParam_LoopIndex])[Inner_Loop_Index];
           Serial.print(TempValue, HEX); 
           Serial.write(" ");
         }
@@ -366,6 +366,71 @@ void Nvm_Read_All(void)
     Current_Mirror_Start_Address += Current_ParamLength + NVM_CRC_NoOfBytes;
   }
 }
+
+
+
+/* *****************************************************************************
+ * Function to Read as Integer from the NVM based on the Paramater ID.
+ *  1. Function are for the NVM Paramaters which needs to return an Integer,
+ *        And of type NVM_VoidType in configuration. 
+ *  2. If requested for paramater with type NVM_StringType is requested, 
+ *       then first 4 byte or length ( which ever is the smallest) 
+ *       shall be considered and convert into Respective integer.
+ * ****************************************************************************/
+uint32 Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam)
+{
+  uint32 Return_Value = uint32_Max; /*Set Higest value as invalid value.*/
+  Data_Split_t Split_Var;
+  uint8 Loop_Index;
+  uint8 Current_Length;
+
+  /* Check if requested paramater is valied.*/
+  if (Requested_NVMParam < NVM_ID_Max)
+  {
+    /* Checking of type is not required because any way convertion is performing based on the data length only.*/
+
+    /* If its a one byte data.*/
+    if (NoOf_Byte_One == NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length)
+    {
+      Return_Value = ((uint8 *)NVM_ParamaterMirror[NVMParam_LoopIndex])[Int_Zero]
+    }
+    /* If number of byte is grater than 2 and less than 4, if more than 4, only consider upto 4*/
+    else
+    {
+      Current_Length = ((NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length <= NoOf_Byte_Four) ? VM_Param_Config_Table[Requested_NVMParam].NVMParam_Length : NoOf_Byte_Four);
+      /* Loop for each variable and store, after paramater length set value as Zero*/
+      for (Loop_Index = 0, Split_Var.U32_Data = uint32_Min; Loop_Index < Current_Length; Loop_Index++)
+      {
+        /* Read each data from mirror and store in t split array.*/
+        Split_Var.U8_Data[Loop_Index] = ((uint8 *)NVM_ParamaterMirror[NVMParam_LoopIndex])[Loop_Index];
+      }
+
+      Return_Value = Split_Var.U32_Data;
+    }
+  }
+  else /* Wrong paramater passed.*/
+  {
+    Debug_Trace("Dev Error:- Requested Paramater ID %d to function %s is wrong...", Requested_NVMParam, __func__);
+  }
+
+  return (Return_Value);
+}
+
+/* ********************************************************************************
+ * Function to Read as string / array from the NVM based on the Paramater ID.
+ *  1. Function are for the NVM Paramaters which needs to return an String / array,
+ *        And of type NVM_StringType in configuration. 
+ *  2. If requested for paramater with type NVM_VoidType is requested, 
+ *       then based on length each element shall store into output array.
+ * *********************************************************************************/
+void  Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam, uint8 * Return_Nvm_Value)
+{
+
+
+
+
+}
+
 
 /*
 ===========================================================================

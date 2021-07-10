@@ -86,11 +86,6 @@ const uint8 NVM_Default_Seting_HighFlowRateWarningAction  = Recovery_On_PowerOn;
 const uint8 NVM_Default_Seting_OperatationMode            = WF_Mode_Inline;            /*Variable to hold the default value for the NVM_ID_Seting_OperatationMode NVM paramater.*/
 
 
-
-
-
-
-
 const NVM_Param_Config_Table_Type NVM_Param_Config_Table[Total_NVM_Paramaters] = {
 
    /*
@@ -145,6 +140,7 @@ typedef union CRC_Split_Tag
 }CRC_Split_t;
 
 
+
 /*-----------------------------------------------------------------------------
  *  Configuration END
 -------------------------------------------------------------------------------*/
@@ -166,7 +162,11 @@ typedef union CRC_Split_Tag
 
 extern void Init_MCU(void);
 extern void Perform_Reset(void);
+
+/* NVM related Public functions*/
+
 extern void Nvm_Read_All(void);
 extern uint32 Convert_CRC(uint8 * InputBuffer);
-
+extern uint32  Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam);
+extern void    Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam, uint8 * Return_Nvm_Value);
 #endif /* End of  Automatic_Water_Purifier_H */
