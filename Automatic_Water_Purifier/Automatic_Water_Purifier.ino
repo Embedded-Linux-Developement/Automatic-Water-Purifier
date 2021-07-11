@@ -382,12 +382,16 @@ void Nvm_Read_All(void)
  *       then first 4 byte or length ( which ever is the smallest) 
  *       shall be considered and convert into Respective integer.
  * ****************************************************************************/
-uint32 Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam)
+uint32 Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam)
 {
   uint32 Return_Value = uint32_Max; /*Set Higest value as invalid value.*/
   Data_Split_t Split_Var;
   uint8 Loop_Index;
   uint8 Current_Length;
+  NVMParam_ID_Enum Requested_NVMParam;
+
+  /* Validate the Requested Index, and correct Same.*/
+  Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
 
   /* Check if requested paramater is valied.*/
   if (Requested_NVMParam < NVM_ID_Max)
@@ -399,17 +403,17 @@ uint32 Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam)
     /* If its a one byte data.*/
     if (NoOf_Byte_One == NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length)
     {
-      Return_Value = ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Int_Zero]
+      Return_Value = ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Int_Zero];
     }
     /* If number of byte is grater than 2 and less than 4, if more than 4, only consider upto 4*/
     else
     {
-      Current_Length = ((NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length <= NoOf_Byte_Four) ? VM_Param_Config_Table[Requested_NVMParam].NVMParam_Length : NoOf_Byte_Four);
+      Current_Length = ((NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length <= NoOf_Byte_Four) ? NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length : NoOf_Byte_Four);
       /* Loop for each variable and store, after paramater length set value as Zero*/
       for (Loop_Index = 0, Split_Var.U32_Data = uint32_Min; Loop_Index < Current_Length; Loop_Index++)
       {
         /* Read each data from mirror and store in t split array.*/
-        Split_Var.U8_Data[Loop_Index] = ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index];
+        Split_Var.SplitArray[Loop_Index] = ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index];
       }
 
       Return_Value = Split_Var.U32_Data;
@@ -417,7 +421,7 @@ uint32 Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam)
   }
   else /* Wrong paramater passed.*/
   {
-    Debug_Trace("Dev Error:- Requested Paramater ID %d to function %s is wrong...", Requested_NVMParam, __func__);
+    Debug_Trace("Dev Error:- Requested Paramater ID %d to function %s is wrong...", Input_Requested_NVMParam, __func__);
   }
 
   return (Return_Value);
@@ -432,11 +436,15 @@ uint32 Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam)
  *  3. Its responsibilty of user to give adequate sizes to Second Input argument 
  *       Return_Nvm_Value.
  * *********************************************************************************/
-void Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam, uint8 *Return_Nvm_Value)
+void Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Return_Nvm_Value)
 {
 
   uint8 Loop_Index;
   uint8 Current_Length;
+  NVMParam_ID_Enum Requested_NVMParam;
+
+  /* Validate the Requested Index, and correct Same.*/
+  Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
 
   /* Check if requested paramater is valied.*/
   if (Requested_NVMParam < NVM_ID_Max)
@@ -464,7 +472,7 @@ void Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam, uint8 *Return_Nvm_Value)
   }
   else /* Wrong paramater passed.*/
   {
-    Debug_Trace("Dev Error:- Requested Paramater ID %d to function %s is wrong...", Requested_NVMParam, __func__);
+    Debug_Trace("Dev Error:- Requested Paramater ID %d to function %s is wrong...", Input_Requested_NVMParam, __func__);
   }
 }
 
@@ -473,33 +481,37 @@ void Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam, uint8 *Return_Nvm_Value)
  * Function to validate NVM CRC status based on the Paramater ID. 
  *     And trigger Nvm Read all service if fault is detected.
  * *********************************************************************************/
-void Nvm_Validate_CRC_And_Recover(NVMParam_ID_Enum Requested_NVMParam)
+void Nvm_Validate_CRC_And_Recover(NVMParam_ID_Enum Input_Requested_NVMParam)
 {
   NVM_CRC_DataType Calculated_NVM_CRC;
   NVM_CRC_DataType Stored_NVM_CRC;
   uint8 Loop_Index;
   uint8 Current_Length;
+  NVMParam_ID_Enum Requested_NVMParam;
 
-      /* Copy to local variable to save Excitation time, to read every time from ROM. */
-      Current_Length = NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
+  /* Validate the Requested Index, and correct Same.*/
+  Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
 
-     /* Calculate New check sum and store.*/
-     /* Calculate the CRC.*/
-     MY_CRC.setPolynome(NVM_CRC_Polynomial);
-     MY_CRC.add((uint8_t *)NVM_ParamaterMirror[Requested_NVMParam], Current_Length);
-     Calculated_NVM_CRC = MY_CRC.getCRC();
-     MY_CRC.restart();
+  /* Copy to local variable to save Excitation time, to read every time from ROM. */
+  Current_Length = NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
 
-    /* Read Stored CRC from mirror*/
-    Stored_NVM_CRC = Convert_STR_2_CRC((uint8 *)(NVM_ParamaterMirror[Requested_NVMParam] + Current_Length));
-    /* Check if CRC is matching..*/
-    if (Stored_NVM_CRC != Calculated_NVM_CRC)
-    {
-      Debug_Trace("Error:- CRC calculation for paramater with ID %d is Not Successful, So triggering NVM Real All Service...", Requested_NVMParam);
-      Nvm_Read_All();
-    }
+  /* Calculate New check sum and store.*/
+  /* Calculate the CRC.*/
+  MY_CRC.setPolynome(NVM_CRC_Polynomial);
+  MY_CRC.add((uint8_t *)NVM_ParamaterMirror[Requested_NVMParam], Current_Length);
+  Calculated_NVM_CRC = MY_CRC.getCRC();
+  MY_CRC.restart();
 
-    /* Return is Not considered as same, shall not make any sense, As recovert action already performed... */
+  /* Read Stored CRC from mirror*/
+  Stored_NVM_CRC = Convert_STR_2_CRC((uint8 *)(NVM_ParamaterMirror[Requested_NVMParam] + Current_Length));
+  /* Check if CRC is matching..*/
+  if (Stored_NVM_CRC != Calculated_NVM_CRC)
+  {
+    Debug_Trace("Error:- CRC calculation for paramater with ID %d is Not Successful, So triggering NVM Real All Service...", NVM_Param_Config_Table[Requested_NVMParam].NVMParam_ID);
+    Nvm_Read_All();
+  }
+
+  /* Return is Not considered as same, shall not make any sense, As recovert action already performed... */
 }
 
 /* ********************************************************************************
@@ -507,16 +519,130 @@ void Nvm_Validate_CRC_And_Recover(NVMParam_ID_Enum Requested_NVMParam)
  * *********************************************************************************/
 void NVM_READ_Write_Test(void)
 {
-  NVM_CRC_DataType Calculated_NVM_CRC;
-  NVM_CRC_DataType Stored_NVM_CRC;
-  uint8 Loop_Index;
-  uint8 Current_Length;
+  uint16 Param_Loop_Index;
+  uint16 Data_Loop_Index;
+  uint16 Current_Length;
+  NVMParam_ID_Enum Converted_Index;
+  uint8 Temp_Buffer[Int_OneHundred]; /* Expecting maximum Size of a paramater is 100 bytes.*/
+  uint8 TestResult;
+
+/*========================================================================*/
+/* Validate the Default Data, If Enabled.*/
+#if (NVM_Stack_Default_Test == STD_ON)
+  /*========================================================================*/
+  /* 
+ * This testing will work only if NVM data is Not set updated.
+ * This Test will test the updating of Defalt value.
+*/
+
+  /* Set default test result.*/
+  TestResult = E_OK;
+  /* Loop through each NVM paramater's */
+  for (Param_Loop_Index = 0; Param_Loop_Index < NVM_ID_Max; Param_Loop_Index++)
+  {
+    /* Get Index of the Paramater. */
+    Converted_Index = NVM_Get_NVM_Param_Index((NVMParam_ID_Enum)Param_Loop_Index);
+    /* Store current data length */
+    Current_Length = NVM_Param_Config_Table[Converted_Index].NVMParam_Length;
+
+    /* Check and skype if Data length is more than expected.*/
+    if (Current_Length >= Int_OneHundred)
+    {
+      Debug_Trace("Test Warning:- Default value checking for NVM paramater ID %d is skyped, Because length of this paramater is more than Test internal buffer.", NVM_Param_Config_Table[Converted_Index].NVMParam_ID);
+      /* Skype this loop as not matching test design criteria.*/
+      continue;
+    }
+
+    /* Read the Data from NVM Mirror.*/
+    Nvm_Read_Each(NVM_Param_Config_Table[Converted_Index].NVMParam_ID, Temp_Buffer);
+
+    /* Check the type of the NVM Paramater.*/
+    if (NVM_Param_Config_Table[Converted_Index].NVMParam_Type == NVM_StringType)
+    {
+      /* Read the Data from NVM Mirror.*/
+      if (strcmp((char *)Temp_Buffer, (char *)NVM_Param_Config_Table[Converted_Index].NVMParam_Default) != Int_Zero)
+      {
+        /* Set as result Failed.*/
+        TestResult = E_NOT_OK;
+        Debug_Trace("Test Failed:- Default value checking for NVM paramater ID %d is failed, It means at present NVM did not have default value.", NVM_Param_Config_Table[Converted_Index].NVMParam_ID);
+      }
+    }
+    else /* If Type is not of string.*/
+    {
+
+      /* Loop for each element and validate.*/
+      for (Data_Loop_Index = 0; Data_Loop_Index < Current_Length; Data_Loop_Index++)
+      {
+        /* Check if any data is mismatching.*/
+        if (Temp_Buffer[Data_Loop_Index] != ((char *)NVM_Param_Config_Table[Converted_Index].NVMParam_Default)[Data_Loop_Index])
+        {
+          /* Mismatch found*/
+          /* Set as result Failed.*/
+          TestResult = E_NOT_OK;
+          Debug_Trace("Test Failed:- Default value checking for NVM paramater ID %d is failed, It means at present NVM did not have default value.", NVM_Param_Config_Table[Converted_Index].NVMParam_ID);
+          /* Break the loop*/
+          Data_Loop_Index += Current_Length;
+        }
+      }
+    }
+  }
+
+  /* Check Final result.*/
+  if (TestResult == E_OK)
+  {
+    Debug_Trace("Test Passed:- Over all Default value Test Passed.");
+  }
+  else
+  {
+    Debug_Trace("Test Failed:- Over all Default value Test Failed.");
+  }
+
+#endif  /* End of NVM_Stack_Default_Test*/
 
 
 
     /* Return is Not considered as same, shall not make any sense, As recovert action already performed... */
 }
 
+
+/* ********************************************************************************
+ * Function to get the Index based on Index Table of NVM paramater
+ * *********************************************************************************/
+NVMParam_ID_Enum NVM_Get_NVM_Param_Index(NVMParam_ID_Enum Requested_NVMParam)
+{
+
+  NVMParam_ID_Enum Return_Index;
+  uint8 Loop_Index;
+
+  /* Set Max value as invalid as its detectable.*/
+  Return_Index = NVM_ID_Max;
+  /* Check if requested above Max Value*/
+  if (Requested_NVMParam < NVM_ID_Max)
+  {
+
+    /* Check if the Requested NVM paramater ID is inline with the Index of the array, If same then return same.*/
+    if (NVM_Param_Config_Table[Requested_NVMParam].NVMParam_ID == Requested_NVMParam)
+    {
+      /* Return Index*/
+      Return_Index = Requested_NVMParam;
+    }
+    else /* Index mismatch's, Do search operatation.*/
+    {
+      /* Loop for each variable and store, Expecting the length of buffer is enough.*/
+      for (Loop_Index = Int_Zero, Return_Index = NVM_ID_Max; ((Loop_Index < NVM_ID_Max) && (NVM_ID_Max == Return_Index)); Loop_Index++)
+      {
+        /*Check if ID matches.*/
+        if (Requested_NVMParam == NVM_Param_Config_Table[Requested_NVMParam].NVMParam_ID)
+        {
+          /* Captured current Index as its matchecs.*/
+          Return_Index = (NVMParam_ID_Enum)Loop_Index;
+        }
+      }
+    }
+  }
+  /* Return Actual Index.*/
+  return (Requested_NVMParam);
+}
 
 /*
 ===========================================================================

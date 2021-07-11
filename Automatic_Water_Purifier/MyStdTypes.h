@@ -21,6 +21,10 @@ typedef  unsigned long long uint64;    /* Slandered Data type for unsigned 64 bi
 
 /*Following is the Enum for NVM Paramater ID.*/
 enum  NVMParam_ID_Enum{
+  NVM_Start_Signature,                           /* This NVM paramater is storing the Signature to Identify the start and validate NVM, Please keep it at the begining.*/
+
+/* ================================ Please add new Paramater below this point.=============================*/
+
   NVM_ID_Value_WiFiSSIDName,                     /* This NVM paramater is storing the WiFi SSID Name set by the user.*/
   NVM_ID_Value_WiFiSSIDPasword,                  /* This NVM paramater is storing the WiFi SSID Pasword set by the user. Pasword shall Not store Securely*/
   NVM_ID_Value_WiFiStsticIP,                     /* This NVM paramater is storing the Server IP, If user specify then only same shall be considered, Else shall ignore.*/
@@ -40,6 +44,10 @@ enum  NVMParam_ID_Enum{
   NVM_ID_Seting_LowFlowRateWarningAction,         /* This NVM paramater is storing Action to me considered once low Flow rate is detected.*/
   NVM_ID_Seting_HighFlowRateWarningAction,        /* This NVM paramater is storing Action to me considered once High Flow rate is detected.*/
   
+
+/* ================================ Do Not add any new Paramater below this point.=============================*/
+
+  NVM_END_Signature,                           /* This NVM paramater is storing the Signature to Identify the start and validate NVM, Please keep it at the begining.*/
   NVM_ID_Max                                      /* To represent the maximum ID possible.*/
 };
 
@@ -121,6 +129,7 @@ typedef union Data_Split_Tag
 #define Int_Zero        0U
 #define Int_One         1U
 #define Int_Two         2U
+#define Int_OneHundred  100U
 
 #define uint32_Max        0xFFFFFFFFU
 #define uint32_Min        (uint32)0x00000000U

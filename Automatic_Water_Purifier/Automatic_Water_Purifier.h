@@ -57,7 +57,7 @@
 *******************************************************************************/
 /* This Macro represent the maximum available, For ESP32, Its 512Bytes */
 #define Max_Available_EEPROM 512
-#define Total_NVM_Paramaters 16   /* Represent Max NVM paramater, Please make sure shall same as NVM_ID_Max*/
+#define Total_NVM_Paramaters 18   /* Represent Max NVM paramater, Please make sure shall same as NVM_ID_Max*/
 #define NVM_CRC_NoOfBytes    2    /* Number of bytes required to store CRC of each paramater.*/
 #define NVM_CRC_Polynomial   0x2867 /* Polynomial for calculate the CRC*/
 
@@ -74,18 +74,19 @@
 #define NVM_Stack_Distractive_Test STD_ON   
 
 /* 
- * This paramater is to perform the check for Default value.
+* This paramater is to perform the check for Default value.
 *     1. Its always Recomented to STD_OFF, Because Once configured default value Check shall be always fails.
 *     2. Its just considered to validate default value update after any code update, As validatation.
 */
-#define NVM_Stack_Distractive_Test STD_ON   
+#define NVM_Stack_Default_Test STD_ON   
 
 /* 
  * This paramater is to Validate the Signature, 
  *   1. By writting and reading a specific data at start and end Address of the NVM memort block.
  *   2. For the same Will have 2 Reserved NVM paramater one at start and one at End.
- *   3. It shall use Update interface, which will not write to EEPROM id data is same. 
+ *   3. It shall use Update interface, which will not write to EEPROM Address data is same. 
  *   4. And we will keep same data, else will affect the endurance of the Prodect.
+ *   4. Highely recommend to keep ot as STD_ON, because will help to find fault in NVM.
 */
 #define NVM_Stack_Signature_Test STD_ON   
 
@@ -111,6 +112,15 @@ const uint8 NVM_Default_Seting_LowFlowRateWarningAction   = Recovery_Time_Bound;
 const uint8 NVM_Default_Seting_HighFlowRateWarningAction  = Recovery_On_PowerOn;       /*Variable to hold the default value for the NVM_ID_Seting_HighFlowRateWarningAction NVM paramater.*/
 const uint8 NVM_Default_Seting_OperatationMode            = WF_Mode_Inline;            /*Variable to hold the default value for the NVM_ID_Seting_OperatationMode NVM paramater.*/
 
+/* Below Variables and Macros are for setting the NVM Signature Value*/
+#define NVM_Start_Signature_Sizes  4U /* Define the sizes of Start Signature.*/
+#define NVM_Start_Signature_Data   "SSV"  /*String to be stored in Start Signature.*/
+const uint8 NVM_Default_Start_Signature_Data[NVM_Start_Signature_Sizes] = NVM_Start_Signature_Data;  /*String to hold the default value for the NVM_Start_Signature NVM paramater.*/
+
+#define NVM_End_Signature_Sizes  4U /* Define the sizes of End Signature.*/
+#define NVM_End_Signature_Data   {0x56U, 0x55U, 0xAAU, 0xFFU} /*String to be stored in End Signature.*/
+const uint8 NVM_Default_End_Signature_Data[NVM_End_Signature_Sizes] = NVM_End_Signature_Data;  /*String to hold the default value for the NVM_End_Signature NVM paramater.*/
+
 
 const NVM_Param_Config_Table_Type NVM_Param_Config_Table[Total_NVM_Paramaters] = {
 
@@ -122,7 +132,10 @@ const NVM_Param_Config_Table_Type NVM_Param_Config_Table[Total_NVM_Paramaters] =
    
    */
 
-/* NVMParam_ID                                 , NVMParam_Length ,  NVMParam_Type   ,            &NVMParam_Default         */
+{NVM_Start_Signature , NVM_Start_Signature_Sizes,  NVM_StringType  ,  NVM_Default_Start_Signature_Data },  
+/*========================================== Please add New NVM paramater below this Point Only.===================================================*/
+/* NVMParam_ID                                 , NVMParam_Length  ,  NVMParam_Type   ,            &NVMParam_Default         */
+
 {NVM_ID_Value_WiFiSSIDName                     ,        75U       ,  NVM_StringType  ,     NVM_Default_Value_WiFiSSIDName                          },   
 {NVM_ID_Value_WiFiSSIDPasword                  ,        75U       ,  NVM_StringType  ,     NVM_Default_Value_WiFiSSIDPasword                       },   
 {NVM_ID_Value_WiFiStsticIP                     ,        04U       ,  NVM_VoidType    ,     NVM_Default_Value_WiFiStsticIP                          },   
@@ -143,6 +156,10 @@ const NVM_Param_Config_Table_Type NVM_Param_Config_Table[Total_NVM_Paramaters] =
 {NVM_ID_Seting_OperatationMode                 ,        01U       ,  NVM_VoidType    ,     &NVM_Default_Seting_OperatationMode                     },  
 {NVM_ID_Seting_LowFlowRateWarningAction        ,        01U       ,  NVM_VoidType    ,     &NVM_Default_Seting_LowFlowRateWarningAction            },  
 {NVM_ID_Seting_HighFlowRateWarningAction       ,        01U       ,  NVM_VoidType    ,     &NVM_Default_Seting_HighFlowRateWarningAction           },  
+
+
+/*========================================== Please DO NOT add any New NVM paramater below this Point.=============================================*/
+{NVM_END_Signature , NVM_End_Signature_Sizes ,  NVM_VoidType    ,  NVM_Default_End_Signature_Data  }
 
 };
 
@@ -193,6 +210,7 @@ extern void Perform_Reset(void);
 
 extern void Nvm_Read_All(void);
 extern uint32 Convert_CRC(uint8 * InputBuffer);
-extern uint32  Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam);
-extern void    Nvm_Read_Each(NVMParam_ID_Enum Requested_NVMParam, uint8 * Return_Nvm_Value);
+extern uint32  Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam);
+extern void    Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 * Return_Nvm_Value);
+extern void Nvm_Validate_CRC_And_Recover(NVMParam_ID_Enum Input_Requested_NVMParam);
 #endif /* End of  Automatic_Water_Purifier_H */
