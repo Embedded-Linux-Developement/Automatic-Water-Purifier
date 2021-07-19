@@ -65,7 +65,7 @@
  * This paramater is to indicate wheather all NVM mirror values to be printed. 
  *  Recommenced to be STD_OFF on production, As it can compermise the Security Informatations in NVM.
 */
-#define Debug_Print_All_NVM_Read_All_Value STD_ON   
+#define Debug_Print_All_NVM_Read_All_Value STD_OFF   
 /* 
  * This paramater is to perform the destractive Test, Will write New Data and read it back to verify.
  *   Its always Recomented to STD_OFF, Because will corrept the NVM data on every restart, Only meant for testing NVM stack.. 

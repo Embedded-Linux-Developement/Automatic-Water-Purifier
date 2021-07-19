@@ -20,6 +20,7 @@ char Timming_Buffer[Max_Debug_Time_Buffer];
 /* Below are the global variable for NVM RAM mirroring*/
 uint8 NVM_Ram_Mirror_Buffer[Max_Available_EEPROM];  /* Buffer storing the NVM RAM mirroe. */
 uint8 * NVM_ParamaterMirror[Total_NVM_Paramaters];  /* Pointer to storing each paramater Buffer. */
+portMUX_TYPE NVM_Mirror_Mux = portMUX_INITIALIZER_UNLOCKED; /* Mutex to protect the NVM mirror from access mutex.*/
 
 /*******************************************************************************
  *  Functions Extern deceleration
@@ -253,6 +254,9 @@ void Nvm_Read_All(void)
     /* Get Current Length.*/
     Current_ParamLength = NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Length;
 
+    /* Enter in to Critical Section for NVM Mirror read/ update.*/
+    portENTER_CRITICAL(&NVM_Mirror_Mux);
+
     /* Update the Mirror Start Address*/
     NVM_ParamaterMirror[NVMParam_LoopIndex] = (uint8 *)&NVM_Ram_Mirror_Buffer[Current_Mirror_Start_Address];
 
@@ -262,6 +266,8 @@ void Nvm_Read_All(void)
       ((uint8 *)NVM_ParamaterMirror[NVMParam_LoopIndex])[NVMEachData_Index] = EEPROM.read((Current_Mirror_Start_Address + NVMEachData_Index));
     }
 
+
+
     /* Calculate the CRC.*/
     MY_CRC.setPolynome(NVM_CRC_Polynomial);
     MY_CRC.add((uint8_t *)NVM_ParamaterMirror[NVMParam_LoopIndex], Current_ParamLength);
@@ -270,6 +276,9 @@ void Nvm_Read_All(void)
 
     /* Read Stored CRC*/
     Stored_NVM_CRC = Convert_STR_2_CRC((uint8 *)(NVM_ParamaterMirror[NVMParam_LoopIndex] + Current_ParamLength));
+
+
+
     /* Check if CRC is matching..*/
     if (Stored_NVM_CRC == Calculated_NVM_CRC)
     {
@@ -285,10 +294,10 @@ void Nvm_Read_All(void)
      if ( NVM_StringType == NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Type)
      {
        /* If Default value is configured.*/
-       if(NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Default != CharNULLPtr)
+       if (NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Default != CharNULLPtr)
        {
-          strcpy((char *)NVM_ParamaterMirror[NVMParam_LoopIndex], (char *)NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Default);
-       } /* Default value not configured.*/
+         strcpy((char *)NVM_ParamaterMirror[NVMParam_LoopIndex], (char *)NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Default);
+       }    /* Default value not configured.*/
        else /* Set Zero \ '\0' in First location, which render it as empty string*/
        {
          ((uint8 *)NVM_ParamaterMirror[NVMParam_LoopIndex])[0] = '\0';
@@ -364,15 +373,15 @@ void Nvm_Read_All(void)
      /* Add New Line */
      Serial.write("\n");
 #endif
-
-
     }
+
+    /* Exit from Critical Section for NVM Mirror read/ update.*/
+    portEXIT_CRITICAL(&NVM_Mirror_Mux);
+
     /* Increase Address Pointer to reach Next paramater start Location.*/
     Current_Mirror_Start_Address += Current_ParamLength + NVM_CRC_NoOfBytes;
   }
 }
-
-
 
 /* *****************************************************************************
  * Function to Read as Integer from the NVM based on the Paramater ID.
@@ -398,7 +407,10 @@ uint32 Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam)
   {
     /* Checking of type is not required because any way convertion is performing based on the data length only.*/
     /* Validate the NVM mirror */
-    Nvm_Validate_CRC_And_Recover(Requested_NVMParam);
+    Nvm_Validate_CRC_And_Recover(Input_Requested_NVMParam);
+
+    /* Enter in to Critical Section for NVM Mirror read/ update.*/
+    portENTER_CRITICAL(&NVM_Mirror_Mux);
 
     /* If its a one byte data.*/
     if (NoOf_Byte_One == NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length)
@@ -418,6 +430,9 @@ uint32 Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam)
 
       Return_Value = Split_Var.U32_Data;
     }
+
+    /* Exit from Critical Section for NVM Mirror read/ update.*/
+    portEXIT_CRITICAL(&NVM_Mirror_Mux);
   }
   else /* Wrong paramater passed.*/
   {
@@ -450,6 +465,163 @@ void Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Return_Nvm_
   if (Requested_NVMParam < NVM_ID_Max)
   {
     /* Validate the NVM mirror */
+    Nvm_Validate_CRC_And_Recover(Input_Requested_NVMParam);
+
+    /* Enter in to Critical Section for NVM Mirror read/ update.*/
+    portENTER_CRITICAL(&NVM_Mirror_Mux);
+
+    /* If its a String, Then do a string copy.*/
+    if (NVM_StringType == NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Type)
+    {
+      /* Do string copy */
+      strcpy((char *)Return_Nvm_Value, (char *)NVM_ParamaterMirror[Requested_NVMParam]);
+    }
+    /* for any other type copy all data back.*/
+    else
+    {
+      /* Copy to local variable to save Excitation time, to read every time from ROM. */
+      Current_Length = NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
+      /* Loop for each variable and store, Expecting the length of buffer is enough.*/
+      for (Loop_Index = 0; Loop_Index < Current_Length; Loop_Index++)
+      {
+        /* Read each data from mirror and store in to return array.*/
+        Return_Nvm_Value[Loop_Index] = ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index];
+      }
+    }
+
+    /* Exit from Critical Section for NVM Mirror read/ update.*/
+    portEXIT_CRITICAL(&NVM_Mirror_Mux);
+  }
+  else /* Wrong paramater passed.*/
+  {
+    Debug_Trace("Dev Error:- Requested Paramater ID %d to function %s is wrong...", Input_Requested_NVMParam, __func__);
+  }
+}
+
+
+
+
+/* *****************************************************************************
+ * Function to Write as Integer into the NVM based on the Paramater ID.
+ *  1. Function are for the NVM Paramaters which needs to write an Integer,
+ *        And of type NVM_VoidType in configuration. 
+ *  2. If requested for paramater with type NVM_StringType is requested, 
+ *       then first 4 byte or length ( which ever is the smallest) 
+ *       shall be considered and convert into Respective integer.
+ * ****************************************************************************/
+void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint32 NVM_Intger_Value)
+{
+  Data_Split_t Split_Var;
+  uint16 Loop_Index;
+  uint16 Current_NVM_Address;
+  uint8 Current_Length;
+  uint16 Current_ParamLength;
+  NVMParam_ID_Enum Requested_NVMParam;
+  NVM_CRC_DataType New_Calculated_CRC;
+  uint16 Current_NVM_Param_Start_Address;
+
+
+  /* Validate the Requested Index, and correct Same.*/
+  Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
+
+  /* Check if requested paramater is valied.*/
+  if (Requested_NVMParam < NVM_ID_Max)
+  {
+    /* Store length of current paramater in local variable.*/
+    Current_ParamLength = VM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
+    /* Enter in to Critical Section for NVM Mirror read/ update.*/
+    portENTER_CRITICAL(&NVM_Mirror_Mux);
+
+    /* If its a one byte data, Then just do a simple copy.*/
+    if (NoOf_Byte_One == Current_ParamLength)
+    {
+      /* Copy only First Lower nebula from Input, as expecting a uint8 value. */
+      ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Int_Zero] = (uint8)NVM_Intger_Value;
+    /* If number of byte is grater than 2 and less than 4, if more than 4, only consider upto 4*/
+    }
+    else
+    {
+      /* Get Maximum Lengeth configured.*/
+      Current_Length = ((Current_ParamLength <= NoOf_Byte_Four) ? Current_ParamLength : NoOf_Byte_Four);
+      /* Loop for each variable and store, after paramater length set value as Zero*/
+      for (Loop_Index = Int_Zero, Split_Var.U32_Data = NVM_Intger_Value; Loop_Index < Current_Length; Loop_Index++)
+      {
+        /* Write each data into mirror from the split array.*/
+        ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index] = Split_Var.SplitArray[Loop_Index];
+      }
+    }
+
+    /* Calculate New CRC for the NVM Mirror.*/
+     /* Calculate the CRC.*/
+     MY_CRC.setPolynome(NVM_CRC_Polynomial);
+     MY_CRC.add((uint8_t *)NVM_ParamaterMirror[Requested_NVMParam], Current_ParamLength);
+     New_Calculated_CRC = MY_CRC.getCRC();
+     MY_CRC.restart();
+     /* Convert Checksum in to array and store in NVM mirror variable.*/
+     Convert_CRC_2_STR(New_Calculated_CRC,(uint8 *)(NVM_ParamaterMirror[Requested_NVMParam] + Current_ParamLength));
+
+    /* Get the starting address, Based on the configuration, Sane is Not stored in RAM @ startup to avoid Mis placing of data due to RAN curroption.*/
+    Current_NVM_Param_Start_Address = Int_Zero;
+    for (Loop_Index = Int_Zero; Loop_Index < Requested_NVMParam; Loop_Index++)
+    {
+       /* Add up length and Checksun memory*/
+       Current_NVM_Param_Start_Address += (VM_Param_Config_Table[Requested_NVMParam].NVMParam_Length + NVM_CRC_NoOfBytes);
+    }
+
+    /* Write Into NVM and  Both data and checksum.*/
+    /* Convert Total length along with CRC to End Address*/
+    Current_ParamLength += (NVM_CRC_NoOfBytes + Current_NVM_Param_Start_Address);
+    /* Read the NVM data.*/
+    for (Current_NVM_Address = Current_NVM_Param_Start_Address; Current_NVM_Address < Current_ParamLength; Current_NVM_Address++)
+    {
+      /* Write each data into EEPROM*/
+      EEPROM.write(Current_NVM_Address, NVM_Ram_Mirror_Buffer[Current_NVM_Address]);
+    }
+    /* Save all data into EEPROM.*/
+    EEPROM.commit();
+
+    /* Exit from Critical Section for NVM Mirror read/ update.*/
+    portEXIT_CRITICAL(&NVM_Mirror_Mux);
+
+    /* Validate the NVM mirror */
+    Nvm_Validate_CRC_And_Recover(Input_Requested_NVMParam);
+
+    Debug_Trace("Info:- Write Requested for NVM Paramater ID %d is Completed, And Verified, If any error found same message shall appear before this message...", Input_Requested_NVMParam);
+
+  }
+  else /* Wrong paramater passed.*/
+  {
+    Debug_Trace("Dev Error:- Write Requested NVM Paramater ID %d to function %s is wrong...", Input_Requested_NVMParam, __func__);
+  }
+
+}
+
+/* ********************************************************************************
+ * Function to Write as string / array to the NVM based on the Paramater ID.
+ *  1. Function are for the NVM Paramaters which needs to write String / array,
+ *        And of type NVM_StringType in configuration. 
+ *  2. If requested for paramater with type NVM_VoidType is requested, 
+ *       then based on length each element shall store into output array.
+ *  3. Its responsibilty of user to give adequate sizes to Second Input argument 
+ *       Nvm_Array_Value.
+ * *********************************************************************************/
+void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Nvm_Array_Value)
+{
+
+  uint8 Current_Length;
+  NVMParam_ID_Enum Requested_NVMParam;
+
+
+  uint16 Loop_Index;
+  uint16 Current_NVM_Address;
+  uint8 Current_Length;
+  uint16 Current_ParamLength;
+  NVMParam_ID_Enum Requested_NVMParam;
+  NVM_CRC_DataType New_Calculated_CRC;
+  uint16 Current_NVM_Param_Start_Address;
+
+
+    /* Validate the NVM mirror */
     Nvm_Validate_CRC_And_Recover(Requested_NVMParam);
     /* If its a String, Then do a string copy.*/
     if (NVM_StringType == NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Type)
@@ -469,12 +641,99 @@ void Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Return_Nvm_
         Return_Nvm_Value[Loop_Index] = ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index];
       }
     }
+
+
+
+
+
+
+  /* Validate the Requested Index, and correct Same.*/
+  Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
+
+  /* Check if requested paramater is valied.*/
+  if (Requested_NVMParam < NVM_ID_Max)
+  {
+    /* Store length of current paramater in local variable.*/
+    Current_ParamLength = VM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
+    /* Enter in to Critical Section for NVM Mirror read/ update.*/
+    portENTER_CRITICAL(&NVM_Mirror_Mux);
+
+    /* If its a one byte data, Then just do a simple copy.*/
+    if (NoOf_Byte_One == Current_ParamLength)
+    {
+      /* Copy only First Lower nebula from Input, as expecting a uint8 value. */
+      ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Int_Zero] = (uint8)NVM_Intger_Value;
+    /* If number of byte is grater than 2 and less than 4, if more than 4, only consider upto 4*/
+    }
+    else
+    {
+      /* Get Maximum Lengeth configured.*/
+      Current_Length = ((Current_ParamLength <= NoOf_Byte_Four) ? Current_ParamLength : NoOf_Byte_Four);
+      /* Loop for each variable and store, after paramater length set value as Zero*/
+      for (Loop_Index = Int_Zero, Split_Var.U32_Data = NVM_Intger_Value; Loop_Index < Current_Length; Loop_Index++)
+      {
+        /* Write each data into mirror from the split array.*/
+        ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index] = Split_Var.SplitArray[Loop_Index];
+      }
+    }
+
+    /* Calculate New CRC for the NVM Mirror.*/
+     /* Calculate the CRC.*/
+     MY_CRC.setPolynome(NVM_CRC_Polynomial);
+     MY_CRC.add((uint8_t *)NVM_ParamaterMirror[Requested_NVMParam], Current_ParamLength);
+     New_Calculated_CRC = MY_CRC.getCRC();
+     MY_CRC.restart();
+     /* Convert Checksum in to array and store in NVM mirror variable.*/
+     Convert_CRC_2_STR(New_Calculated_CRC,(uint8 *)(NVM_ParamaterMirror[Requested_NVMParam] + Current_ParamLength));
+
+    /* Get the starting address, Based on the configuration, Sane is Not stored in RAM @ startup to avoid Mis placing of data due to RAN curroption.*/
+    Current_NVM_Param_Start_Address = Int_Zero;
+    for (Loop_Index = Int_Zero; Loop_Index < Requested_NVMParam; Loop_Index++)
+    {
+       /* Add up length and Checksun memory*/
+       Current_NVM_Param_Start_Address += (VM_Param_Config_Table[Requested_NVMParam].NVMParam_Length + NVM_CRC_NoOfBytes);
+    }
+
+    /* Write Into NVM and  Both data and checksum.*/
+    /* Convert Total length along with CRC to End Address*/
+    Current_ParamLength += (NVM_CRC_NoOfBytes + Current_NVM_Param_Start_Address);
+    /* Read the NVM data.*/
+    for (Current_NVM_Address = Current_NVM_Param_Start_Address; Current_NVM_Address < Current_ParamLength; Current_NVM_Address++)
+    {
+      /* Write each data into EEPROM*/
+      EEPROM.write(Current_NVM_Address, NVM_Ram_Mirror_Buffer[Current_NVM_Address]);
+    }
+    /* Save all data into EEPROM.*/
+    EEPROM.commit();
+
+    /* Exit from Critical Section for NVM Mirror read/ update.*/
+    portEXIT_CRITICAL(&NVM_Mirror_Mux);
+
+    /* Validate the NVM mirror */
+    Nvm_Validate_CRC_And_Recover(Input_Requested_NVMParam);
+
+    Debug_Trace("Info:- Write Requested for NVM Paramater ID %d is Completed, And Verified, If any error found same message shall appear before this message...", Input_Requested_NVMParam);
+
   }
   else /* Wrong paramater passed.*/
   {
-    Debug_Trace("Dev Error:- Requested Paramater ID %d to function %s is wrong...", Input_Requested_NVMParam, __func__);
+    Debug_Trace("Dev Error:- Write Requested NVM Paramater ID %d to function %s is wrong...", Input_Requested_NVMParam, __func__);
   }
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
 
 
 /* ********************************************************************************
@@ -495,6 +754,9 @@ void Nvm_Validate_CRC_And_Recover(NVMParam_ID_Enum Input_Requested_NVMParam)
   /* Copy to local variable to save Excitation time, to read every time from ROM. */
   Current_Length = NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
 
+  /* Enter in to Critical Section for NVM Mirror read/ update.*/
+  portENTER_CRITICAL(&NVM_Mirror_Mux);
+
   /* Calculate New check sum and store.*/
   /* Calculate the CRC.*/
   MY_CRC.setPolynome(NVM_CRC_Polynomial);
@@ -504,6 +766,10 @@ void Nvm_Validate_CRC_And_Recover(NVMParam_ID_Enum Input_Requested_NVMParam)
 
   /* Read Stored CRC from mirror*/
   Stored_NVM_CRC = Convert_STR_2_CRC((uint8 *)(NVM_ParamaterMirror[Requested_NVMParam] + Current_Length));
+
+  /* Exit from Critical Section for NVM Mirror read/ update.*/
+  portEXIT_CRITICAL(&NVM_Mirror_Mux);
+
   /* Check if CRC is matching..*/
   if (Stored_NVM_CRC != Calculated_NVM_CRC)
   {
