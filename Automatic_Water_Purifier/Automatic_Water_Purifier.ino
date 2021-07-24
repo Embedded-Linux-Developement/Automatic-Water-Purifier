@@ -203,6 +203,21 @@ void Init_NVM_Stack(void)
     for (ForLoopIndex = 0, TotalNvm_Memory = 0; ForLoopIndex < Total_NVM_Paramaters; ForLoopIndex++)
     {
       TotalNvm_Memory += NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length + NVM_CRC_NoOfBytes;
+
+      /* Check if the NVM paramater of type "NVM_StringType" shall have minimum length of 2 Byte, Because one byte is reserved for null charactor '\0'.*/
+      if ((NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length < Int_Two) && (NVM_Param_Config_Table[ForLoopIndex].NVMParam_Type == NVM_StringType) )
+      {
+        Debug_Trace("Error:- For NVM Paramater %d, of type 'NVM_StringType' mimimum length shall be 2, But Here configured as %d.", NVM_Param_Config_Table[ForLoopIndex].NVMParam_ID , NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length );
+        Error_Status = E_NOT_OK;
+      }
+
+      /* Check if NVM paramater length is Non Zero, if so will give error, because same can brake the code.*/
+      if ((NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length == Int_Zero))
+      {
+        Debug_Trace("Error:- For NVM Paramater %d is configured configured as %d. all NVM paramater shall have minimum sizes grater than 1.", NVM_Param_Config_Table[ForLoopIndex].NVMParam_ID , NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length );
+        Error_Status = E_NOT_OK;
+      }
+
     }
     /* Check if the total sizes is within the Limit.*/
     if (TotalNvm_Memory >= Max_Available_EEPROM)
@@ -514,7 +529,7 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint32 NVM_Intger
   Data_Split_t Split_Var;
   uint16 Loop_Index;
   uint16 Current_NVM_Address;
-  uint8 Current_Length;
+  uint16 Current_Length;
   uint16 Current_ParamLength;
   NVMParam_ID_Enum Requested_NVMParam;
   NVM_CRC_DataType New_Calculated_CRC;
@@ -528,7 +543,7 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint32 NVM_Intger
   if (Requested_NVMParam < NVM_ID_Max)
   {
     /* Store length of current paramater in local variable.*/
-    Current_ParamLength = VM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
+    Current_ParamLength = NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
     /* Enter in to Critical Section for NVM Mirror read/ update.*/
     portENTER_CRITICAL(&NVM_Mirror_Mux);
 
@@ -561,12 +576,7 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint32 NVM_Intger
      Convert_CRC_2_STR(New_Calculated_CRC,(uint8 *)(NVM_ParamaterMirror[Requested_NVMParam] + Current_ParamLength));
 
     /* Get the starting address, Based on the configuration, Sane is Not stored in RAM @ startup to avoid Mis placing of data due to RAN curroption.*/
-    Current_NVM_Param_Start_Address = Int_Zero;
-    for (Loop_Index = Int_Zero; Loop_Index < Requested_NVMParam; Loop_Index++)
-    {
-       /* Add up length and Checksun memory*/
-       Current_NVM_Param_Start_Address += (VM_Param_Config_Table[Requested_NVMParam].NVMParam_Length + NVM_CRC_NoOfBytes);
-    }
+    Current_NVM_Param_Start_Address = NVM_Get_NVM_Param_Start_Address(Input_Requested_NVMParam);
 
     /* Write Into NVM and  Both data and checksum.*/
     /* Convert Total length along with CRC to End Address*/
@@ -608,43 +618,12 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint32 NVM_Intger
 void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Nvm_Array_Value)
 {
 
-  uint8 Current_Length;
-  NVMParam_ID_Enum Requested_NVMParam;
-
-
   uint16 Loop_Index;
   uint16 Current_NVM_Address;
-  uint8 Current_Length;
   uint16 Current_ParamLength;
   NVMParam_ID_Enum Requested_NVMParam;
   NVM_CRC_DataType New_Calculated_CRC;
   uint16 Current_NVM_Param_Start_Address;
-
-
-    /* Validate the NVM mirror */
-    Nvm_Validate_CRC_And_Recover(Requested_NVMParam);
-    /* If its a String, Then do a string copy.*/
-    if (NVM_StringType == NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Type)
-    {
-      /* Do string copy */
-      strcpy((char *)Return_Nvm_Value, (char *)NVM_ParamaterMirror[Requested_NVMParam]);
-    }
-    /* for any other type copy all data back.*/
-    else
-    {
-      /* Copy to local variable to save Excitation time, to read every time from ROM. */
-      Current_Length = NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
-      /* Loop for each variable and store, Expecting the length of buffer is enough.*/
-      for (Loop_Index = 0; Loop_Index < Current_Length; Loop_Index++)
-      {
-        /* Read each data from mirror and store in to return array.*/
-        Return_Nvm_Value[Loop_Index] = ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index];
-      }
-    }
-
-
-
-
 
 
   /* Validate the Requested Index, and correct Same.*/
@@ -654,26 +633,36 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Nvm_Array_
   if (Requested_NVMParam < NVM_ID_Max)
   {
     /* Store length of current paramater in local variable.*/
-    Current_ParamLength = VM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
+    Current_ParamLength = NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length;
     /* Enter in to Critical Section for NVM Mirror read/ update.*/
     portENTER_CRITICAL(&NVM_Mirror_Mux);
 
-    /* If its a one byte data, Then just do a simple copy.*/
-    if (NoOf_Byte_One == Current_ParamLength)
+    /* If its a String, Then do a string copy, considering the Null character must required, If Not present in input then shall place @ end*/
+    if (NVM_StringType == NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Type)
     {
-      /* Copy only First Lower nebula from Input, as expecting a uint8 value. */
-      ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Int_Zero] = (uint8)NVM_Intger_Value;
-    /* If number of byte is grater than 2 and less than 4, if more than 4, only consider upto 4*/
-    }
-    else
-    {
-      /* Get Maximum Lengeth configured.*/
-      Current_Length = ((Current_ParamLength <= NoOf_Byte_Four) ? Current_ParamLength : NoOf_Byte_Four);
-      /* Loop for each variable and store, after paramater length set value as Zero*/
-      for (Loop_Index = Int_Zero, Split_Var.U32_Data = NVM_Intger_Value; Loop_Index < Current_Length; Loop_Index++)
+
+       /*Loop for each element and copy the contend.*/
+       for (Loop_Index = Int_Zero; ( (Loop_Index < Current_ParamLength-1) && (Nvm_Array_Value[Loop_Index] != '\0')); Loop_Index++)
       {
         /* Write each data into mirror from the split array.*/
-        ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index] = Split_Var.SplitArray[Loop_Index];
+        ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index] = Nvm_Array_Value[Loop_Index];
+      }
+      /* Set Last Byte as '\0', to avoid memory over run error, in strcpy.*/
+      ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[(Loop_Index)] = '\0';
+
+      /* Check if requested string is grater than expected. If So five the warning.*/
+      if((Loop_Index >= Current_ParamLength-1) && (Nvm_Array_Value[Loop_Index] != '\0'))
+      {
+          Debug_Trace("Warning:- String given for Write Requested for NVM Paramater ID %d is long, So discarded data(s) after Byte %d.", Input_Requested_NVMParam, Loop_Index);
+      }
+    }
+    else /* if is of "NVM_VoidType" type NVM paramater.*/
+    {
+       /*Loop for each element and copy the contend.*/
+       for (Loop_Index = Int_Zero;  Loop_Index < Current_ParamLength; Loop_Index++)
+      {
+        /* Write each data into mirror from the input array.*/
+        ((uint8 *)NVM_ParamaterMirror[Requested_NVMParam])[Loop_Index] = Nvm_Array_Value[Loop_Index];
       }
     }
 
@@ -687,12 +676,7 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Nvm_Array_
      Convert_CRC_2_STR(New_Calculated_CRC,(uint8 *)(NVM_ParamaterMirror[Requested_NVMParam] + Current_ParamLength));
 
     /* Get the starting address, Based on the configuration, Sane is Not stored in RAM @ startup to avoid Mis placing of data due to RAN curroption.*/
-    Current_NVM_Param_Start_Address = Int_Zero;
-    for (Loop_Index = Int_Zero; Loop_Index < Requested_NVMParam; Loop_Index++)
-    {
-       /* Add up length and Checksun memory*/
-       Current_NVM_Param_Start_Address += (VM_Param_Config_Table[Requested_NVMParam].NVMParam_Length + NVM_CRC_NoOfBytes);
-    }
+    Current_NVM_Param_Start_Address = NVM_Get_NVM_Param_Start_Address(Input_Requested_NVMParam);
 
     /* Write Into NVM and  Both data and checksum.*/
     /* Convert Total length along with CRC to End Address*/
@@ -719,21 +703,7 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Nvm_Array_
   {
     Debug_Trace("Dev Error:- Write Requested NVM Paramater ID %d to function %s is wrong...", Input_Requested_NVMParam, __func__);
   }
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
 
 
 /* ********************************************************************************
@@ -909,6 +879,32 @@ NVMParam_ID_Enum NVM_Get_NVM_Param_Index(NVMParam_ID_Enum Requested_NVMParam)
   /* Return Actual Index.*/
   return (Requested_NVMParam);
 }
+
+
+/* ********************************************************************************
+ * Function to get the starting address of the NVM paramater based on ID
+ * *********************************************************************************/
+uint16 NVM_Get_NVM_Param_Start_Address(NVMParam_ID_Enum Input_Requested_NVMParam)
+{
+  NVMParam_ID_Enum Requested_NVMParam;
+  uint16 Current_NVM_Param_Start_Address;
+  uint16 Loop_Index;
+
+  /* Validate the Requested Index, and correct Same.*/
+  Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
+
+  /* Get the starting address, Based on the configuration, Sane is Not stored in RAM @ startup to avoid Mis placing of data due to RAN curroption.*/
+  Current_NVM_Param_Start_Address = Int_Zero;
+  for (Loop_Index = Int_Zero; Loop_Index < Requested_NVMParam; Loop_Index++)
+  {
+    /* Add up length and Checksun memory*/
+    Current_NVM_Param_Start_Address += (NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length + NVM_CRC_NoOfBytes);
+  }
+
+  /* Returns the starting address of the NVM paramater.*/
+  return (Current_NVM_Param_Start_Address);
+}
+
 
 /*
 ===========================================================================

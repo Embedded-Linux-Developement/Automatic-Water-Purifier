@@ -53,7 +53,7 @@ enum  NVMParam_ID_Enum{
 
 /*Following is the Enum for represent Different NVM paramater Type .*/
 enum  NVMParam_Type_Enum{
-  NVM_StringType,     /* Tis type is use to store content in string format., Will read / write until '\0' detected or Max Length reached.*/
+  NVM_StringType,     /* Tis type is use to store content in string format., Will read or write until '\0' detected or Max Length reached. the paramater shall have minimum length of 2 Byte, Because one byte is reserved for null charactor '\0'.*/
   NVM_VoidType        /*This type used to read any type of data, but read will read entire data, till max length.*/
 };
 

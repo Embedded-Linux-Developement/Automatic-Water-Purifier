@@ -203,14 +203,32 @@ typedef union CRC_Split_Tag
  *  Public Function Definations Functions
 *******************************************************************************/
 
-extern void Init_MCU(void);
-extern void Perform_Reset(void);
 
-/* NVM related Public functions*/
+/*
+===========================================================================
+          Public functions related to NVM data Processing.
+===========================================================================
+*/
 
 extern void Nvm_Read_All(void);
 extern uint32 Convert_CRC(uint8 * InputBuffer);
 extern uint32  Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam);
 extern void    Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 * Return_Nvm_Value);
+extern void   Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint32 NVM_Intger_Value);
+extern void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Nvm_Array_Value);
 extern void Nvm_Validate_CRC_And_Recover(NVMParam_ID_Enum Input_Requested_NVMParam);
+extern void NVM_READ_Write_Test(void);
+extern NVMParam_ID_Enum NVM_Get_NVM_Param_Index(NVMParam_ID_Enum Requested_NVMParam);
+extern uint16 NVM_Get_NVM_Param_Start_Address(NVMParam_ID_Enum Input_Requested_NVMParam);
+/*
+===========================================================================
+          Public functions related to System Operatations
+===========================================================================
+*/
+extern void Init_MCU(void);
+extern void Init_GPT_ICU(void);
+extern void Perform_Reset(void);
+
+
+
 #endif /* End of  Automatic_Water_Purifier_H */
