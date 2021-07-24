@@ -4,33 +4,29 @@
 
 #include "MyStdTypes.h"
 
-/*******************************************************************************
- *  For Other Configurations 
- *  1. Please configure NVM related points in "ESP32_NVM_Stack.h" file.
- *  2. Please configure Debug trace related settings in Generic_Utilityes.h file.
- *  3. For Port related configuration, please refer System_Utilityes.h file.
- * 
-*******************************************************************************/
-
 
 /*******************************************************************************
- *  Configuration Start
+ *  System Utility related Configuration Start
 *******************************************************************************/
 
-/* Following are the Configurations related to the Networking.*/
-/* Default name for recovery Access Point.*/ 
-/* If configured WiFi are not available then shall Automaticaly switch to below mentioned AP. 
-   And after login into this access point you can configure new WiFi Pasword if needed.
-   User name and pasword of AP is not configuriable because its a recovery mechanism.
-   */
-#define AP_Name "Automatic_Water_Purifier"
-#define AP_Pasword "IamPayyampallil"
+/*******************************************************************************
+ *  Following are the MACROS for each Used Port Pins
+*******************************************************************************/
 
+#define DO_Buzzer 13
+#define R_Speed_2 10 /* Represent the Relay @ Bottom Left, Relay for Speed 2 (Med)  White Wire*/
+#define R_Speed_3 11 /* Represent the Relay @ Bottom Right, Relay for Speed 3 (High) Black Wire*/
+#define R_Bulb 3     /* Represent the Relay @ Top Left,  Relay for Bulb*/
+#define R_Speed_1 4  /* Represent the Relay @ Top Right, Relay for Speed 1 (Low)  Red Wire*/
 
+#define But_Stop 9    /* Button connected to black wire. For Stop Fan*/
+#define But_Speed_1 5 /* Button connected to Yellow wire. For Speed 1 Fan*/
+#define But_Speed_2 6 /* Button connected to Orange wire. For Speed 2 Fan*/
+#define But_Speed_3 7 /* Button connected to Red wire. For Speed 3 Fan*/
 
-
+#define But_Bukb 8 /* Button connected to Brown wire. For ON /OFF bulb*/
 /*-----------------------------------------------------------------------------
- *  Configuration END
+ *  System Utility related Configuration END
 -------------------------------------------------------------------------------*/
 
 /*******************************************************************************
@@ -48,13 +44,6 @@
  *  Public Function Definations Functions
 *******************************************************************************/
 
-
-
-/*
-===========================================================================
-          Public functions related to System Operatations
-===========================================================================
-*/
 extern void Init_MCU(void);
 extern void Init_GPT_ICU(void);
 extern void Perform_Reset(void);
