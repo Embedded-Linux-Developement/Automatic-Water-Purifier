@@ -24,7 +24,7 @@
  *   Its always Recomented to STD_OFF, Because will corrept the NVM data on every restart, Only meant for testing NVM stack.. 
  *   Prolonged use can reduce the longed cycle of the NVM.
 */
-#define NVM_Stack_Distractive_Test STD_ON   
+#define NVM_Stack_Distractive_Test STD_OFF   
 
 /* 
 * This paramater is to perform the check for Default value.
@@ -205,7 +205,10 @@ typedef union CRC_Split_Tag
  *  Macro Functions
 *******************************************************************************/
 
-
+/* 
+* This paramater is just to dissable the writting operatation. Just to protect NVM from unwanted write during development.
+*/
+#define NVM_Stack_Dissable_NVM_Write STD_OFF  
 
 /*******************************************************************************
  *  Public Function Definations Functions

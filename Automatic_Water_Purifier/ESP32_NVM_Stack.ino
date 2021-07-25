@@ -11,6 +11,8 @@
 #include "CRC16.h"
 #include "CRC.h"
 
+#include "soc/rtc_wdt.h"
+
 
 /*******************************************************************************
  *  Variables and Constense
@@ -20,6 +22,11 @@
 static uint8 NVM_Ram_Mirror_Buffer[Max_Available_EEPROM];  /* Buffer storing the NVM RAM mirroe. */
 static uint8 * NVM_ParamaterMirror[Total_NVM_Paramaters];  /* Pointer to storing each paramater Buffer. */
 portMUX_TYPE NVM_Mirror_Mux = portMUX_INITIALIZER_UNLOCKED; /* Mutex to protect the NVM mirror from access mutex.*/
+
+#if ((NVM_Stack_Default_Test == STD_ON) && (NVM_Stack_Default_Test == STD_ON) )
+  uint8 Temp_Buffer[Int_OneHundred]; /* Expecting maximum Size of a paramater is 100 bytes.*/
+  uint8 Temp_Buffer_2[Int_OneHundred]; /* Expecting maximum Size of a paramater is 100 bytes.*/
+#endif
 
 /*******************************************************************************
  *  Functions Extern deceleration
@@ -56,6 +63,9 @@ NVM_CRC_DataType Convert_STR_2_CRC(uint8 * InputBuffer)
   uint8 Index;
   CRC_Split_t  Current_CRC;
 
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
+
   for( Index = 0; Index < NVM_CRC_NoOfBytes; Index++) 
   {
     Current_CRC.CRC_String[Index]  = InputBuffer[Index];
@@ -72,6 +82,9 @@ void Convert_CRC_2_STR(NVM_CRC_DataType CRC_Value, uint8 * OutputBuffer)
 {
   uint8 Index;
   CRC_Split_t  Current_CRC;
+
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
 
   Current_CRC.CRC_Value = CRC_Value;
 
@@ -92,6 +105,9 @@ NVMParam_ID_Enum NVM_Get_NVM_Param_Index(NVMParam_ID_Enum Requested_NVMParam)
 
   NVMParam_ID_Enum Return_Index;
   uint8 Loop_Index;
+
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
 
   /* Set Max value as invalid as its detectable.*/
   Return_Index = NVM_ID_Max;
@@ -133,6 +149,9 @@ uint16 NVM_Get_NVM_Param_Start_Address(NVMParam_ID_Enum Input_Requested_NVMParam
   uint16 Current_NVM_Param_Start_Address;
   uint16 Loop_Index;
 
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
+
   /* Validate the Requested Index, and correct Same.*/
   Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
 
@@ -141,7 +160,7 @@ uint16 NVM_Get_NVM_Param_Start_Address(NVMParam_ID_Enum Input_Requested_NVMParam
   for (Loop_Index = Int_Zero; Loop_Index < Requested_NVMParam; Loop_Index++)
   {
     /* Add up length and Checksun memory*/
-    Current_NVM_Param_Start_Address += (NVM_Param_Config_Table[Requested_NVMParam].NVMParam_Length + NVM_CRC_NoOfBytes);
+    Current_NVM_Param_Start_Address += (NVM_Param_Config_Table[Loop_Index].NVMParam_Length + NVM_CRC_NoOfBytes);
   }
 
   /* Returns the starting address of the NVM paramater.*/
@@ -150,80 +169,11 @@ uint16 NVM_Get_NVM_Param_Start_Address(NVMParam_ID_Enum Input_Requested_NVMParam
 
 
 
-/*
-===========================================================================
-===========================================================================
-          Public functions related to NVM data Processing.
-===========================================================================
-===========================================================================
-*/
-
-/* *************************************************************************
- * Function to Process the NVM data, Validate Configuration and store.
- * *************************************************************************/
-
-void Init_NVM_Stack(void)
-{
-  uint8 Error_Status = E_OK;
-  uint16 ForLoopIndex;
-  uint16 TotalNvm_Memory;
-  float NvmUtilization;
-
-  /* Do basic validatation of NVM configuration.*/
-
-  /* Check the Configuration Max value, If Not set error flag..*/
-  if (NVM_ID_Max != Total_NVM_Paramaters)
-  {
-    Debug_Trace("Error:- Size of Configuration table is not matching with Max Number of NVM paramaters...");
-    Error_Status = E_NOT_OK;
-  }
-
-  /* Check if total sizes of the NVM is within the limit.*/
-  else
-  {
-    /* Loop for all array and get the Sum.*/
-    for (ForLoopIndex = 0, TotalNvm_Memory = 0; ForLoopIndex < Total_NVM_Paramaters; ForLoopIndex++)
-    {
-      TotalNvm_Memory += NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length + NVM_CRC_NoOfBytes;
-
-      /* Check if the NVM paramater of type "NVM_StringType" shall have minimum length of 2 Byte, Because one byte is reserved for null charactor '\0'.*/
-      if ((NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length < Int_Two) && (NVM_Param_Config_Table[ForLoopIndex].NVMParam_Type == NVM_StringType) )
-      {
-        Debug_Trace("Error:- For NVM Paramater %d, of type 'NVM_StringType' mimimum length shall be 2, But Here configured as %d.", NVM_Param_Config_Table[ForLoopIndex].NVMParam_ID , NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length );
-        Error_Status = E_NOT_OK;
-      }
-
-      /* Check if NVM paramater length is Non Zero, if so will give error, because same can brake the code.*/
-      if ((NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length == Int_Zero))
-      {
-        Debug_Trace("Error:- For NVM Paramater %d is configured configured as %d. all NVM paramater shall have minimum sizes grater than 1.", NVM_Param_Config_Table[ForLoopIndex].NVMParam_ID , NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length );
-        Error_Status = E_NOT_OK;
-      }
-
-    }
-    /* Check if the total sizes is within the Limit.*/
-    if (TotalNvm_Memory >= Max_Available_EEPROM)
-    {
-      Debug_Trace("Error:- Total NVM paramaters configured (%d) is grated than Max allowed size (%d)...", TotalNvm_Memory, Max_Available_EEPROM);
-      Error_Status = E_NOT_OK;
-    }
-  }
-
-  if (E_OK != Error_Status)
-  {
-    Perform_Reset();
-  }
-  NvmUtilization = ((float)((float)TotalNvm_Memory / (float)Max_Available_EEPROM) )* 100;
-  Debug_Trace("NVM configuration Basic Check is OK, Total Consumed is %d Bytes out of %d. And Total NVM Utilization is %f ...",TotalNvm_Memory, Max_Available_EEPROM, NvmUtilization);
-  /* Trigger NVM read all to update the RAM mirroe after reading from NVM.*/
-  Nvm_Read_All();
-}
-
 /* ****************************************************************************
- * Function to read all data from NVM and store in mirror if CRC is correct, 
- *    else update with default value.
+ * Function to read all data directely from EEPROM with respect to 
+  *  the NVM paramater ID
  * ****************************************************************************/
-void Nvm_Read_All(void)
+void Nvm_Read_From_EEPROM(NVMParam_ID_Enum Input_Requested_NVMParam)
 {
 
   uint16 NVMParam_LoopIndex;
@@ -239,17 +189,19 @@ void Nvm_Read_All(void)
    uint8 Current_Length;
 #endif
 
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
 
-   /* Initialise the NVM*/
-    EEPROM.begin(Max_Available_EEPROM);
-
-  /* Loop for all NVM paramaters. */
-  for (NVMParam_LoopIndex = 0, Current_Mirror_Start_Address = 0, Current_ParamLength = 0;
-       NVMParam_LoopIndex < Total_NVM_Paramaters;
-       NVMParam_LoopIndex++)
-  {
+    /* Validate the Requested Index, and correct Same.*/
+     NVMParam_LoopIndex = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
     /* Get Current Length.*/
     Current_ParamLength = NVM_Param_Config_Table[NVMParam_LoopIndex].NVMParam_Length;
+    /* Get the starting address of the NVM paramater.*/
+    Current_Mirror_Start_Address = NVM_Get_NVM_Param_Start_Address(Input_Requested_NVMParam);
+
+//TODO:- Enable only when required
+//Debug_Trace("Paramater Index = %3d, Id = %3d, Length = %3d, Address = %4d", NVMParam_LoopIndex, Input_Requested_NVMParam, Current_ParamLength, Current_Mirror_Start_Address);
+
 
     /* Enter in to Critical Section for NVM Mirror read/ update.*/
     portENTER_CRITICAL(&NVM_Mirror_Mux);
@@ -279,11 +231,11 @@ void Nvm_Read_All(void)
     /* Check if CRC is matching..*/
     if (Stored_NVM_CRC == Calculated_NVM_CRC)
     {
-      Debug_Trace("CRC calculation for paramater with ID %d is OK...", NVMParam_LoopIndex);
+      Debug_Trace("CRC calculation for paramater with ID %d is OK...", Input_Requested_NVMParam);
     }
     else /* CRC calculation failed*/
     {
-      Debug_Trace("Warning:- CRC calculation Failed for paramater with ID %d, Setting default value...", NVMParam_LoopIndex);
+      Debug_Trace("Warning:- CRC calculation Failed for paramater with ID %d, Setting default value...", Input_Requested_NVMParam);
       /* RAM mirror shall set with default value, because There is NO point in updating the NVM after fault is detected.. 
          Those values shall be update only when there is any New request for NVM update. */
      
@@ -337,13 +289,13 @@ void Nvm_Read_All(void)
     /* Check if CRC is matching..*/
     if (Stored_NVM_CRC != Calculated_NVM_CRC)
     {
-      Debug_Trace("Error:- CRC calculation for paramater with ID %d is Not Successful after multiple attempt, So resterting...", NVMParam_LoopIndex);
+      Debug_Trace("Error:- CRC calculation for paramater with ID %d is Not Successful after multiple attempt, So resterting...", Input_Requested_NVMParam);
       Perform_Reset();
     }
 
 /* Print Respective mirror value and its check sums based on the type.*/
 #if Debug_Print_All_NVM_Read_All_Value == STD_ON
-    Debug_Trace("Info:- NVM Mirror final value for paramater %d is as mentioned below", NVMParam_LoopIndex);
+    Debug_Trace("Info:- NVM Mirror final value for paramater %d is as mentioned below", Input_Requested_NVMParam);
     
     /* If type is string then Print it as a string, Else print all value.*/
     /* If data type is of String*/
@@ -374,11 +326,113 @@ void Nvm_Read_All(void)
 
     /* Exit from Critical Section for NVM Mirror read/ update.*/
     portEXIT_CRITICAL(&NVM_Mirror_Mux);
+}
 
-    /* Increase Address Pointer to reach Next paramater start Location.*/
-    Current_Mirror_Start_Address += Current_ParamLength + NVM_CRC_NoOfBytes;
+
+/*
+===========================================================================
+===========================================================================
+          Public functions related to NVM data Processing.
+===========================================================================
+===========================================================================
+*/
+
+/* *************************************************************************
+ * Function to Process the NVM data, Validate Configuration and store.
+ * *************************************************************************/
+
+void Init_NVM_Stack(void)
+{
+  uint8 Error_Status = E_OK;
+  uint16 ForLoopIndex;
+  uint16 TotalNvm_Memory;
+  float NvmUtilization;
+
+
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
+
+  /* Do basic validatation of NVM configuration.*/
+
+  /* Check the Configuration Max value, If Not set error flag..*/
+  if (NVM_ID_Max != Total_NVM_Paramaters)
+  {
+    Debug_Trace("Error:- Size of Configuration table is not matching with Max Number of NVM paramaters...");
+    Error_Status = E_NOT_OK;
+  }
+
+  /* Check if total sizes of the NVM is within the limit.*/
+  else
+  {
+    /* Loop for all array and get the Sum.*/
+    for (ForLoopIndex = 0, TotalNvm_Memory = 0; ForLoopIndex < Total_NVM_Paramaters; ForLoopIndex++)
+    {
+      TotalNvm_Memory += NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length + NVM_CRC_NoOfBytes;
+
+      /* Check if the NVM paramater of type "NVM_StringType" shall have minimum length of 2 Byte, Because one byte is reserved for null charactor '\0'.*/
+      if ((NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length < Int_Two) && (NVM_Param_Config_Table[ForLoopIndex].NVMParam_Type == NVM_StringType) )
+      {
+        Debug_Trace("Error:- For NVM Paramater %d, of type 'NVM_StringType' mimimum length shall be 2, But Here configured as %d.", NVM_Param_Config_Table[ForLoopIndex].NVMParam_ID , NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length );
+        Error_Status = E_NOT_OK;
+      }
+
+      /* Check if NVM paramater length is Non Zero, if so will give error, because same can brake the code.*/
+      if ((NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length == Int_Zero))
+      {
+        Debug_Trace("Error:- For NVM Paramater %d is configured configured as %d. all NVM paramater shall have minimum sizes grater than 1.", NVM_Param_Config_Table[ForLoopIndex].NVMParam_ID , NVM_Param_Config_Table[ForLoopIndex].NVMParam_Length );
+        Error_Status = E_NOT_OK;
+      }
+
+    }
+    /* Check if the total sizes is within the Limit.*/
+    if (TotalNvm_Memory >= Max_Available_EEPROM)
+    {
+      Debug_Trace("Error:- Total NVM paramaters configured (%d) is grated than Max allowed size (%d)...", TotalNvm_Memory, Max_Available_EEPROM);
+      Error_Status = E_NOT_OK;
+    }
+  }
+
+  if (E_OK != Error_Status)
+  {
+    Perform_Reset();
+  }
+  NvmUtilization = ((float)((float)TotalNvm_Memory / (float)Max_Available_EEPROM) )* 100;
+  Debug_Trace("NVM configuration Basic Check is OK, Total Consumed is %d Bytes out of %d. And Total NVM Utilization is %f ...",TotalNvm_Memory, Max_Available_EEPROM, NvmUtilization);
+  /* Trigger NVM read all to update the RAM mirroe after reading from NVM.*/
+  Nvm_Read_All();
+
+  /* Variated all read data*/
+  for (ForLoopIndex = 0; ForLoopIndex < Total_NVM_Paramaters; ForLoopIndex++)
+  {
+    Debug_Trace("Validating the NVM paralater in index %d after NVM Read all operatation", ForLoopIndex);
+    /* Do validatation*/
+    Nvm_Validate_CRC_And_Recover((NVMParam_ID_Enum)ForLoopIndex);
   }
 }
+
+/* ****************************************************************************
+ * Function to read all data from NVM and store in mirror if CRC is correct, 
+ *    else update with default value.
+ * ****************************************************************************/
+void Nvm_Read_All(void)
+{
+
+  uint16 NVMParam_LoopIndex;
+
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
+
+  /* Initialise the NVM*/
+  EEPROM.begin(Max_Available_EEPROM);
+
+  /* Loop for all NVM paramaters. */
+  for (NVMParam_LoopIndex = 0; NVMParam_LoopIndex < Total_NVM_Paramaters; NVMParam_LoopIndex++)
+  {
+    Nvm_Read_From_EEPROM((NVMParam_ID_Enum)NVMParam_LoopIndex);
+  }
+
+}
+
 
 /* *****************************************************************************
  * Function to Read as Integer from the NVM based on the Paramater ID.
@@ -395,6 +449,10 @@ uint32 Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam)
   uint8 Loop_Index;
   uint8 Current_Length;
   NVMParam_ID_Enum Requested_NVMParam;
+
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
+
 
   /* Validate the Requested Index, and correct Same.*/
   Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
@@ -454,6 +512,10 @@ void Nvm_Read_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Return_Nvm_
   uint8 Loop_Index;
   uint8 Current_Length;
   NVMParam_ID_Enum Requested_NVMParam;
+
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
+
 
   /* Validate the Requested Index, and correct Same.*/
   Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
@@ -517,6 +579,8 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint32 NVM_Intger
   NVM_CRC_DataType New_Calculated_CRC;
   uint16 Current_NVM_Param_Start_Address;
 
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
 
   /* Validate the Requested Index, and correct Same.*/
   Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
@@ -563,14 +627,25 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint32 NVM_Intger
     /* Write Into NVM and  Both data and checksum.*/
     /* Convert Total length along with CRC to End Address*/
     Current_ParamLength += (NVM_CRC_NoOfBytes + Current_NVM_Param_Start_Address);
-    /* Read the NVM data.*/
+
+#if (NVM_Stack_Dissable_NVM_Write == STD_ON)
+    /* Write the NVM data.*/
     for (Current_NVM_Address = Current_NVM_Param_Start_Address; Current_NVM_Address < Current_ParamLength; Current_NVM_Address++)
     {
+
       /* Write each data into EEPROM*/
       EEPROM.write(Current_NVM_Address, NVM_Ram_Mirror_Buffer[Current_NVM_Address]);
+      /* Refresh WDG.*/
+      rtc_wdt_feed();
+
     }
     /* Save all data into EEPROM.*/
     EEPROM.commit();
+#endif /* End of (NVM_Stack_Dissable_NVM_Write == STD_ON)*/
+
+/* Request to read back from EEPROM again.*/
+Nvm_Read_From_EEPROM(Input_Requested_NVMParam);
+
 
     /* Exit from Critical Section for NVM Mirror read/ update.*/
     portEXIT_CRITICAL(&NVM_Mirror_Mux);
@@ -607,6 +682,8 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Nvm_Array_
   NVM_CRC_DataType New_Calculated_CRC;
   uint16 Current_NVM_Param_Start_Address;
 
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
 
   /* Validate the Requested Index, and correct Same.*/
   Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
@@ -663,14 +740,25 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Nvm_Array_
     /* Write Into NVM and  Both data and checksum.*/
     /* Convert Total length along with CRC to End Address*/
     Current_ParamLength += (NVM_CRC_NoOfBytes + Current_NVM_Param_Start_Address);
-    /* Read the NVM data.*/
+
+#if (NVM_Stack_Dissable_NVM_Write == STD_ON)
+    /* Write the NVM data.*/
     for (Current_NVM_Address = Current_NVM_Param_Start_Address; Current_NVM_Address < Current_ParamLength; Current_NVM_Address++)
     {
       /* Write each data into EEPROM*/
       EEPROM.write(Current_NVM_Address, NVM_Ram_Mirror_Buffer[Current_NVM_Address]);
+      /* Refresh WDG.*/
+      rtc_wdt_feed();
+
     }
     /* Save all data into EEPROM.*/
     EEPROM.commit();
+#endif /* End of (NVM_Stack_Dissable_NVM_Write == STD_ON)*/
+
+/* Request to read back from EEPROM again.*/
+Nvm_Read_From_EEPROM(Input_Requested_NVMParam);
+
+
 
     /* Exit from Critical Section for NVM Mirror read/ update.*/
     portEXIT_CRITICAL(&NVM_Mirror_Mux);
@@ -699,6 +787,9 @@ void Nvm_Validate_CRC_And_Recover(NVMParam_ID_Enum Input_Requested_NVMParam)
   uint8 Loop_Index;
   uint8 Current_Length;
   NVMParam_ID_Enum Requested_NVMParam;
+
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
 
   /* Validate the Requested Index, and correct Same.*/
   Requested_NVMParam = NVM_Get_NVM_Param_Index(Input_Requested_NVMParam);
@@ -740,9 +831,13 @@ void NVM_READ_Write_Test(void)
   uint16 Param_Loop_Index;
   uint16 Data_Loop_Index;
   uint16 Current_Length;
-  NVMParam_ID_Enum Converted_Index;
-  uint8 Temp_Buffer[Int_OneHundred]; /* Expecting maximum Size of a paramater is 100 bytes.*/
+  NVMParam_ID_Enum Converted_Index; 
   uint8 TestResult;
+  uint32 Current_Random_number;
+  uint32 ReadBack_Random_number;
+
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
 
 /*========================================================================*/
 /* Validate the Default Data, If Enabled.*/
@@ -758,10 +853,15 @@ void NVM_READ_Write_Test(void)
   /* Loop through each NVM paramater's */
   for (Param_Loop_Index = 0; Param_Loop_Index < NVM_ID_Max; Param_Loop_Index++)
   {
+    Debug_Trace("Test Info:- Default value checking for Index %d", Param_Loop_Index);
+      
     /* Get Index of the Paramater. */
     Converted_Index = NVM_Get_NVM_Param_Index((NVMParam_ID_Enum)Param_Loop_Index);
     /* Store current data length */
     Current_Length = NVM_Param_Config_Table[Converted_Index].NVMParam_Length;
+
+
+
 
     /* Check and skype if Data length is more than expected.*/
     if (Current_Length >= Int_OneHundred)
@@ -817,7 +917,114 @@ void NVM_READ_Write_Test(void)
 
 #endif  /* End of NVM_Stack_Default_Test*/
 
+/*========================================================================*/
+/* Do read and write test in NVM paramaters.*/
+#if (NVM_Stack_Distractive_Test == STD_ON)
 
+  /* 
+ * This is a destractive test which writes some randam data to the NVM and read it back from all NVM paramaters.
+ * And shall left as it is to test wheather EEPROM is holding the data.
+ * 
+ * This test will reduce the Insurance of the EEPROM, So please do not use, Only meant for testing Purpose. 
+*/
+
+  /* Set default test result.*/
+  TestResult = E_OK;
+  /* Loop through each NVM paramater's */
+  for (Param_Loop_Index = 0; Param_Loop_Index < NVM_ID_Max; Param_Loop_Index++)
+  {
+
+   Debug_Trace("Test Info:- Distractive Testing for NVM index %d ", Param_Loop_Index);
+
+    /* Get Index of the Paramater. */
+    Converted_Index = NVM_Get_NVM_Param_Index((NVMParam_ID_Enum)Param_Loop_Index);
+    /* Store current data length */
+    Current_Length = NVM_Param_Config_Table[Converted_Index].NVMParam_Length;
+
+    /* Check and skype if Data length is more than expected.*/
+    if (Current_Length >= Int_OneHundred)
+    {
+      Debug_Trace("Test Warning:- Write Read value checking for NVM paramater ID %d is skyped, Because length of this paramater is more than Test internal buffer.", NVM_Param_Config_Table[Converted_Index].NVMParam_ID);
+      /* Skype this loop as not matching test design criteria.*/
+      continue;
+    }
+
+    /* Check the type of the NVM Paramater. If its a sting or if more that 4 byte length*/
+    if ((NVM_Param_Config_Table[Converted_Index].NVMParam_Type == NVM_StringType) || (Current_Length > Int_Four))
+    {
+
+      /* Generate Random string.*/
+      Get_Randam_String(Current_Length, Temp_Buffer);
+      /* Write to the NVM*/
+      Nvm_Write_Each((NVMParam_ID_Enum)Param_Loop_Index, Temp_Buffer);
+      Debug_Trace("Test Info:- For NVM paramater %d , Write random string \n     %s ", NVM_Param_Config_Table[Converted_Index].NVMParam_ID, Temp_Buffer);
+
+      /* Read Back from NVM*/
+      Nvm_Read_Each((NVMParam_ID_Enum)Param_Loop_Index, Temp_Buffer_2);
+
+      /* If of string type*/
+      if (NVM_Param_Config_Table[Converted_Index].NVMParam_Type == NVM_StringType)
+      {
+        /* Read the Data from NVM Mirror.*/
+        if (strcmp((char *)Temp_Buffer, (char *)Temp_Buffer_2) != Int_Zero)
+        {
+          /* Set as result Failed.*/
+          TestResult = E_NOT_OK;
+          Debug_Trace("Test Failed:- Write Read checking for NVM paramater ID %d is failed.", NVM_Param_Config_Table[Converted_Index].NVMParam_ID);
+        }
+      }
+      else /* If of void type*/
+      {
+        /* Loop through each element*/
+        for (Data_Loop_Index = 0; Data_Loop_Index < Current_Length; Data_Loop_Index++)
+        {
+          /* Check if both read back and write one are same*/
+          if (Temp_Buffer_2[Data_Loop_Index] != Temp_Buffer[Data_Loop_Index])
+          {
+            /* Set as result Failed.*/
+            TestResult = E_NOT_OK;
+            Debug_Trace("Test Failed:- Write Read checking for NVM paramater ID %d is failed.", NVM_Param_Config_Table[Converted_Index].NVMParam_ID);
+            /* break the loop*/
+            Data_Loop_Index = Current_Length + 1;
+          }
+        }
+      }
+    }
+    else /* If Type is not of string.*/
+    {
+      /* Generate Randon number based on the Length 
+       * 1. Lowest length applowe is 1 Byte and Max is 4 byte
+      */
+      Current_Random_number = random(((Current_Length - 1) * 256), (Current_Length * 255));
+
+      /* Write to the NVM*/
+      Nvm_Write_Each((NVMParam_ID_Enum)Param_Loop_Index, Current_Random_number);
+      Debug_Trace("Test Info:- For NVM paramater %d , Write random Value %d ", NVM_Param_Config_Table[Converted_Index].NVMParam_ID, Current_Random_number);
+
+      /* Read Back from NVM*/
+      ReadBack_Random_number = Nvm_Read_Each((NVMParam_ID_Enum)Param_Loop_Index);
+      /* Check if both read back and write one are same*/
+      if (ReadBack_Random_number != Current_Random_number)
+      {
+        /* Set as result Failed.*/
+        TestResult = E_NOT_OK;
+        Debug_Trace("Test Failed:- Write Read checking for NVM paramater ID %d is failed.", NVM_Param_Config_Table[Converted_Index].NVMParam_ID);
+        /* break the loop*/
+      }
+    }
+  }
+
+  /* Check Final result.*/
+  if (TestResult == E_OK)
+  {
+    Debug_Trace("Test Passed:- Write and Read back NVM test passed with flying colour!!!!");
+  }
+  else
+  {
+    Debug_Trace("Test Failed:- Write and Read back NVM test Failed unfortunately...");
+  }
+
+#endif /* End of NVM_Stack_Distractive_Test*/
 
     /* Return is Not considered as same, shall not make any sense, As recovert action already performed... */
 }

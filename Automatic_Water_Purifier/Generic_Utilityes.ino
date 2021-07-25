@@ -39,6 +39,10 @@ char Timming_Buffer[Max_Debug_Time_Buffer];
  * */
 void Init_Trace(void)
 {
+
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
+
   /* Do operation only if debug support is ON*/
 #if (Enable_Debug_Support == STD_ON)
   /* Start the Serial Port*/
@@ -91,6 +95,9 @@ unsigned long Get_Time_Elapse(unsigned long Reference_Time)
   unsigned long Delta_Time = 0;
   unsigned long Current_Time = 0;
 
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
+
   /*Get current time*/
   Current_Time = millis();
 
@@ -109,4 +116,35 @@ unsigned long Get_Time_Elapse(unsigned long Reference_Time)
 }
 
 
+/* ************************************************************************
+ * Function to get Random string.
+ * ************************************************************************
+ * */
+void Get_Randam_String(uint16 String_Length, uint8 *OutPutStringBuffer)
+{
+  uint16 LoopIndex;
+  uint8 randomValue;
 
+  /* For tracing the the function call.*/
+  Trace_Function_Call();
+
+  /* Loop for each element.*/
+  for (LoopIndex = 0; LoopIndex < (String_Length -1); LoopIndex++)
+  {
+    /* get a random number.*/
+    randomValue = random(0, 37);
+
+    /* store random numeric*/
+    if (randomValue > 26)
+    {
+      OutPutStringBuffer[LoopIndex] = (uint8)(randomValue - 26U) + '0';
+    }
+    else /* store random alphabet*/
+    {
+
+      OutPutStringBuffer[LoopIndex] = (uint8)(randomValue + 'a');
+    }
+  }
+  /* Add null pointer at the end*/
+  OutPutStringBuffer[String_Length -1] = '\0';
+}

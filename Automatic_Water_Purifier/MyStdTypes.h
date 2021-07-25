@@ -82,6 +82,7 @@ typedef union Data_Split_Tag
 #define Int_Zero        0U
 #define Int_One         1U
 #define Int_Two         2U
+#define Int_Four        4U
 #define Int_OneHundred  100U
 
 #define uint32_Max        0xFFFFFFFFU
