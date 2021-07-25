@@ -641,10 +641,12 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint32 NVM_Intger
     }
     /* Save all data into EEPROM.*/
     EEPROM.commit();
+
+    /* Request to read back from EEPROM again.*/
+    Nvm_Read_From_EEPROM(Input_Requested_NVMParam);
+
 #endif /* End of (NVM_Stack_Dissable_NVM_Write == STD_ON)*/
 
-/* Request to read back from EEPROM again.*/
-Nvm_Read_From_EEPROM(Input_Requested_NVMParam);
 
 
     /* Exit from Critical Section for NVM Mirror read/ update.*/
@@ -753,10 +755,13 @@ void Nvm_Write_Each(NVMParam_ID_Enum Input_Requested_NVMParam, uint8 *Nvm_Array_
     }
     /* Save all data into EEPROM.*/
     EEPROM.commit();
+
+    /* Request to read back from EEPROM again.*/
+    Nvm_Read_From_EEPROM(Input_Requested_NVMParam);
+
 #endif /* End of (NVM_Stack_Dissable_NVM_Write == STD_ON)*/
 
-/* Request to read back from EEPROM again.*/
-Nvm_Read_From_EEPROM(Input_Requested_NVMParam);
+
 
 
 

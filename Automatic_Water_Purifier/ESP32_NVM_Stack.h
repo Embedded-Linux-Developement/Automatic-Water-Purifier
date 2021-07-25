@@ -24,7 +24,7 @@
  *   Its always Recomented to STD_OFF, Because will corrept the NVM data on every restart, Only meant for testing NVM stack.. 
  *   Prolonged use can reduce the longed cycle of the NVM.
 */
-#define NVM_Stack_Distractive_Test STD_OFF   
+#define NVM_Stack_Distractive_Test STD_ON
 
 /* 
 * This paramater is to perform the check for Default value.
