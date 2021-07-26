@@ -18,20 +18,20 @@
  * This paramater is to indicate wheather all NVM mirror values to be printed. 
  *  Recommenced to be STD_OFF on production, As it can compermise the Security Informatations in NVM.
 */
-#define Debug_Print_All_NVM_Read_All_Value STD_OFF   
+#define Debug_Print_All_NVM_Read_All_Value STD_ON  
 /* 
  * This paramater is to perform the destractive Test, Will write New Data and read it back to verify.
  *   Its always Recomented to STD_OFF, Because will corrept the NVM data on every restart, Only meant for testing NVM stack.. 
  *   Prolonged use can reduce the longed cycle of the NVM.
 */
-#define NVM_Stack_Distractive_Test STD_ON
+#define NVM_Stack_Distractive_Test STD_OFF
 
 /* 
 * This paramater is to perform the check for Default value.
 *     1. Its always Recomented to STD_OFF, Because Once configured default value Check shall be always fails.
 *     2. Its just considered to validate default value update after any code update, As validatation.
 */
-#define NVM_Stack_Default_Test STD_ON   
+#define NVM_Stack_Default_Test STD_OFF   
 
 /* 
  * This paramater is to Validate the Signature, 
@@ -206,9 +206,13 @@ typedef union CRC_Split_Tag
 *******************************************************************************/
 
 /* 
-* This paramater is just to dissable the writting operatation. Just to protect NVM from unwanted write during development.
+* This paramater is just to dissable the writting operatation. 
+*   1. This option is to protect NVM from unwanted write during development.
+*   1. Its always Recomented to STD_ON, In final prodect, else NVM write will not happen.
+*   2. IN Development phase you can keep is as STD_OFF, IN this case Will not write to EEPROM, 
+*       Only NVM mirror data shall be updated.
 */
-#define NVM_Stack_Dissable_NVM_Write STD_OFF  
+#define NVM_Stack_Dissable_NVM_Write STD_ON 
 
 /*******************************************************************************
  *  Public Function Definations Functions

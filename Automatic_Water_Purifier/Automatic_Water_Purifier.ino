@@ -13,7 +13,7 @@
 /*******************************************************************************
  *  Variables and Constense
 *******************************************************************************/
-
+static uint8 Cold_Init = STD_OFF;
 /*******************************************************************************
  *  Functions Extern deceleration
 *******************************************************************************/
@@ -28,6 +28,9 @@
 *******************************************************************************/
 void setup()
 {
+  /* Enable Cold Init*/
+  Cold_Init = STD_OFF;
+
   /* Init Debug Trace, if enabled...*/
   Init_Trace();
 
@@ -35,6 +38,7 @@ void setup()
   Init_MCU();
   /* Perform NVM read operatations.*/
   Init_NVM_Stack();
+
   /* Test NVM based on the configuration.*/
   NVM_READ_Write_Test();
 
@@ -43,8 +47,22 @@ void setup()
 }
 
 void loop()
-{
-  // put your main code here, to run repeatedly:
+{ 
+  uint8 Temp;
+  /* Excute first time only.*/
+  if(Cold_Init == STD_OFF)
+  {
+    /* Dissable Cold Init*/
+    Cold_Init = STD_ON;
+
+
+     //Nvm_Write_Each(NVM_ID_Seting_HighPresureAction, (uint32) Recovery_On_PowerOn);
+
+  }
+  
+
+
+
 }
 
 /*
