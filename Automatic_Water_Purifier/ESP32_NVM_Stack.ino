@@ -861,6 +861,15 @@ void NVM_READ_Write_Test(void)
   uint32 Current_Random_number;
   uint32 ReadBack_Random_number;
 
+#if (NVM_Stack_Signature_Test ==  STD_ON)
+  uint8 Start_SigBuffer[NVM_Start_Signature_Sizes];
+  uint32 End_SigBuffer;
+  uint8 SigTestResult;
+  
+#endif
+
+
+
   /* For tracing the the function call.*/
   Trace_Function_Call();
 
@@ -1050,6 +1059,76 @@ void NVM_READ_Write_Test(void)
   }
 
 #endif /* End of NVM_Stack_Distractive_Test*/
+
+/*========================================================================*/
+/* Do Write and read the Signature values and check */
+#if (NVM_Stack_Signature_Test ==  STD_ON)
+
+  /* Set default value on result.*/
+  SigTestResult = E_OK;
+  /* Read Start Signature Values*/
+  Nvm_Read_Each(NVM_Start_Signature, Start_SigBuffer);
+  /* Check if its matching*/
+  if (strcmp((char *)Start_SigBuffer, NVM_Start_Signature_Data) != Int_Zero)
+  {
+    /* Set Failed status as return. */
+    SigTestResult = E_NOT_OK;
+
+    /* Check if its a default string, IN that case update with new string.*/
+    if (strcmp((char *)Start_SigBuffer, NVM_Start_Signature_DefaultData) == Int_Zero)
+    {
+      /* Request to write Signature, such that same can validate from Next time.*/
+      Nvm_Write_Each(NVM_Start_Signature, (uint8 *)NVM_Start_Signature_Data);
+    }
+    else /* If Not a defalt data.*/
+    {
+      Debug_Trace("Fatale Error:- failed to validate Start Signature string, It may be because of some Curroption. So please consider Re-Calibratation");
+    }
+  }
+  else
+  {
+     /* Do nothing.*/
+  }
+
+
+  /* Read Start Signature Values*/
+  End_SigBuffer = Nvm_Read_Each(NVM_END_Signature);
+  /* Check if its matching with expected value.*/
+  if (End_SigBuffer != NVM_End_Signature_Data)
+  {
+    /* Set Failed status as return. */
+    SigTestResult = E_NOT_OK;
+
+    /* Check if its a default string, IN that case update with new value.*/
+    if (End_SigBuffer == NVM_End_Signature_DefaultData)
+    {
+      /* Request to write Signature, such that same can validate from Next time.*/
+      Nvm_Write_Each(NVM_END_Signature, NVM_End_Signature_Data);
+    }
+    else /* If Not a defalt data.*/
+    {
+      Debug_Trace("Fatale Error:- failed to validate End Signature Value, It may be because of some Curroption. So please consider Re-Calibratation");
+      
+    }
+  }
+  else
+  {
+    /* Do nothing.*/
+  }
+
+  /* Check if there is any error in Signature testing.*/
+  if (SigTestResult == E_OK)
+  {
+    Debug_Trace("Signature Test Passed with flying colour...");
+  }
+  else /* If testing failed.*/
+  {
+    Debug_Trace("Fatale Error:- Signature Test Failed, It may be because of some Curroption. So please consider Re-Calibratation");
+  }
+
+#endif
+
+
 
     /* Return is Not considered as same, shall not make any sense, As recovert action already performed... */
 }

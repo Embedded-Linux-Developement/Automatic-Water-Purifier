@@ -46,19 +46,14 @@ void setup()
   Init_GPT_ICU();
 }
 
+
+
+
 void loop()
 { 
-  uint8 Temp;
-  /* Excute first time only.*/
-  if(Cold_Init == STD_OFF)
-  {
-    /* Dissable Cold Init*/
-    Cold_Init = STD_ON;
+  /* TRigger Cold Init Statement if any*/
+  IfCold_Init();
 
-
-     //Nvm_Write_Each(NVM_ID_Seting_HighPresureAction, (uint32) Recovery_On_PowerOn);
-
-  }
   
 
 
@@ -73,6 +68,32 @@ void loop()
 ===========================================================================
 */
 
+
+/* ********************************************************************************
+ * Function to Trigger all Cold Init Steps in Cyclic task.
+ * *********************************************************************************/
+void IfCold_Init(void)
+{
+    /* Excute first time only.*/
+  if(Cold_Init == STD_OFF)
+  {
+    /* Dissable Cold Init*/
+    Cold_Init = STD_ON;
+
+    /*
+    ================================================================
+     * Please Place Cold Init Codes below.
+    ================================================================
+    */
+
+
+
+  }
+  else
+  {
+     /* Do nothing. */
+  }
+}
 
 
 

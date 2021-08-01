@@ -12,7 +12,7 @@
 #define Max_Available_EEPROM 512
 #define Total_NVM_Paramaters 18   /* Represent Max NVM paramater, Please make sure shall same as NVM_ID_Max*/
 #define NVM_CRC_NoOfBytes    2    /* Number of bytes required to store CRC of each paramater.*/
-#define NVM_CRC_Polynomial   0x2867 /* Polynomial for calculate the CRC*/
+#define NVM_CRC_Polynomial   0x2869 /* Polynomial for calculate the CRC*/
 
 /* 
  * This paramater is to indicate wheather all NVM mirror values to be printed. 
@@ -68,11 +68,13 @@ const uint8 NVM_Default_Seting_OperatationMode            = WF_Mode_Inline;     
 /* Below Variables and Macros are for setting the NVM Signature Value*/
 #define NVM_Start_Signature_Sizes  4U /* Define the sizes of Start Signature.*/
 #define NVM_Start_Signature_Data   "SSV"  /*String to be stored in Start Signature.*/
-const uint8 NVM_Default_Start_Signature_Data[NVM_Start_Signature_Sizes] = NVM_Start_Signature_Data;  /*String to hold the default value for the NVM_Start_Signature NVM paramater.*/
+#define NVM_Start_Signature_DefaultData   "NOK"  /*Default String to be stored in Start Signature.*/
+const uint8 NVM_Default_Start_Signature_Data[NVM_Start_Signature_Sizes] = NVM_Start_Signature_DefaultData;  /*String to hold the default value for the NVM_Start_Signature NVM paramater.*/
 
 #define NVM_End_Signature_Sizes  4U /* Define the sizes of End Signature.*/
-#define NVM_End_Signature_Data   {0x56U, 0x55U, 0xAAU, 0xFFU} /*String to be stored in End Signature.*/
-const uint8 NVM_Default_End_Signature_Data[NVM_End_Signature_Sizes] = NVM_End_Signature_Data;  /*String to hold the default value for the NVM_End_Signature NVM paramater.*/
+#define NVM_End_Signature_Data   0x5655AAFFU /*String to be stored in End Signature.*/
+#define NVM_End_Signature_DefaultData   0x00000000U  /*Default String to be stored in Start Signature.*/
+const uint8 NVM_Default_End_Signature_Data[NVM_End_Signature_Sizes] = {0x00,0x00,0x00,0x00};  /*String to hold the default value for the NVM_End_Signature NVM paramater.*/
 
 /*******************************************************************************
  *  Data Type definitions
@@ -212,7 +214,7 @@ typedef union CRC_Split_Tag
 *   2. IN Development phase you can keep is as STD_OFF, IN this case Will not write to EEPROM, 
 *       Only NVM mirror data shall be updated.
 */
-#define NVM_Stack_Dissable_NVM_Write STD_ON 
+#define NVM_Stack_Dissable_NVM_Write STD_OFF
 
 /*******************************************************************************
  *  Public Function Definations Functions
