@@ -148,3 +148,41 @@ void Get_Randam_String(uint16 String_Length, uint8 *OutPutStringBuffer)
   /* Add null pointer at the end*/
   OutPutStringBuffer[String_Length -1] = '\0';
 }
+
+
+/* ************************************************************************
+ * Function to Check wheather the input value is within the tolerance of.
+ *    targeted value.
+ *   Shall Return :- E_OK      => Within the targeted range 
+ *                   E_NOT_OK  => Outside the targered limit.
+ * ************************************************************************
+ */
+uint8 Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 ToleranceAllowed)
+{
+
+  uint8 Return_Value = E_NOT_OK;
+  uint32 UpperCutoff;
+  uint32 LowerCutoff;
+
+  /* Get upper cutoff Value*/
+  UpperCutoff = TargetedValue + ((TargetedValue * ToleranceAllowed) / 100U);
+  /* RE-correct Uppercut off, if Overflow detected.*/
+  UpperCutoff = ((UpperCutoff >= TargetedValue) ? (((UpperCutoff + InputValue) >= TargetedValue) ? (UpperCutoff + InputValue) : 0xFFFFFFFFU) : 0xFFFFFFFFU);
+
+  /* Get Lower cutoff Value*/
+  LowerCutoff = TargetedValue - ((TargetedValue * ToleranceAllowed) / 100U);
+  /* RE-correct Lower off, if Under flow detected.*/
+   LowerCutoff = (((LowerCutoff <= TargetedValue )? ((LowerCutoff <= InputValue )?(InputValue - LowerCutoff) : 0x00000000U) : 0x00000000U);
+
+  /* Check wheather is within the Tolerance limit..*/
+  if( (InputValue <= UpperCutoff) && (InputValue >= LowerCutoff) )
+  {
+    /* Set return as OK*/
+    Return_Value = E_OK;
+  }
+  else /* Out side tolerance Limit*/
+  {
+    /* Set return as NOT OK*/
+    Return_Value = E_NOT_OK;
+  }
+}

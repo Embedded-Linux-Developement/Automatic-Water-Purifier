@@ -15,16 +15,16 @@ typedef  signed long long   sint64;    /* Slandered Data type for signed 64 bit 
 
 typedef  unsigned char      uint8;     /* Slandered Data type for unsigned 8 bit   / 1 byte variable.*/  
 typedef  unsigned short     uint16;    /* Slandered Data type for unsigned 16 bit  / 2 byte variable.*/
-typedef  unsigned long      uint32;     /* Slandered Data type for unsigned 32 bit  / 4 byte variable.*/
+typedef  unsigned long      uint32;    /* Slandered Data type for unsigned 32 bit  / 4 byte variable.*/
 typedef  unsigned long long uint64;    /* Slandered Data type for unsigned 64 bit  / 8 byte variable.*/
 
 
 
 /*Following Enumerators are to Set the recovery Actions.*/
 enum  Setting_Recovery_Actions{
-  Recovery_None       = 0x55,  /* Represent No recovery is configured, Or Bo nothing*/
-  Recovery_Time_Bound = 0x89, /* Recover after certain configured time */
-  Recovery_On_PowerOn = 0xAA  /* Recover only after a power on cycle.*/
+  Recovery_None       = 0x55,  /* Represent No recovery is configured, Or Bo nothing */
+  Recovery_Time_Bound = 0x89,  /* Recover after certain configured time */
+  Recovery_On_PowerOn = 0xAA   /* Recover only after a power on cycle.*/
 };
 
 /*Following Enumerators are to Set Different Functional Mode.*/
@@ -58,9 +58,10 @@ typedef union Data_Split_Tag
 #define E_OK      0x25   /* Represent starte is OK*/
 #define E_NOT_OK  0x5A   /* Represent starte is NOT OK*/
 
-/* Macro to represent On OFF Relay status*/
-#define Relay_ON LOW
-#define Relay_OFF HIGH
+/* Macro to UV Lamp feedback Support*/
+#define UV_Feedback_Both 0x96   /* Indicate both LDR reading shall be consider and if any failed decleared fault in UV lamp.*/
+#define UV_Feedback_Any  0x77   /* Indicate if any one is working then take its result.*/
+#define UV_Feedback_None 0x77   /* Shall Not consider the feedback, Simply bypass it.*/
 
 /* Macro to represent Button ON /OFF status*/
 #define Button_ON LOW

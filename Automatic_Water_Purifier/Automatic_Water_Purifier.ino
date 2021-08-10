@@ -34,13 +34,17 @@ void setup()
   /* Init Debug Trace, if enabled...*/
   Init_Trace();
 
-  /* Initate the Micro Settings. */
-  Init_MCU();
-  /* Perform NVM read operatations.*/
+  /* Perform NVM init, It must be called befor all init, because most of the configuration data are present bu NVM.*/
   Init_NVM_Stack();
 
   /* Test NVM based on the configuration.*/
   NVM_READ_Write_Test();
+
+  /* Initate the Micro Settings. */
+  Init_MCU();
+
+
+
 
   /* Initialise all timmer and External interrupts*/
   Init_GPT_ICU();

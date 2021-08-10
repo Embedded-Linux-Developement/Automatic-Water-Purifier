@@ -70,7 +70,7 @@ extern void Init_Trace(void);
 extern unsigned long Get_Time_Elapse(unsigned long Reference_Time);
 /* Function to get Random string. */
 extern void Get_Randam_String(uint16 String_Length, uint8 *OutPutStringBuffer);
-
+extern uint8 Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 ToleranceAllowed);
 
 
 
