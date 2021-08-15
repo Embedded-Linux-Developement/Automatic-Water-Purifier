@@ -35,6 +35,15 @@ static Sys_Operatation_Status InputRO_Current_Status = Operatation_OFF;
 /* Variable to store the Time at which Input RO Input Started / stoped.*/
 static uint32 InputRO_Start_Time = Int_Zero;
 
+/* Variable to store the current High presure sensor input.*/
+static Sensor_InputStatus_Status Sensor_HighPressure_Status = Sensor_OFF;
+/* Variable to store the Time at which High presure sensor input Started / stoped.*/
+static uint32 Sensor_HighPressure_Start_Time = Int_Zero;
+
+/* Variable to store the current OverFlow sensor input.*/
+static Sensor_InputStatus_Status Sensor_OverFlow_Status = Sensor_OFF;
+/* Variable to store the Time at which OverFlow sensor input Started / stoped.*/
+static uint32 Sensor_OverFlow_Start_Time = Int_Zero;
 
 /*******************************************************************************
  *  Functions Forward decleratations deceleration
@@ -47,6 +56,8 @@ static uint32 InputRO_Start_Time = Int_Zero;
  static void Control_InLineInput(Sys_Operatation_Status InputRequest);
  static Sys_Operatation_Status GetStatus_InLineInput(void);
  static uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin);
+ static Sensor_InputStatus_Status GetStatus_HighPresere(void);
+ static Sensor_InputStatus_Status GetStatus_OverFlow(void);
 
 /*******************************************************************************
  *  Class Objects.
@@ -343,7 +354,6 @@ Sys_Operatation_Status GetStatus_InLineInput(void)
  * *************************************************************************/
 Sensor_InputStatus_Status GetStatus_HighPresere(void)
 {
-  Sensor_InputStatus_Status Return_Value = Sensor_Fault;
   uint16 HighPressure_ADC_Value;
 
   /* Read Current ADC value for High Presure */
@@ -352,11 +362,89 @@ Sensor_InputStatus_Status GetStatus_HighPresere(void)
   /* Check if its detected as ON*/
   if (Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P22_Analog_HighPresere_ON_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
   {
+
      /* Set Status to ON*/
-     Return_Value = Sensor_ON;
-     /* Set Timer Value if previous state if OFF */
+     Sensor_HighPressure_Status = Sensor_ON;
+    /* Reset the time*/
+    Sensor_HighPressure_Start_Time = millis();
   }
+  /* Check wheather its status is OFF*/
+  else if (Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P24_Analog_HighPresere_OFF_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
+  {
+    /* Check wheather time is elapsed to correct the status, And check time only if previous state is ON or Fault*/
+    if ((Get_Time_Elapse(Sensor_HighPressure_Start_Time) >= P37_HighPresere_CollingTime_In_ms) ||
+        (Sensor_HighPressure_Status == Sensor_OFF)) /* this check is to by pass timer check if already off, else time overflow cause issue after ~90 days and at start-up.*/
+    {
+      /* Set Status to ON*/
+      Sensor_HighPressure_Status = Sensor_OFF;
+    }
+    else
+    {
+      /* Do nothing, share the old status stored in globale variable.*/
+    }
+  }
+  else /* Fault detected.*/
+  {
+    /*Switching to fault shall be immidate*/
+    Sensor_HighPressure_Status = Sensor_Fault;
+    /* Reset the time*/
+    Sensor_HighPressure_Start_Time = millis();
+  }
+
+   return(Sensor_HighPressure_Status);
+
 }
+
+
+/* ************************************************************************
+ * This function is get the status of the OverFlow Indication
+ * *************************************************************************/
+Sensor_InputStatus_Status GetStatus_OverFlow(void)
+{
+  uint16 OverFlow_ADC_Value;
+
+  /* Read Current ADC value for overflow */
+  OverFlow_ADC_Value = Sys_Read_Processed_ADC_Value(P27_Analog_OverFlow);
+
+  /* Check if its detected as ON*/
+  if (Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P28_Analog_OverFlow_ON_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
+  {
+
+     /* Set Status to ON*/
+     Sensor_OverFlow_Status = Sensor_ON;
+    /* Reset the time*/
+    Sensor_OverFlow_Start_Time = millis();
+  }
+  /* Check wheather its status is OFF*/
+  else if (Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P2A_Analog_OverFlow_OFF_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
+  {
+    /* Check wheather time is elapsed to correct the status, And check time only if previous state is ON or Fault*/
+    if ((Get_Time_Elapse(Sensor_OverFlow_Start_Time) >= P39_OverFlow_CollingTime_In_ms) ||
+        (Sensor_OverFlow_Status == Sensor_OFF)) /* this check is to by pass timer check if already off, else time overflow cause issue after ~90 days and at start-up.*/
+    {
+      /* Set Status to ON*/
+      Sensor_OverFlow_Status = Sensor_OFF;
+    }
+    else
+    {
+      /* Do nothing, share the old status stored in globale variable.*/
+    }
+  }
+  else /* Fault detected.*/
+  {
+    /*Switching to fault shall be immidate*/
+    Sensor_OverFlow_Status = Sensor_Fault;
+    /* Reset the time*/
+    Sensor_OverFlow_Start_Time = millis();
+  }
+
+   return(Sensor_OverFlow_Status);
+
+}
+
+
+
+
 
 /* ************************************************************************
  * This function is to Control Booster pump operatations
@@ -542,7 +630,17 @@ void Process_ControlSystem(void)
 
 }
 
+/* ************************************************************************
+ * Function to log latest status or to Monitor the provess..
+ * *************************************************************************/
+void Monitor_ControlSystem(void)
+{
+ 
 
+
+
+
+}
 
 
 
