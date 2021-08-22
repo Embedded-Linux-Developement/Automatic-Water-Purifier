@@ -52,7 +52,7 @@ const uint8 NVM_Default_Value_WiFiServerName[75]  = "Automatic Water Purifier"; 
 const uint8 NVM_Default_Value_AdminPasword[30]    = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
 
 
-const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x76,0x54,0x32,0x10};  /*Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
+const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
 const uint8 NVM_Default_Calibration_LowFlowRate[4]               = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_LowFlowRate NVM paramater.*/
 const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_HighFlowRate NVM paramater.*/
 const uint8 NVM_Default_Calibration_HighPresureCollingTime[4]    = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_HighPresureCollingTime NVM paramater.*/
@@ -98,7 +98,7 @@ enum  NVMParam_ID_Enum{
   NVM_ID_Value_WiFiServerName,                   /* This NVM paramater is storing the Server Custom Server Name, If user want to, Else Shall use default Server Name.*/
   NVM_ID_Value_AdminPasword,                     /* This NVM paramater is storing the Admin pasword User has been set. Default password shall be "Admin"*/
 
-  NVM_ID_Calibration_FlowMeaterFactor,             /* This NVM paramater is storing the convertion factor for the flow meter.*/
+  NVM_ID_Calibration_FlowMeaterFactor,             /* This NVM paramater is storing the convertion factor for the flow meter, Number of ticks for 1 Liter.*/
   NVM_ID_Calibration_LowFlowRate,                  /* This NVM paramater is storing the Lowest Flow rate allowed without any warning.*/
   NVM_ID_Calibration_HighFlowRate,                 /* This NVM paramater is storing the Higest Flow rate allowed without any warning.*/
   NVM_ID_Calibration_HighPresureCollingTime,       /* This NVM paramater is storing the Cool off time in Second after High presure is being detected.*/

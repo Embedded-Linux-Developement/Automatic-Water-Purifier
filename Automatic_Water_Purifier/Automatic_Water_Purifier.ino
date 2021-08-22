@@ -43,8 +43,8 @@ void setup()
   /* Initate the Micro Settings. */
   Init_MCU();
 
-
-
+  /* Init the water Flow meter*/
+  Init_PulseCounter();
 
   /* Initialise all timmer and External interrupts*/
   Init_GPT_ICU();
@@ -55,10 +55,17 @@ void setup()
 
 void loop()
 { 
+
+
   /* TRigger Cold Init Statement if any*/
   IfCold_Init();
 
-  
+  /* Trigger function to do monitering and log the info. */
+  Monitor_ControlSystem();
+
+
+
+
 
 
 

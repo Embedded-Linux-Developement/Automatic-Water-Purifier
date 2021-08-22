@@ -8,7 +8,7 @@
 #include "ESP32_NVM_Stack.h"
 #include "Generic_Utilityes.h"
 #include "System_Utilityes.h"
-
+   
 
 /*******************************************************************************
  *  Variables and Constense
@@ -45,6 +45,13 @@ static Sensor_InputStatus_Status Sensor_OverFlow_Status = Sensor_OFF;
 /* Variable to store the Time at which OverFlow sensor input Started / stoped.*/
 static uint32 Sensor_OverFlow_Start_Time = Int_Zero;
 
+
+static uint32 CounterOverflow;                        /* Variable to store the over flow count */
+pcnt_isr_handle_t user_isr_handle = NULL;      /* User ISR handler for Interrupt */
+
+
+
+
 /*******************************************************************************
  *  Functions Forward decleratations deceleration
 *******************************************************************************/
@@ -52,12 +59,14 @@ static uint32 Sensor_OverFlow_Start_Time = Int_Zero;
 
 /*This function is to Control UV Lamp operatations*/
  static void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest);
- static Sys_UV_Lamp_Status Get_UV_Lamp_Feedback( void );
+ static Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void );
  static void Control_InLineInput(Sys_Operatation_Status InputRequest);
  static Sys_Operatation_Status GetStatus_InLineInput(void);
  static uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin);
  static Sensor_InputStatus_Status GetStatus_HighPresere(void);
  static Sensor_InputStatus_Status GetStatus_OverFlow(void);
+
+
 
 /*******************************************************************************
  *  Class Objects.
@@ -161,12 +170,12 @@ void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest)
 /* ************************************************************************
  * This function is to Get Feedback status of UV Lamp operatations.
  * *************************************************************************/
-Sys_UV_Lamp_Status Get_UV_Lamp_Feedback( void )
+Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void )
 {
   /* Return variable..*/
-  Sys_UV_Lamp_Status ReturnStatus = UV_Lamp_Feedback_Fault;
-  Sys_UV_Lamp_Status LDR_1_Status = UV_Lamp_Feedback_Fault;
-  Sys_UV_Lamp_Status LDR_2_Status = UV_Lamp_Feedback_Fault;
+  Sys_UV_Lamp_Feedback_Status ReturnStatus = UV_Lamp_Feedback_Fault;
+  Sys_UV_Lamp_Feedback_Status LDR_1_Status = UV_Lamp_Feedback_Fault;
+  Sys_UV_Lamp_Feedback_Status LDR_2_Status = UV_Lamp_Feedback_Fault;
   uint16 UV_LDR_1_ADC_Value;
   uint16 UV_LDR_2_ADC_Value;
 
@@ -593,7 +602,7 @@ Sys_Operatation_Status GetStatus_ROInput(void)
   Sys_Operatation_Status Return_Value;
 
   /* Check the Time is over or not. OR if support is enabled, return current status, bypass timmer wait..*/
-  if ((Get_Time_Elapse(InputRO_Current_Status) >= P35_RO_Delay_Time_In_ms) || (P1A_RO_Motor_Support != STD_ON))
+  if ((Get_Time_Elapse(InputRO_Start_Time) >= P35_RO_Delay_Time_In_ms) || (P1A_RO_Motor_Support != STD_ON))
   {
     /* Updare the status based on the current state.*/
     Return_Value = InputRO_Current_Status;
@@ -618,6 +627,11 @@ Sys_Operatation_Status GetStatus_ROInput(void)
 ==========================================================================
 */
 
+
+
+
+
+
 /* ************************************************************************
  * Function to Process the Control System
  * *************************************************************************/
@@ -635,11 +649,20 @@ void Process_ControlSystem(void)
  * *************************************************************************/
 void Monitor_ControlSystem(void)
 {
- 
+  /* Variable to store the current water flow*/
+  static double Previous_Water_flow_Reading = 0;
+  double Current_Water_flow_Reading;
 
 
-
-
+/* Read water flow reading and print..*/
+   Current_Water_flow_Reading = Get_Current_WaterFlowedInL();
+ /* Check if both are Not same, then Log new reading*/
+  if(Previous_Water_flow_Reading != Current_Water_flow_Reading)
+  {
+      Debug_Trace("Total Water Flowed = %f",Current_Water_flow_Reading);
+      /* Update Previous Data*/
+      Previous_Water_flow_Reading = Current_Water_flow_Reading;
+  }
 }
 
 
@@ -655,7 +678,7 @@ void Init_MCU(void)
 
   /* Initializes all port settings.*/
   
-
+  
 
 }
 
@@ -682,3 +705,99 @@ void Perform_Reset(void)
   /* Perform Reset.*/
   ESP.restart();
 }
+
+
+/*
+===========================================================================
+===========================================================================
+          Functions for water flow meter....
+===========================================================================
+==========================================================================
+*/
+
+/* *********************************************************************************
+ * ISR Function to trigen when ever over flow is detected.......
+*************************************************************************************/
+void IRAM_ATTR CounterOverflow_ISR(void *arg)             
+{
+  /* Increment Over flow counter */
+  CounterOverflow = CounterOverflow + 1;  
+  /* Clear counter*/              
+  PCNT.int_clr.val = BIT(PCNT_UNIT_Used);                 
+  pcnt_counter_clear(PCNT_UNIT_Used);                     
+}
+
+
+/* *********************************************************************************
+ * Function to init PCNT based on HW configuration..
+*************************************************************************************/
+
+void Init_PulseCounter (void)
+{
+  pcnt_config_t pcntFreqConfig = { };                        // Declear variable for cinfig
+  pcntFreqConfig.pulse_gpio_num = PCNT_INPUT_SIG_IO;         // Set the port ping using for counting
+  pcntFreqConfig.pos_mode = PCNT_COUNT_INC;                  // set Counter mode: Increase counter value
+  pcntFreqConfig.counter_h_lim = PCNT_Overflow_LIM_VAL;      // Set Over flow Interupt / event value
+  pcntFreqConfig.unit = PCNT_UNIT_Used;                      //  Set Pulsos unit to ne used
+  pcntFreqConfig.channel = PCNT_CHANNEL_0;                   //  select PCNT channel 0
+  pcnt_unit_config(&pcntFreqConfig);                         // Configure PCNT.
+
+  pcnt_counter_pause(PCNT_UNIT_Used);                        // Pause PCNT counter such that we can set event.
+  pcnt_counter_clear(PCNT_UNIT_Used);                        // Clear PCNT counter to avoid ant mis counting.
+
+  pcnt_event_enable(PCNT_UNIT_Used, PCNT_EVT_H_LIM);         // Enable event for when PCNT watch point event: Maximum counter value
+  pcnt_isr_register(CounterOverflow_ISR, NULL, 0, &user_isr_handle);  // Set call back function for the Event.
+  pcnt_intr_enable(PCNT_UNIT_Used);                          // Enable PCNT
+
+  pcnt_counter_resume(PCNT_UNIT_Used);                       // Re-started PCNT.
+
+ Serial.println("PCNT Init Completed....");
+}
+
+
+/* *********************************************************************************
+   Function to clean the Counter and its variables......
+*************************************************************************************/
+void Clean_Water_Flow_Counters(void)                                       
+{
+
+  pcnt_counter_pause(PCNT_UNIT_Used);                      // Pause PCNT counter such that we can set event.
+  CounterOverflow = 0;                                     // Clear global Over flow counter.
+  pcnt_counter_clear(PCNT_UNIT_Used);                      // Clean Pulse Counter...
+  pcnt_counter_resume(PCNT_UNIT_Used);                     // Re-started PCNT.
+
+}
+
+
+
+/* *********************************************************************************
+   Function to get total water flowed from last clear / restart in Liters......
+*************************************************************************************/
+double Get_Current_WaterFlowedInL(void)                                       
+{
+   double Return_Water_Flowed_InL;
+   int16_t Current_Counter_Value;
+   uint32 Calib_Value;
+
+   /* Consider Over-flowed values*/
+   Return_Water_Flowed_InL = CounterOverflow * PCNT_Overflow_LIM_VAL;
+
+   /*Read the counter Value */
+   pcnt_get_counter_value(PCNT_UNIT_Used, &Current_Counter_Value);
+
+  /* Add Current Counter Value*/
+  Return_Water_Flowed_InL += Current_Counter_Value;
+
+   /* Get NVM Calib Value*/
+   Calib_Value = Nvm_Read_Each(NVM_ID_Calibration_FlowMeaterFactor);
+
+   /* Check is value is Zero, If So applay safe default value.*/
+   Calib_Value  = ((Calib_Value == 0)?WaterFlow_Default_Calib_VAL:Calib_Value);
+
+  /* Convert In to Liters*/
+  /* Consider the Value in NVM paramater NVM_ID_Calibration_FlowMeaterFactor = Number of counter tick for 1 Letter of water.*/
+  Return_Water_Flowed_InL = Return_Water_Flowed_InL / Calib_Value;
+
+  return (Return_Water_Flowed_InL);
+}
+

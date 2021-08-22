@@ -3,7 +3,7 @@
 #define System_Utilityes_H
 
 #include "MyStdTypes.h"
-
+#include "driver/pcnt.h" 
 
 /*******************************************************************************
  *  System Utility related Configuration Start
@@ -172,6 +172,10 @@ enum  Sensor_InputStatus_Status{
  *  Macro Functions
 *******************************************************************************/
 
+#define PCNT_UNIT_Used             PCNT_UNIT_0                  /* Select the Pulse Count 0  as the unit..*/
+#define PCNT_Overflow_LIM_VAL       10000                       /* Set the max limit to trigger the interrupt*/
+#define WaterFlow_Default_Calib_VAL 1000                        /* Paramater represent the default Calib value to be used if configured value is wrong.*/
+#define PCNT_INPUT_SIG_IO          P2D_WaterFlowSensor_Input                           /* Pulse Input selected as GPIO 4 */
 
 
 /*******************************************************************************
@@ -182,6 +186,9 @@ extern void Init_MCU(void);
 extern void Init_GPT_ICU(void);
 extern void Perform_Reset(void);
 extern void Monitor_ControlSystem(void);
+extern void Init_PulseCounter (void);
+extern void Clean_Water_Flow_Counters(void);
+extern double Get_Current_WaterFlowedInL(void);
 
 
 #endif /* End of  System_Utilityes_H */

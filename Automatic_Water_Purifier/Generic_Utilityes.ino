@@ -172,7 +172,7 @@ uint8 Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 ToleranceAl
   /* Get Lower cutoff Value*/
   LowerCutoff = TargetedValue - ((TargetedValue * ToleranceAllowed) / 100U);
   /* RE-correct Lower off, if Under flow detected.*/
-   LowerCutoff = (((LowerCutoff <= TargetedValue )? ((LowerCutoff <= InputValue )?(InputValue - LowerCutoff) : 0x00000000U) : 0x00000000U);
+   LowerCutoff = ((LowerCutoff <= TargetedValue )? ((LowerCutoff <= InputValue )?(InputValue - LowerCutoff) : 0x00000000U) : 0x00000000U);
 
   /* Check wheather is within the Tolerance limit..*/
   if( (InputValue <= UpperCutoff) && (InputValue >= LowerCutoff) )
