@@ -16,7 +16,9 @@
 static uint8 Cold_Init = STD_OFF;
 
 /* Handle for BackGroundMoniteringTask */
-TaskHandle_t BackGroundMoniteringTask_Handle;
+TaskHandle_t BackGroundMonitering_Task_Handle;
+/* Handle for ProcessControlSystem_Task */
+TaskHandle_t ProcessControlSystem_Task_Handle;
 
 /*******************************************************************************
  *  Functions Extern deceleration
@@ -59,16 +61,26 @@ void setup()
 
   /* Initate Low Priority Background Process Monitering Task */
   xTaskCreatePinnedToCore(
-      BackGroundMoniteringTask,         /* Task function. */
-      "BackGroundMoniteringTask",       /* name of task. */
+      BackGroundMonitering_Task,         /* Task function. */
+      "BackGroundMonitering_Task",       /* name of task. */
       5120,                             /* 5K Stack size of task */
       NULL,                             /* parameter of the task */
-      20,                               /* priority of the task */
-      &BackGroundMoniteringTask_Handle, /* Task handle to keep track of created task */
+      1,                                /* priority of the task, Grater the value Higher the priority.*/
+      &BackGroundMonitering_Task_Handle, /* Task handle to keep track of created task */
       1);                               /* pin task to core 1, Along with loop() function. */
 
+  /* Initate High Priority control System Process Monitering Task. */
+  xTaskCreatePinnedToCore(
+      ProcessControlSystem_Task,         /* Task function. */
+      "ProcessControlSystem_Task",       /* name of task. */
+      5120,                             /* 5K Stack size of task */
+      NULL,                             /* parameter of the task */
+      20,                               /* priority of the task, Grater the value Higher the priority.*/
+      &ProcessControlSystem_Task_Handle,/* Task handle to keep track of created task */
+      0);                               /* pin task to core 1, Along with loop() function. */
 
-      
+
+
 }
 
 void loop()
@@ -138,9 +150,9 @@ void IfCold_Init(void)
 /* ********************************************************************************
  * Task for process back ground for Monitering different paramater.
    Periodicity:-  200ms
-   Priority   :-  20 (Lowest)
+   Priority   :-  1 (Lowest)
  * *********************************************************************************/
-void BackGroundMoniteringTask( void * pvParameters ){
+void BackGroundMonitering_Task( void * pvParameters ){
   /* Loop for the task.*/
   for(;;){
 
@@ -158,5 +170,29 @@ void BackGroundMoniteringTask( void * pvParameters ){
   }
 }
 
+
+
+/* ********************************************************************************
+ * Task for process Main Control system based on the Different Inputs
+   Periodicity:-  50ms
+   Priority   :-  20 (Highest)
+ * *********************************************************************************/
+void ProcessControlSystem_Task( void * pvParameters ){
+  /* Loop for the task.*/
+  for(;;){
+
+   /********************************************************************************
+    *  Add Code after this line....
+    * ******************************************************************************
+   */
+
+    /* Trigger function to do processing in every 50ms */
+     Process_ControlSystem();
+
+   
+   /* Switch task for 50ms */
+   vTaskDelay(50 / portTICK_PERIOD_MS);
+  }
+}
 
 
