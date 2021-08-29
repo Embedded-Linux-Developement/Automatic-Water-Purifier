@@ -18,32 +18,49 @@
 static Sys_UV_Lamp_Status UV_Lamp_Current_Status = UV_Lamp_OFF;
 /* Variable to store the Time at which UV light Started / Stopped.*/
 static uint32 UV_Lamp_Start_Time = Int_Zero;
+/* Mutex to protect the Global variable for UV-Lamp*/
+portMUX_TYPE UV_Lamp_Mux = portMUX_INITIALIZER_UNLOCKED; 
+
 
 /* Variable to store the current IN-Line request set by SW.*/
 static Sys_Operatation_Status InLineInput_Current_Status = Operatation_OFF;
 /* Variable to store the Time at which In-Line Input Started / stoped.*/
 static uint32 InLineInput_Start_Time = Int_Zero;
+/* Mutex to protect the Global variable for InLineInput*/
+portMUX_TYPE InLineInput_Mux = portMUX_INITIALIZER_UNLOCKED; 
 
 
 /* Variable to store the current Input Boost request set by SW.*/
 static Sys_Operatation_Status InputBoost_Current_Status = Operatation_OFF;
 /* Variable to store the Time at which InputBoost Input Started / stoped.*/
 static uint32 InputBoost_Start_Time = Int_Zero;
+/* Mutex to protect the Global variable for InputBoost*/
+portMUX_TYPE InputBoost_Mux = portMUX_INITIALIZER_UNLOCKED; 
+
 
 /* Variable to store the current Input RO request set by SW.*/
 static Sys_Operatation_Status InputRO_Current_Status = Operatation_OFF;
 /* Variable to store the Time at which Input RO Input Started / stoped.*/
 static uint32 InputRO_Start_Time = Int_Zero;
+/* Mutex to protect the Global variable for InputRO*/
+portMUX_TYPE InputRO_Mux = portMUX_INITIALIZER_UNLOCKED; 
+
 
 /* Variable to store the current High presure sensor input.*/
 static Sensor_InputStatus_Status Sensor_HighPressure_Status = Sensor_OFF;
 /* Variable to store the Time at which High presure sensor input Started / stoped.*/
 static uint32 Sensor_HighPressure_Start_Time = Int_Zero;
+/* Mutex to protect the Global variable for Sensor HighPressure*/
+portMUX_TYPE Sensor_HighPressure_Mux = portMUX_INITIALIZER_UNLOCKED; 
+
 
 /* Variable to store the current OverFlow sensor input.*/
 static Sensor_InputStatus_Status Sensor_OverFlow_Status = Sensor_OFF;
 /* Variable to store the Time at which OverFlow sensor input Started / stoped.*/
 static uint32 Sensor_OverFlow_Start_Time = Int_Zero;
+/* Mutex to protect the Global variable for Sensor OverFlow*/
+portMUX_TYPE Sensor_OverFlow_Mux = portMUX_INITIALIZER_UNLOCKED; 
+
 
 
 static uint32 CounterOverflow;                        /* Variable to store the over flow count */
@@ -130,6 +147,16 @@ void ShutDown_All(void)
  * *************************************************************************/
 void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest)
 {
+  /* Variable to store current Time ( To avoid in mutex protection)*/
+  uint32 Temp_Time;
+  /* Variable to store Pin Status ( To avoid in mutex protection)*/
+  uint32 Temp_PinStatus = 0xFFU;
+
+  /* Get the current time value*/
+  Temp_Time = millis();
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&UV_Lamp_Mux);
+
 
   /* Power ON the Lamp is requested.*/
   if (InputRequest == UV_Lamp_ON)
@@ -138,11 +165,11 @@ void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest)
     if (UV_Lamp_Current_Status == UV_Lamp_OFF)
     {
       /* Reset the Start time*/
-      UV_Lamp_Start_Time = millis();
+      UV_Lamp_Start_Time = Temp_Time;
     }
 
     /* Switch ON the UV light.*/
-    digitalWrite(P01_UV_Lamp_Relay, P02_UV_Lamp_Relay_ON_State);
+    Temp_PinStatus = P02_UV_Lamp_Relay_ON_State;
     /* Up date the status.*/
     UV_Lamp_Current_Status = UV_Lamp_ON;
   }
@@ -153,17 +180,27 @@ void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest)
     if (UV_Lamp_Current_Status == UV_Lamp_ON)
     {
       /* Reset the Start time*/
-      UV_Lamp_Start_Time = millis();
+      UV_Lamp_Start_Time = Temp_Time;
     }
 
     /* Switch off the UV light.*/
-    digitalWrite(P01_UV_Lamp_Relay, P03_UV_Lamp_Relay_OFF_State);
+    Temp_PinStatus = P03_UV_Lamp_Relay_OFF_State;
     /* Up date the status.*/
     UV_Lamp_Current_Status = UV_Lamp_OFF;
   }
   else
   {
     /* Do nothing because, request is not valied.*/
+  }
+
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&UV_Lamp_Mux);
+
+  /* If port Pin Required to update*/
+  if (Temp_PinStatus != 0xFFU)
+  {
+    /* Switch ON / OFF Port Pin based on the result.*/
+    digitalWrite(P01_UV_Lamp_Relay, Temp_PinStatus);
   }
 }
 
@@ -179,6 +216,14 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void )
   uint16 UV_LDR_1_ADC_Value;
   uint16 UV_LDR_2_ADC_Value;
 
+  /* Read ADC value of both LDR. Filtering of ADC is not considered for now... */
+  UV_LDR_1_ADC_Value = Sys_Read_Processed_ADC_Value(P04_UV_Lamp_Analog_LDR_1);
+  UV_LDR_2_ADC_Value = Sys_Read_Processed_ADC_Value(P0A_UV_Lamp_Analog_LDR_2);
+
+
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&UV_Lamp_Mux);
+
   /* Check if configuration of feedback is enabled*/
   if (UV_Feedback_None != P2E_UV_Feedback_Support)
   {
@@ -186,9 +231,6 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void )
     /* Check if enough time elapsed after UV Lamp is turned ON*/
    if(Get_Time_Elapse(UV_Lamp_Start_Time) >= P2F_UV_On_Delay_Time_In_ms)
    {
-    /* Read ADC value of both LDR. Filtering of ADC is not considered for now... */
-    UV_LDR_1_ADC_Value = Sys_Read_Processed_ADC_Value(P04_UV_Lamp_Analog_LDR_1);
-    UV_LDR_2_ADC_Value = Sys_Read_Processed_ADC_Value(P0A_UV_Lamp_Analog_LDR_2);
 
     /* Check if LDR 1 detected as UV light ON*/
     if ( Check_Tolerance((uint32)UV_LDR_1_ADC_Value,(uint32)P05_UV_Lamp_Analog_LDR_1_ON_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
@@ -264,7 +306,6 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void )
       /* Set status feedback is in progress..*/
        ReturnStatus = UV_Lamp_Feedback_InProgres;
    }
-
   }
   else /* If Feedback is Dissabled.*/
   {
@@ -280,6 +321,10 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void )
     }
   }
 
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&UV_Lamp_Mux);
+
+
   /* Return final status*/
   return (ReturnStatus);
 }
@@ -290,6 +335,20 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void )
  * *************************************************************************/
 void Control_InLineInput(Sys_Operatation_Status InputRequest)
 {
+
+  /* Variable to store current Time ( To avoid in mutex protection)*/
+  uint32 Temp_Time;
+  /* Variable to store Pin Status ( To avoid in mutex protection)*/
+  uint32 Temp_PinStatus = 0xFFU;
+
+  /* Get the current time value*/
+  Temp_Time = millis();
+
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&InLineInput_Mux);
+
+
+
   /* If input request is to ON*/
   if (InputRequest == Operatation_ON)
   {
@@ -297,7 +356,7 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
     if (Operatation_OFF == InLineInput_Current_Status)
     {
       /* Reset the Start time*/
-      InLineInput_Start_Time = millis();
+      InLineInput_Start_Time = Temp_Time;
     }
     else
     {
@@ -305,7 +364,7 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
     }
 
     /* Update the Output pin state*/
-    digitalWrite(P10_InLineInputSolenoid_Relay, P11_InLineInputSolenoid_Relay_ON_State);
+    Temp_PinStatus = P11_InLineInputSolenoid_Relay_ON_State;
     /* Update current status*/
     InLineInput_Current_Status = Operatation_ON;
   }
@@ -316,7 +375,7 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
     if (Operatation_ON == InLineInput_Current_Status)
     {
       /* Reset the Stope time*/
-      InLineInput_Start_Time = millis();
+      InLineInput_Start_Time =Temp_Time;
     }
     else
     {
@@ -324,7 +383,7 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
     }
 
     /* Update the Output pin state*/
-    digitalWrite(P10_InLineInputSolenoid_Relay, P12_InLineInputSolenoid_Relay_OFF_State);
+    Temp_PinStatus =  P12_InLineInputSolenoid_Relay_OFF_State;
     /* Update current status*/
     InLineInput_Current_Status = Operatation_OFF;
   }
@@ -332,6 +391,19 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
   {
     /* Do Nothing...*/
   }
+
+
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&InLineInput_Mux);
+
+  /* If port Pin Required to update*/
+  if (Temp_PinStatus != 0xFFU)
+  {
+    /* Switch ON / OFF Port Pin based on the result.*/
+    digitalWrite(P10_InLineInputSolenoid_Relay, Temp_PinStatus);
+  }
+
+
 }
 
 
@@ -341,6 +413,9 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
 Sys_Operatation_Status GetStatus_InLineInput(void)
 {
   Sys_Operatation_Status Return_Value;
+
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&InLineInput_Mux);
 
   /* Check the Time is over or not.*/
   if (Get_Time_Elapse(InLineInput_Start_Time) >= P31_InLineInput_Delay_Time_In_ms)
@@ -354,8 +429,254 @@ Sys_Operatation_Status GetStatus_InLineInput(void)
     Return_Value = Operatation_InProgres;
   }
 
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&InLineInput_Mux);
+
   return (Return_Value);
 }
+
+
+
+
+/* ************************************************************************
+ * This function is to Control Booster pump operatations
+ * *************************************************************************/
+void Control_BoostInput(Sys_Operatation_Status InputRequest)
+{
+
+  /* Variable to store current Time ( To avoid in mutex protection)*/
+  uint32 Temp_Time;
+  /* Variable to store Pin Status ( To avoid in mutex protection)*/
+  uint32 Temp_MotorPinStatus = 0xFFU;
+  uint32 Temp_SolenoidPinStatus = 0xFFU;
+
+  /* Get the current time value*/
+  Temp_Time = millis();
+
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&InputBoost_Mux);
+
+
+
+  /* If input request is to ON*/
+  if (InputRequest == Operatation_ON)
+  {
+    /* If previous status is OFF, then Update States changed Time*/
+    if (Operatation_OFF == InputBoost_Current_Status)
+    {
+      /* Reset the Start time*/
+      InputBoost_Start_Time = Temp_Time;
+    }
+    else
+    {
+      /* Do Nothing...*/
+    }
+
+    /* Update the Output pin state*/
+     Temp_MotorPinStatus = P15_InputBoostMotor_Relay_ON_State;
+     Temp_SolenoidPinStatus = P18_InputBoostSolenoid_Relay_ON_State;
+    /* Update current status*/
+    InputBoost_Current_Status = Operatation_ON;
+  }
+  /* If input request is to make it OFF*/
+  else if (InputRequest == Operatation_OFF)
+  {
+    /* If previous status is OFF, then Update States changed Time*/
+    if (Operatation_ON == InputBoost_Current_Status)
+    {
+      /* Reset the Stope time*/
+      InputBoost_Start_Time = Temp_Time;
+    }
+    else
+    {
+      /* Do Nothing...*/
+    }
+
+    /* Update the Output pin state*/
+    Temp_MotorPinStatus = P16_InputBoostMotor_Relay_OFF_State;
+    Temp_SolenoidPinStatus = P19_InputBoostSolenoid_Relay_OFF_State;
+    /* Update current status*/
+    InputBoost_Current_Status = Operatation_OFF;
+  }
+  else
+  {
+    /* Do Nothing...*/
+  }
+
+
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&InputBoost_Mux);
+
+  /* If port Pin Required to update*/
+  if (Temp_MotorPinStatus != 0xFFU)
+  {
+    /* Switch ON / OFF Port Pin based on the result.*/
+    digitalWrite(P14_InputBoostMotor_Relay, Temp_MotorPinStatus);
+  }
+  /* If port Pin Required to update*/
+  if (Temp_SolenoidPinStatus != 0xFFU)
+  {
+    /* Switch ON / OFF Port Pin based on the result.*/
+    digitalWrite(P17_InputBoostSolenoid_Relay, Temp_SolenoidPinStatus);
+  }
+
+
+}
+
+
+/* ************************************************************************
+ * This function is get the status of the Booster pump request
+ * *************************************************************************/
+Sys_Operatation_Status GetStatus_BoostInput(void)
+{
+  Sys_Operatation_Status Return_Value;
+
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&InputBoost_Mux);
+
+  /* Check the Time is over or not.*/
+  if (Get_Time_Elapse(InputBoost_Start_Time) >= P33_InputBoost_Delay_Time_In_ms)
+  {
+    /* Updare the status based on the current state.*/
+    Return_Value = InputBoost_Current_Status;
+  }
+  else /* Still change is in progress*/
+  {
+    /* Set status to in progress..*/
+    Return_Value = Operatation_InProgres;
+  }
+
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&InputBoost_Mux);
+
+  return (Return_Value);
+}
+
+
+
+/* ************************************************************************
+ * This function is to Control RO pump operatations
+ * *************************************************************************/
+void Control_ROInput(Sys_Operatation_Status InputRequest)
+{
+
+  /* Variable to store current Time ( To avoid in mutex protection)*/
+  uint32 Temp_Time;
+  /* Variable to store Pin Status ( To avoid in mutex protection)*/
+  uint32 Temp_MotorPinStatus = 0xFFU;
+  uint32 Temp_SolenoidPinStatus = 0xFFU;
+
+  /* Get the current time value*/
+  Temp_Time = millis();
+
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&InputRO_Mux);
+
+
+
+  /* Check wheather support is enabled..*/
+  if (P1A_RO_Motor_Support == STD_ON)
+  {
+    /* If input request is to ON*/
+    if (InputRequest == Operatation_ON)
+    {
+      /* If previous status is OFF, then Update States changed Time*/
+      if (Operatation_OFF == InputRO_Current_Status)
+      {
+        /* Reset the Start time*/
+        InputRO_Start_Time = Temp_Time;
+      }
+      else
+      {
+        /* Do Nothing...*/
+      }
+
+      /* Update the Output pin state*/
+      Temp_MotorPinStatus = P1C_RO_Motor_Relay_ON_State;
+      Temp_SolenoidPinStatus = P1F_RO_Solenoid_Relay_ON_State;
+      /* Update current status*/
+      InputRO_Current_Status = Operatation_ON;
+    }
+    /* If input request is to make it OFF*/
+    else if (InputRequest == Operatation_OFF)
+    {
+      /* If previous status is OFF, then Update States changed Time*/
+      if (Operatation_ON == InputRO_Current_Status)
+      {
+        /* Reset the Stope time*/
+        InputRO_Start_Time = Temp_Time;
+      }
+      else
+      {
+        /* Do Nothing...*/
+      }
+
+      /* Update the Output pin state*/
+      Temp_MotorPinStatus = P1D_RO_Motor_Relay_OFF_State;
+      Temp_SolenoidPinStatus = P20_RO_Solenoid_Relay_OFF_State;
+      /* Update current status*/
+      InputRO_Current_Status = Operatation_OFF;
+    }
+    else
+    {
+      /* Do Nothing...*/
+    }
+  }
+  else /* If RO support is dissabled*/
+  {
+    /* Input request if its valied, accordingly...*/
+    InputRO_Current_Status = ((InputRequest == Operatation_ON) ? Operatation_ON : Operatation_OFF);
+    /* Reset the Stope time*/
+    InputRO_Start_Time = millis();
+  }
+
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&InputRO_Mux);
+
+  /* If port Pin Required to update*/
+  if (Temp_MotorPinStatus != 0xFFU)
+  {
+    /* Switch ON / OFF Port Pin based on the result.*/
+    digitalWrite(P1B_RO_Motor_Relay, Temp_MotorPinStatus);
+  }
+  /* If port Pin Required to update*/
+  if (Temp_SolenoidPinStatus != 0xFFU)
+  {
+    /* Switch ON / OFF Port Pin based on the result.*/
+    digitalWrite(P1E_RO_Solenoid_Relay, Temp_SolenoidPinStatus);
+  }
+
+}
+
+/* ************************************************************************
+ * This function is get the status of the RO pump request
+ * *************************************************************************/
+Sys_Operatation_Status GetStatus_ROInput(void)
+{
+  Sys_Operatation_Status Return_Value;
+
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&InputRO_Mux);
+
+  /* Check the Time is over or not. OR if support is enabled, return current status, bypass timmer wait..*/
+  if ((Get_Time_Elapse(InputRO_Start_Time) >= P35_RO_Delay_Time_In_ms) || (P1A_RO_Motor_Support != STD_ON))
+  {
+    /* Updare the status based on the current state.*/
+    Return_Value = InputRO_Current_Status;
+  }
+  else /* Still change is in progress*/
+  {
+    /* Set status to in progress..*/
+    Return_Value = Operatation_InProgres;
+  }
+
+
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&InputRO_Mux);
+
+  return (Return_Value);
+}
+
 
 
 /* ************************************************************************
@@ -365,8 +686,19 @@ Sensor_InputStatus_Status GetStatus_HighPresere(void)
 {
   uint16 HighPressure_ADC_Value;
 
+  /* Variable to store current Time ( To avoid in mutex protection)*/
+  uint32 Temp_Time;
+
   /* Read Current ADC value for High Presure */
   HighPressure_ADC_Value = Sys_Read_Processed_ADC_Value(P21_Analog_HighPresere);
+
+  /* Get the current time value*/
+  Temp_Time = millis();
+
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&Sensor_HighPressure_Mux);
+
+
 
   /* Check if its detected as ON*/
   if (Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P22_Analog_HighPresere_ON_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
@@ -375,7 +707,7 @@ Sensor_InputStatus_Status GetStatus_HighPresere(void)
      /* Set Status to ON*/
      Sensor_HighPressure_Status = Sensor_ON;
     /* Reset the time*/
-    Sensor_HighPressure_Start_Time = millis();
+    Sensor_HighPressure_Start_Time = Temp_Time;
   }
   /* Check wheather its status is OFF*/
   else if (Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P24_Analog_HighPresere_OFF_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
@@ -397,8 +729,12 @@ Sensor_InputStatus_Status GetStatus_HighPresere(void)
     /*Switching to fault shall be immidate*/
     Sensor_HighPressure_Status = Sensor_Fault;
     /* Reset the time*/
-    Sensor_HighPressure_Start_Time = millis();
+    Sensor_HighPressure_Start_Time = Temp_Time;
   }
+
+
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&Sensor_HighPressure_Mux);
 
    return(Sensor_HighPressure_Status);
 
@@ -412,8 +748,17 @@ Sensor_InputStatus_Status GetStatus_OverFlow(void)
 {
   uint16 OverFlow_ADC_Value;
 
+ /* Variable to store current Time ( To avoid in mutex protection)*/
+  uint32 Temp_Time;
+
   /* Read Current ADC value for overflow */
   OverFlow_ADC_Value = Sys_Read_Processed_ADC_Value(P27_Analog_OverFlow);
+
+  /* Get the current time value*/
+  Temp_Time = millis();
+
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&Sensor_OverFlow_Mux);
 
   /* Check if its detected as ON*/
   if (Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P28_Analog_OverFlow_ON_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
@@ -422,7 +767,7 @@ Sensor_InputStatus_Status GetStatus_OverFlow(void)
      /* Set Status to ON*/
      Sensor_OverFlow_Status = Sensor_ON;
     /* Reset the time*/
-    Sensor_OverFlow_Start_Time = millis();
+    Sensor_OverFlow_Start_Time = Temp_Time;
   }
   /* Check wheather its status is OFF*/
   else if (Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P2A_Analog_OverFlow_OFF_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
@@ -444,177 +789,17 @@ Sensor_InputStatus_Status GetStatus_OverFlow(void)
     /*Switching to fault shall be immidate*/
     Sensor_OverFlow_Status = Sensor_Fault;
     /* Reset the time*/
-    Sensor_OverFlow_Start_Time = millis();
+    Sensor_OverFlow_Start_Time = Temp_Time;
   }
+
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&Sensor_OverFlow_Mux);
 
    return(Sensor_OverFlow_Status);
 
 }
 
 
-
-
-
-/* ************************************************************************
- * This function is to Control Booster pump operatations
- * *************************************************************************/
-void Control_BoostInput(Sys_Operatation_Status InputRequest)
-{
-  /* If input request is to ON*/
-  if (InputRequest == Operatation_ON)
-  {
-    /* If previous status is OFF, then Update States changed Time*/
-    if (Operatation_OFF == InputBoost_Current_Status)
-    {
-      /* Reset the Start time*/
-      InputBoost_Start_Time = millis();
-    }
-    else
-    {
-      /* Do Nothing...*/
-    }
-
-    /* Update the Output pin state*/
-    digitalWrite(P14_InputBoostMotor_Relay, P15_InputBoostMotor_Relay_ON_State);
-    digitalWrite(P17_InputBoostSolenoid_Relay, P18_InputBoostSolenoid_Relay_ON_State);
-    /* Update current status*/
-    InputBoost_Current_Status = Operatation_ON;
-  }
-  /* If input request is to make it OFF*/
-  else if (InputRequest == Operatation_OFF)
-  {
-    /* If previous status is OFF, then Update States changed Time*/
-    if (Operatation_ON == InputBoost_Current_Status)
-    {
-      /* Reset the Stope time*/
-      InputBoost_Start_Time = millis();
-    }
-    else
-    {
-      /* Do Nothing...*/
-    }
-
-    /* Update the Output pin state*/
-    digitalWrite(P14_InputBoostMotor_Relay, P16_InputBoostMotor_Relay_OFF_State);
-    digitalWrite(P17_InputBoostSolenoid_Relay, P19_InputBoostSolenoid_Relay_OFF_State);
-    /* Update current status*/
-    InputBoost_Current_Status = Operatation_OFF;
-  }
-  else
-  {
-    /* Do Nothing...*/
-  }
-}
-
-
-/* ************************************************************************
- * This function is get the status of the Booster pump request
- * *************************************************************************/
-Sys_Operatation_Status GetStatus_BoostInput(void)
-{
-  Sys_Operatation_Status Return_Value;
-
-  /* Check the Time is over or not.*/
-  if (Get_Time_Elapse(InputBoost_Start_Time) >= P33_InputBoost_Delay_Time_In_ms)
-  {
-    /* Updare the status based on the current state.*/
-    Return_Value = InputBoost_Current_Status;
-  }
-  else /* Still change is in progress*/
-  {
-    /* Set status to in progress..*/
-    Return_Value = Operatation_InProgres;
-  }
-
-  return (Return_Value);
-}
-
-
-
-/* ************************************************************************
- * This function is to Control RO pump operatations
- * *************************************************************************/
-void Control_ROInput(Sys_Operatation_Status InputRequest)
-{
-
-  /* Check wheather support is enabled..*/
-  if (P1A_RO_Motor_Support == STD_ON)
-  {
-    /* If input request is to ON*/
-    if (InputRequest == Operatation_ON)
-    {
-      /* If previous status is OFF, then Update States changed Time*/
-      if (Operatation_OFF == InputRO_Current_Status)
-      {
-        /* Reset the Start time*/
-        InputRO_Start_Time = millis();
-      }
-      else
-      {
-        /* Do Nothing...*/
-      }
-
-      /* Update the Output pin state*/
-      digitalWrite(P1B_RO_Motor_Relay, P1C_RO_Motor_Relay_ON_State);
-      digitalWrite(P1E_RO_Solenoid_Relay, P1F_RO_Solenoid_Relay_ON_State);
-      /* Update current status*/
-      InputRO_Current_Status = Operatation_ON;
-    }
-    /* If input request is to make it OFF*/
-    else if (InputRequest == Operatation_OFF)
-    {
-      /* If previous status is OFF, then Update States changed Time*/
-      if (Operatation_ON == InputRO_Current_Status)
-      {
-        /* Reset the Stope time*/
-        InputRO_Start_Time = millis();
-      }
-      else
-      {
-        /* Do Nothing...*/
-      }
-
-      /* Update the Output pin state*/
-      digitalWrite(P1B_RO_Motor_Relay, P1D_RO_Motor_Relay_OFF_State);
-      digitalWrite(P1E_RO_Solenoid_Relay, P20_RO_Solenoid_Relay_OFF_State);
-      /* Update current status*/
-      InputRO_Current_Status = Operatation_OFF;
-    }
-    else
-    {
-      /* Do Nothing...*/
-    }
-  }
-  else /* If RO support is dissabled*/
-  {
-    /* Input request if its valied, accordingly...*/
-    InputRO_Current_Status = ((InputRequest == Operatation_ON) ? Operatation_ON : Operatation_OFF);
-    /* Reset the Stope time*/
-    InputRO_Start_Time = millis();
-  }
-}
-
-/* ************************************************************************
- * This function is get the status of the RO pump request
- * *************************************************************************/
-Sys_Operatation_Status GetStatus_ROInput(void)
-{
-  Sys_Operatation_Status Return_Value;
-
-  /* Check the Time is over or not. OR if support is enabled, return current status, bypass timmer wait..*/
-  if ((Get_Time_Elapse(InputRO_Start_Time) >= P35_RO_Delay_Time_In_ms) || (P1A_RO_Motor_Support != STD_ON))
-  {
-    /* Updare the status based on the current state.*/
-    Return_Value = InputRO_Current_Status;
-  }
-  else /* Still change is in progress*/
-  {
-    /* Set status to in progress..*/
-    Return_Value = Operatation_InProgres;
-  }
-
-  return (Return_Value);
-}
 
 
 

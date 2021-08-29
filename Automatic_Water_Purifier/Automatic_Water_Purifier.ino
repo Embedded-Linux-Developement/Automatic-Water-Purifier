@@ -14,6 +14,10 @@
  *  Variables and Constense
 *******************************************************************************/
 static uint8 Cold_Init = STD_OFF;
+
+/* Handle for BackGroundMoniteringTask */
+TaskHandle_t BackGroundMoniteringTask_Handle;
+
 /*******************************************************************************
  *  Functions Extern deceleration
 *******************************************************************************/
@@ -22,6 +26,8 @@ static uint8 Cold_Init = STD_OFF;
 /*******************************************************************************
  *  Class Objects.
 *******************************************************************************/
+
+
 
 /*******************************************************************************
  *  Startup Functions
@@ -48,10 +54,22 @@ void setup()
 
   /* Initialise all timmer and External interrupts*/
   Init_GPT_ICU();
+
+  /* Initate all required Perodic task*/
+
+  /* Initate Low Priority Background Process Monitering Task */
+  xTaskCreatePinnedToCore(
+      BackGroundMoniteringTask,         /* Task function. */
+      "BackGroundMoniteringTask",       /* name of task. */
+      5120,                             /* 5K Stack size of task */
+      NULL,                             /* parameter of the task */
+      20,                               /* priority of the task */
+      &BackGroundMoniteringTask_Handle, /* Task handle to keep track of created task */
+      1);                               /* pin task to core 1, Along with loop() function. */
+
+
+      
 }
-
-
-
 
 void loop()
 { 
@@ -60,14 +78,14 @@ void loop()
   /* TRigger Cold Init Statement if any*/
   IfCold_Init();
 
-  /* Trigger function to do monitering and log the info. */
-  Monitor_ControlSystem();
 
 
 
 
 
 
+  /* Keep this Loop Ideal for around 1 Second. As Not expected to do much critival processing*/
+  delay(1000);
 
 }
 
@@ -103,6 +121,40 @@ void IfCold_Init(void)
   else
   {
      /* Do nothing. */
+  }
+}
+
+
+
+/*
+===========================================================================
+===========================================================================
+                      Custom Additional task 
+===========================================================================
+===========================================================================
+*/
+
+
+/* ********************************************************************************
+ * Task for process back ground for Monitering different paramater.
+   Periodicity:-  200ms
+   Priority   :-  20 (Lowest)
+ * *********************************************************************************/
+void BackGroundMoniteringTask( void * pvParameters ){
+  /* Loop for the task.*/
+  for(;;){
+
+   /********************************************************************************
+    *  Add Code after this line....
+    * ******************************************************************************
+   */
+
+    /* Trigger function to do monitering and log the info in every 200ms */
+     Monitor_ControlSystem();
+
+   
+   /* Switch task for 200ms */
+   vTaskDelay(200 / portTICK_PERIOD_MS);
   }
 }
 
