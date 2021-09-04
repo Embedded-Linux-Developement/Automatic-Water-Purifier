@@ -108,7 +108,7 @@ pcnt_isr_handle_t user_isr_handle = NULL;      /* User ISR handler for Interrupt
  }
 
 /* ************************************************************************
- * Function to master ShutDown the filtering.
+ * Function to master ShutDown the filtering. 
  * *************************************************************************/
 void ShutDown_All(void)
 {
@@ -824,6 +824,25 @@ void Process_ControlSystem(void)
 {
  
 /* Get the State of Overflow, If over flow detected then Switch off..*/
+
+   /* State Flow Is as mentioned below*/
+   /* 
+      -Init State ( Entry Point)
+          - Check UV Sensor Working 
+          - Water Flow Working
+      - Normal_Tank_Not_Full
+          - Water Flow Keep on going 
+      - OverFlow_Tank_Not_Full
+          - Tank Not full, But More than expected water flowed.
+      - Tank_Full
+          -Tank Full and Stoped the working.
+      - Sensore Fault
+          - Fault in any of the sensor detected.
+      - Emergency_Stop
+          - If any failtel System error detected, Only exit is power on reset.
+  
+   */
+
 
 
 
