@@ -11,9 +11,7 @@
 /*******************************************************************************
  *  Variables and Constense
 *******************************************************************************/
-/* Max buffer relocatated for debug info in Serial window.*/
-char buffer[Max_Debug_Buffer];
-char Timming_Buffer[Max_Debug_Time_Buffer];
+
 
 /*******************************************************************************
  *  Functions Extern deceleration
@@ -32,57 +30,6 @@ char Timming_Buffer[Max_Debug_Time_Buffer];
 ===========================================================================
 ===========================================================================
 */
-
-/* ************************************************************************
- * Function to Init output serial for debug purpose.
- * ************************************************************************
- * */
-void Init_Trace(void)
-{
-
-  /* For tracing the the function call.*/
-  Trace_Function_Call();
-
-  /* Do operation only if debug support is ON*/
-#if (Enable_Debug_Support == STD_ON)
-  /* Start the Serial Port*/
-  Serial.begin(Serial_BR_Rate);
-#endif /* End of (Enable_Debug_Support == STD_ON)*/
-}
-
-/* ************************************************************************
- * Function to print output for debug purpose.
- * ************************************************************************
- * */
-void Debug_Trace(const char *fmt, ...)
-{
-
-  /* Do operation only if debug support is ON*/
-#if (Enable_Debug_Support == STD_ON)
-  int Ret_Var;
-  va_list args;
-  va_start(args, fmt);
-  Ret_Var = vsnprintf(buffer, sizeof(buffer), fmt, args);
-  va_end(args);
-
-  /* Print Timing related inform*/
-  sprintf(Timming_Buffer, "%011ld: ", millis());
-  Serial.write(Timming_Buffer);
-
-  if (Ret_Var > 0)
-  {
-    /* Print the  out to Uart Serial.*/
-    (void)Serial.write(buffer);
-  }
-  else
-  {
-    (void)Serial.write("Error in Generating the debug Trace.");
-  }
-
-  Serial.write("\n");
-
-#endif /* End of (Enable_Debug_Support == STD_ON)*/
-}
 
 /* ************************************************************************
  * Function to get time difference with respect to current time, 
@@ -186,3 +133,7 @@ uint8 Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 ToleranceAl
     Return_Value = E_NOT_OK;
   }
 }
+
+
+
+

@@ -8,6 +8,8 @@
 #include "ESP32_NVM_Stack.h"
 #include "Generic_Utilityes.h"
 #include "System_Utilityes.h"
+#include "Asynchronous_Morse_Code_Generator.h"
+#include "Debug_Trace.h"
 
 
 /*******************************************************************************
@@ -79,8 +81,8 @@ void setup()
       &ProcessControlSystem_Task_Handle,/* Task handle to keep track of created task */
       0);                               /* pin task to core 1, Along with loop() function. */
 
-
-
+ /* Init the Morse code Generator  */
+  Morse_Code_Init();
 }
 
 void loop()
