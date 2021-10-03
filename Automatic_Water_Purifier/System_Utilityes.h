@@ -185,10 +185,11 @@ enum  Sensor_InputStatus_Status{
 extern void Init_MCU(void);
 extern void Init_GPT_ICU(void);
 extern void Perform_Reset(void);
-extern void Monitor_ControlSystem(void);
+extern void Web_Server_Processing(void);
 extern void Init_PulseCounter (void);
 extern void Clean_Water_Flow_Counters(void);
 extern double Get_Current_WaterFlowedInL(void);
+extern void Web_Server_Init(void);
 
 
 #endif /* End of  System_Utilityes_H */

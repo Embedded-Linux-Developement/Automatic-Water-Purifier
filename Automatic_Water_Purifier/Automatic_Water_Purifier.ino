@@ -18,7 +18,7 @@
 static uint8 Cold_Init = STD_OFF;
 
 /* Handle for BackGroundMoniteringTask */
-TaskHandle_t BackGroundMonitering_Task_Handle;
+TaskHandle_t Web_Server_Processing_Task_Handle;
 /* Handle for ProcessControlSystem_Task */
 TaskHandle_t ProcessControlSystem_Task_Handle;
 
@@ -63,18 +63,18 @@ void setup()
 
   /* Initate Low Priority Background Process Monitering Task */
   xTaskCreatePinnedToCore(
-      BackGroundMonitering_Task,         /* Task function. */
-      "BackGroundMonitering_Task",       /* name of task. */
-      5120,                             /* 5K Stack size of task */
-      NULL,                             /* parameter of the task */
-      1,                                /* priority of the task, Grater the value Higher the priority.*/
-      &BackGroundMonitering_Task_Handle, /* Task handle to keep track of created task */
-      1);                               /* pin task to core 1, Along with loop() function. */
+      Web_Server_Processing_Task,         /* Task function. */
+      "Web_Server_Processing_Task",       /* name of task. */
+      5120,                               /* 5K Stack size of task */
+      NULL,                               /* parameter of the task */
+      1,                                  /* priority of the task, Grater the value Higher the priority.*/
+      &Web_Server_Processing_Task_Handle, /* Task handle to keep track of created task */
+      1);                                 /* pin task to core 1, Along with loop() function. */
 
   /* Initate High Priority control System Process Monitering Task. */
   xTaskCreatePinnedToCore(
-      ProcessControlSystem_Task,         /* Task function. */
-      "ProcessControlSystem_Task",       /* name of task. */
+      ProcessControlSystem_Task,        /* Task function. */
+      "ProcessControlSystem_Task",      /* name of task. */
       5120,                             /* 5K Stack size of task */
       NULL,                             /* parameter of the task */
       20,                               /* priority of the task, Grater the value Higher the priority.*/
@@ -154,7 +154,11 @@ void IfCold_Init(void)
    Periodicity:-  200ms
    Priority   :-  1 (Lowest)
  * *********************************************************************************/
-void BackGroundMonitering_Task( void * pvParameters ){
+void Web_Server_Processing_Task( void * pvParameters ){
+
+  /* Init the Web server, Only first time.*/
+  Web_Server_Init();
+
   /* Loop for the task.*/
   for(;;){
 
@@ -164,7 +168,7 @@ void BackGroundMonitering_Task( void * pvParameters ){
    */
 
     /* Trigger function to do monitering and log the info in every 200ms */
-     Monitor_ControlSystem();
+     Web_Server_Processing();
 
    
    /* Switch task for 200ms */
