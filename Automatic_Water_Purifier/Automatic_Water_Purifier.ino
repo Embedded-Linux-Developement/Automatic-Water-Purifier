@@ -40,6 +40,9 @@ void setup()
 {
   /* Enable Cold Init*/
   Cold_Init = STD_OFF;
+  
+  /* Init required variables*/
+  Init_System_Utilityes_Variables();
 
   /* Init Debug Trace, if enabled...*/
   Init_Trace();
