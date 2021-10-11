@@ -10,8 +10,13 @@
  *  System Utility related Configuration Start
 *******************************************************************************/
 
-/* MAcro defining the Max Time to complete System shutdown from start.*/
+/* MAcro defining the wait Time to complete System shutdown from start.*/
 #define CompleteSystem_ShutDown_Wait_Time  6000    /* Configured as 6 Sec*/
+
+/* Macro to defining the wait Time to Restart the fault checking in ms*/
+#define Fault_Recheck_Wait_Time  2000    /* Configured as 2 Sec*/
+
+
 
 /*-----------------------------------------------------------------------------
  *  System Utility related Configuration END
@@ -60,6 +65,7 @@ enum  Sensor_InputStatus_Status{
   Normal_Tank_Not_Full       = 0x65, /* Indicate Tank is Not full and needs to On the Water flow*/
   OverFlow_Tank_Not_Full     = 0x75, /* Indicate Tank full indicator not responding after considerable amound of water flows.*/
   Tank_Full                  = 0x85, /* Indicate Tank is full and Stop the flow..*/
+  Tank_High_Presure          = 0x99, /* Indicate Some of the High Presure is detected at the input.*/
   Tank_Sensor_Fault          = 0x95, /* Indicate Some of the Sensor detected the Fault.*/
   Tank_Emergency_Stop        = 0xA5  /* Performe Emergency stop, Once inter in to this state It cannot come out. Needs power cycle.*/
 };
@@ -67,7 +73,7 @@ enum  Sensor_InputStatus_Status{
 
 
 /*******************************************************************************
- *  Macro Functions
+ *  Macros
 *******************************************************************************/
 
 #define PCNT_UNIT_Used             PCNT_UNIT_0                  /* Select the Pulse Count 0  as the unit..*/
@@ -75,7 +81,54 @@ enum  Sensor_InputStatus_Status{
 #define WaterFlow_Default_Calib_VAL 1000                        /* Paramater represent the default Calib value to be used if configured value is wrong.*/
 #define PCNT_INPUT_SIG_IO          P2D_WaterFlowSensor_Input                           /* Pulse Input selected as GPIO 4 */
 
+/* Define Sys_Flag_True*/
+#ifndef Sys_Flag_True
+#define Sys_Flag_True 0X01
+#endif
+
+/* Define SSys_Flag_False*/
+#ifndef Sys_Flag_False
+#define Sys_Flag_False 0X00
+#endif
+
+/* Define SSys_Flag_Init*/
+#ifndef Sys_Flag_Init
+#define Sys_Flag_Init 0X11
+#endif
+
+/* Macro to Declear Check flag, Shall use create new Check flag*/
+#define Declear_Check_Flag(Flag_Name) (unsigned char Flag_Name = Sys_Flag_Init)
+
+/* Macro to clear Check flag, Shall use before using the flag*/
+#define Clear_Check_Flag(Flag_Name) (Flag_Name = Sys_Flag_Init)
+
+/* Macro to make flag True, Once flag is False after clearing same shall not convert to true again, shall preserve False state*/
+#define True_Check_Flag(Flag_Name) (Flag_Name &= Sys_Flag_True)
+
+/* Macro to make flag False, Once flag is False after clearing same shall preserve False state, till next clear.*/
+#define False_Check_Flag(Flag_Name) (Flag_Name &= Sys_Flag_False)
+
+
+/* Macro to check if flag is set to True atleast once and never set to false, 
+     After Init if true is not set atleast once then also return false.*/
+#define Is_Check_Flag_True(Flag_Name) (Flag_Name == Sys_Flag_True)
+
+/* Macro to check if flag is set to False atleast once after last clean, 
+     After Init if false is not set atleast once then also return false.*/
+#define Is_Check_Flag_False(Flag_Name) (Flag_Name == Sys_Flag_False)
+
+
+
+
+
+/*******************************************************************************
+ *  Macro Functios
+*******************************************************************************/
+
 #define Delay_In_ms(DelayTime_in_Ms) delay((int)DelayTime_in_Ms / portTICK_PERIOD_MS)
+
+
+
 
 
 /*******************************************************************************
@@ -91,6 +144,7 @@ extern void Init_PulseCounter (void);
 extern void Clean_Water_Flow_Counters(void);
 extern double Get_Current_WaterFlowedInL(void);
 extern void Web_Server_Init(void);
+extern double Get_Current_SectionWaterFlowedInL(void);
 
 
 
