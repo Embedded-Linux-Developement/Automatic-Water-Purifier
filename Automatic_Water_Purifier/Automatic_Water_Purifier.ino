@@ -22,6 +22,9 @@ TaskHandle_t Web_Server_Processing_Task_Handle;
 /* Handle for ProcessControlSystem_Task */
 TaskHandle_t ProcessControlSystem_Task_Handle;
 
+/* Handle for ProcessWaterFlowRate_Task */
+TaskHandle_t ProcessWaterFlowRate_Task_Handle;
+
 /*******************************************************************************
  *  Functions Extern deceleration
 *******************************************************************************/
@@ -74,6 +77,7 @@ void setup()
       &Web_Server_Processing_Task_Handle, /* Task handle to keep track of created task */
       1);                                 /* pin task to core 1, Along with loop() function. */
 
+
   /* Initate High Priority control System Process Monitering Task. */
   xTaskCreatePinnedToCore(
       ProcessControlSystem_Task,        /* Task function. */
@@ -83,6 +87,19 @@ void setup()
       20,                               /* priority of the task, Grater the value Higher the priority.*/
       &ProcessControlSystem_Task_Handle,/* Task handle to keep track of created task */
       0);                               /* pin task to core 1, Along with loop() function. */
+
+
+  /* Initate Task for Calculating the water flow rate in Lpm. */
+  xTaskCreatePinnedToCore(
+      ProcessWaterFlowRate_Task,        /* Task function. */
+      "ProcessWaterFlowRate_Task",      /* name of task. */
+      1024,                             /* 5K Stack size of task */
+      NULL,                             /* parameter of the task */
+      5,                               /* priority of the task, Grater the value Higher the priority.*/
+      &ProcessWaterFlowRate_Task_Handle,/* Task handle to keep track of created task */
+      0);                               /* pin task to core 1, Along with loop() function. */
+
+
 
  /* Init the Morse code Generator  */
   Morse_Code_Init();
@@ -156,6 +173,7 @@ void IfCold_Init(void)
  * Task for process back ground for Monitering different paramater.
    Periodicity:-  200ms
    Priority   :-  1 (Lowest)
+   Core       :-  1
  * *********************************************************************************/
 void Web_Server_Processing_Task( void * pvParameters ){
 
@@ -185,6 +203,7 @@ void Web_Server_Processing_Task( void * pvParameters ){
  * Task for process Main Control system based on the Different Inputs
    Periodicity:-  50ms
    Priority   :-  20 (Highest)
+   Core       :-  0
  * *********************************************************************************/
 void ProcessControlSystem_Task( void * pvParameters ){
   /* Loop for the task.*/
@@ -201,6 +220,31 @@ void ProcessControlSystem_Task( void * pvParameters ){
    
    /* Switch task for 50ms */
    vTaskDelay(50 / portTICK_PERIOD_MS);
+  }
+}
+
+
+/* ********************************************************************************
+ * Task for process water flow rate
+   Periodicity:-  1000ms
+   Priority   :-  5 (Highest)
+   Core       :-  0
+ * *********************************************************************************/
+void ProcessWaterFlowRate_Task( void * pvParameters ){
+  /* Loop for the task.*/
+  for(;;){
+
+   /********************************************************************************
+    *  Add Code after this line....
+    * ******************************************************************************
+   */
+
+    /* Trigger the runnable to do processing in every 1000ms */
+     ProcessWaterFlowRate();
+
+   
+   /* Switch task for 1000ms */
+   vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }
 

@@ -139,14 +139,16 @@ extern void Init_MCU(void);
 extern void Init_System_Utilityes_Variables(void);
 extern void Init_GPT_ICU(void);
 extern void Perform_Reset(void);
+
+extern void Web_Server_Init(void);
 extern void Web_Server_Processing(void);
+
 extern void Init_PulseCounter (void);
 extern void Clean_Water_Flow_Counters(void);
 extern double Get_Current_WaterFlowedInL(void);
-extern void Web_Server_Init(void);
 extern double Get_Current_SectionWaterFlowedInL(void);
-
-
-
+extern void ProcessWaterFlowRate(void);
+extern void ReStartFlowRate_Processing(void);
+extern double Get_Instantinous_FlowRate_InLpM(void);
 
 #endif /* End of  System_Utilityes_H */

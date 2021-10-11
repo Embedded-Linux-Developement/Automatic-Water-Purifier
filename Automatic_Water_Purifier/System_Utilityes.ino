@@ -240,6 +240,10 @@ Sensor_InputStatus_Status Previous_Operatation_Status = Init_State;
 /*---------------------------------------------------------------------------------
                        Variables related to Water flow
 -----------------------------------------------------------------------------------*/
+
+/* Maximum flow above below value is not possible, So considered for invalided*/
+#define Invalue_Flow_Value_InL 65000 
+
 /* Variable to store the water flow detected when state changed to "Normal_Tank_Not_Full" */
 double Water_Flow_At_Normal_Tank_Not_Full = 0;
 
@@ -248,6 +252,19 @@ pcnt_isr_handle_t user_isr_handle = NULL;      /* User ISR handler for Interrupt
 
 /* Mutex to protect the Global variable for Waterflow*/
 portMUX_TYPE Waterflow_Mux = portMUX_INITIALIZER_UNLOCKED; 
+
+/* Create a array of 60 location to store all water flowed between each second for calculating flow rate*/
+double Water_FlowRate_PerSec[60];
+/* Use to store the Next Index to be filed.*/
+uint8  Water_FlowRate_Log_Current_Index = 0;
+/* Use to store Instantinous Index, Once reached 60, shall hold there.*/
+uint8  Water_FlowRate_Log_Instantaneous_Index = 0;
+/* Store Previous Logged Value. Shall help to detect first case and avoid travising buffer*/
+double Previous_Section_Value = Invalue_Flow_Value_InL;
+
+/*Store final processed Instantaneous flow value.*/
+double Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
+
 
 /*******************************************************************************
  *  Functions Forward decleratations deceleration
@@ -1263,6 +1280,9 @@ void Process_ControlSystem(void)
 
       /* Exit from Critical Section. */
       portEXIT_CRITICAL(&Waterflow_Mux);
+
+      /* Restart flow rate calculation. */
+      ReStartFlowRate_Processing();
     }
 
     /* Indicate current sate is executed.*/
@@ -1805,6 +1825,20 @@ Current_Operatation_Status = Init_State;
 /* Variable to store the water flow detected when state changed to "Normal_Tank_Not_Full" */
 Water_Flow_At_Normal_Tank_Not_Full = 0;
 
+/* Use to store the Next Index to be filed.*/
+Water_FlowRate_Log_Current_Index = 0;
+
+/* Use to store Instantinous Index, Once reached 60, shall hold there.*/
+Water_FlowRate_Log_Instantaneous_Index = 0;
+
+/* Store Previous Logged Value. Shall help to detect first case and avoid travising buffer*/
+Previous_Section_Value = Invalue_Flow_Value_InL;
+
+/*Store final processed Instantaneous flow value.*/
+Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
+
+
+
 }
 
 
@@ -1953,3 +1987,166 @@ double Get_Current_SectionWaterFlowedInL(void)
 
   return (Current_SectionWaterFlowedInL);
 }
+
+
+
+/* *********************************************************************************
+    Cyclic runnable to process the water glow rate based on the previous water flow value
+    Predacity expected in 1000ms ( Not configurable.)
+*************************************************************************************/
+void ProcessWaterFlowRate(void)
+{
+  double Temp_Local_Current_Value;
+  uint8 LoopIndex;
+
+ /* Check if its NOT the first loop*/
+  if (Previous_Section_Value != Invalue_Flow_Value_InL)
+  {
+
+    /* Get current total value */
+    Temp_Local_Current_Value = Get_Current_WaterFlowedInL();
+    /* Check for Negative value possibility*/
+    if (Previous_Section_Value <= Temp_Local_Current_Value)
+    {
+      /* Load delta into the Per Second buffer*/
+      Water_FlowRate_PerSec[Water_FlowRate_Log_Current_Index] = (Temp_Local_Current_Value - Previous_Section_Value);
+    }
+    else /* If Diff is Negative Store 0*/
+    {
+      /* store Zero*/
+      Water_FlowRate_PerSec[Water_FlowRate_Log_Current_Index] = 0;
+    }
+
+    /*Update previous value*/
+    Previous_Section_Value = Temp_Local_Current_Value;
+
+    /* Increment buffer Index*/
+    Water_FlowRate_Log_Current_Index++;
+
+    /* Check if buffer index overflowed*/
+    if(Water_FlowRate_Log_Current_Index >= 60)
+    {
+      /* Reset Index to zero.*/
+       Water_FlowRate_Log_Current_Index = 0;
+    }
+
+
+     /* Loop for get the sum.*/
+   for(LoopIndex = 0, Temp_Local_Current_Value = 0; LoopIndex < 60; LoopIndex++)
+   {
+       /* Clear buffer*/
+       Temp_Local_Current_Value += Water_FlowRate_PerSec[LoopIndex];
+   }
+
+
+    /* Increment buffer Instantaneous Index*/
+    Water_FlowRate_Log_Instantaneous_Index++;
+
+    /* Check if buffer Instantaneous index overflowed*/
+    if (Water_FlowRate_Log_Instantaneous_Index >= 60)
+    {
+      /* Reset Instantaneous Index to zero.*/
+      Water_FlowRate_Log_Instantaneous_Index = 60;
+
+      /* Enter in to Critical Section*/
+      portENTER_CRITICAL(&Waterflow_Mux);
+
+      /* Update final value, No additional calculation required after first 60 Iteration*/
+      Final_Instantinous_Flow_In_LpM = Temp_Local_Current_Value;
+
+      /* Exit from Critical Section. */
+      portEXIT_CRITICAL(&Waterflow_Mux);
+    }
+    else /* For First 60 Iteration*/
+    {
+
+      /* Enter in to Critical Section*/
+      portENTER_CRITICAL(&Waterflow_Mux);
+
+      /* Update final value*/
+      Final_Instantinous_Flow_In_LpM = (double)(Temp_Local_Current_Value * (60 / Water_FlowRate_Log_Instantaneous_Index));
+
+      /* Exit from Critical Section. */
+      portEXIT_CRITICAL(&Waterflow_Mux);
+    }
+  }
+ /* Its the first loop*/
+ else
+ {
+   /* Get the current value*/
+   Previous_Section_Value = Get_Current_WaterFlowedInL();
+
+   /* Clear Variables */
+   Water_FlowRate_Log_Current_Index = 0;
+   Water_FlowRate_Log_Instantaneous_Index = 0;
+
+   /* Enter in to Critical Section*/
+   portENTER_CRITICAL(&Waterflow_Mux);
+
+   Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
+
+   /* Exit from Critical Section. */
+   portEXIT_CRITICAL(&Waterflow_Mux);
+
+ 
+   /* Clear all buffer element*/
+   for(LoopIndex = 0; LoopIndex < 60; LoopIndex++)
+   {
+       /* Clear buffer*/
+       Water_FlowRate_PerSec[LoopIndex] = 0 ;
+   }
+
+
+ }
+}
+
+
+
+/* *********************************************************************************
+    This function is to Re-Start the flow Rate processing.
+*************************************************************************************/
+void ReStartFlowRate_Processing(void)
+{
+   /* Clear the current value*/
+   Previous_Section_Value = Invalue_Flow_Value_InL;
+
+   /* Clear Variables */
+   Water_FlowRate_Log_Current_Index = 0;
+   Water_FlowRate_Log_Instantaneous_Index = 0;
+
+   /* Enter in to Critical Section*/
+   portENTER_CRITICAL(&Waterflow_Mux);
+
+   Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
+
+   /* Exit from Critical Section. */
+   portEXIT_CRITICAL(&Waterflow_Mux);
+
+ 
+   /* Clear all buffer element*/
+   for(LoopIndex = 0; LoopIndex < 60; LoopIndex++)
+   {
+       /* Clear buffer*/
+       Water_FlowRate_PerSec[LoopIndex] = 0 ;
+   }
+}
+
+/* *********************************************************************************
+   Function to get Instantinous FlowRate In LpM
+*************************************************************************************/
+double Get_Instantinous_FlowRate_InLpM(void)
+{
+
+ double Temp_Local_Current_Value;
+   /* Enter in to Critical Section*/
+   portENTER_CRITICAL(&Waterflow_Mux);
+
+   Temp_Local_Current_Value = Final_Instantinous_Flow_In_LpM;
+
+   /* Exit from Critical Section. */
+   portEXIT_CRITICAL(&Waterflow_Mux);
+
+return(Temp_Local_Current_Value);
+}
+
+
