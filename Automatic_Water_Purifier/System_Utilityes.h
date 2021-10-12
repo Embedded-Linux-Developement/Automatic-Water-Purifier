@@ -67,7 +67,7 @@ enum  Sensor_InputStatus_Status{
 
 
 /* Enum to define the state mechine of the Operatations*/
-enum  Sensor_InputStatus_Status{
+enum  System_Operatation_Status{
   Init_State                 = 0x45, /* Indicate Initialization sequence is in progress.*/
   Normal_Tank_Not_Full       = 0x65, /* Indicate Tank is Not full and needs to On the Water flow*/
   OverFlow_Tank_Not_Full     = 0x75, /* Indicate Tank full indicator not responding after considerable amound of water flows.*/
@@ -103,8 +103,6 @@ enum  Sensor_InputStatus_Status{
 #define Sys_Flag_Init 0X11
 #endif
 
-/* Macro to Declear Check flag, Shall use create new Check flag*/
-#define Declear_Check_Flag(Flag_Name) (unsigned char Flag_Name = Sys_Flag_Init)
 
 /* Macro to clear Check flag, Shall use before using the flag*/
 #define Clear_Check_Flag(Flag_Name) (Flag_Name = Sys_Flag_Init)

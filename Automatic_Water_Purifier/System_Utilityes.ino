@@ -13,24 +13,19 @@
 // Load Wi-Fi library
 #include <WiFi.h>
 
-
-
 /* Include required Html template header files*/
 #include "Html_Templates_Debug_Trace_Page.h"
-
 
 /*Define timeout time in milliseconds (example: 2000ms = 2s)*/
 #define html_TimeOut_Clint 2000
 
 /* Macro to allocate Bufferstream memory.*/
-#define BufferStream_Max_Size  3000
+#define BufferStream_Max_Size 3000
 /* Golbal bariable to store the Buffer stream data.*/
 char BufferStream_ForDebugHTMLTrace[BufferStream_Max_Size + 10];
 
 /*Set web server port number to 80 */
 WiFiServer server(80);
-
-
 
 /*******************************************************************************
  *  System Utility related Configuration Start
@@ -45,124 +40,111 @@ WiFiServer server(80);
 /*      Paramaters for UV Lamp Related                                                       */
 /*===========================================================================================*/
 /*Port Paramaters for UV Lamp control Repay. */
-uint8 P01_UV_Lamp_Relay = 16;              /*  GPIO 16 @Port Pin 21 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P02_UV_Lamp_Relay_ON_State = LOW;    /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P03_UV_Lamp_Relay_OFF_State = HIGH;  /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+uint8 P01_UV_Lamp_Relay = 16;             /*  GPIO 16 @Port Pin 21 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint8 P02_UV_Lamp_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+uint8 P03_UV_Lamp_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater to configure UV lamp Support*/
-uint8 P2E_UV_Feedback_Support = UV_Feedback_Both;             /*  Indicate the configuration for the UV lamp feedback.. */
+uint8 P2E_UV_Feedback_Support = UV_Feedback_Both; /*  Indicate the configuration for the UV lamp feedback.. */
 
 /* Paramater for LDR 1 , to detect UV light operatation*/
-uint8  P04_UV_Lamp_Analog_LDR_1 = 35;                /*  Mapped to ADC 1_7, GPIO 35 @Port Pin 11 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 1024;      /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
-uint16 P07_UV_Lamp_Analog_LDR_1_OFF_Volt = 4024;     /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
-uint8  P09_UV_Lamp_Analog_LDR_1_Tolerance = 10;      /*  Persentage (%) of acceptable tolerance which can be considered.*/
+uint8 P04_UV_Lamp_Analog_LDR_1 = 35;             /*  Mapped to ADC 1_7, GPIO 35 @Port Pin 11 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
+uint16 P07_UV_Lamp_Analog_LDR_1_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
+uint8 P09_UV_Lamp_Analog_LDR_1_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
 
 /* Paramater for LDR 2 , to detect UV light operatation*/
-uint8  P0A_UV_Lamp_Analog_LDR_2 = 34;                /*  Mapped to ADC 1_6, GPIO 34 @Port Pin 12 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 1024;      /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
-uint16 P0D_UV_Lamp_Analog_LDR_2_OFF_Volt = 4024;     /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
-uint8  P0F_UV_Lamp_Analog_LDR_2_Tolerance = 10;      /*  Persentage (%) of acceptable tolerance which can be considered.*/
+uint8 P0A_UV_Lamp_Analog_LDR_2 = 34;             /*  Mapped to ADC 1_6, GPIO 34 @Port Pin 12 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
+uint16 P0D_UV_Lamp_Analog_LDR_2_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
+uint8 P0F_UV_Lamp_Analog_LDR_2_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
 
 /* Paramater to Set UV lamp turn ON Delay.*/
-uint16 P2F_UV_On_Delay_Time_In_ms = 5000;             /*  Indicate the configuration for the UV lamp turned ON time.. */
-
+uint16 P2F_UV_On_Delay_Time_In_ms = 5000; /*  Indicate the configuration for the UV lamp turned ON time.. */
 
 /*===========================================================================================*/
 /*      Paramaters Related to Input flow                                                     */
 /*===========================================================================================*/
 
 /*Port Paramaters related in InLine Input Solinode Relay control */
-uint8 P10_InLineInputSolenoid_Relay = 17;              /*  GPIO 16 @Port Pin 22 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P11_InLineInputSolenoid_Relay_ON_State = LOW;    /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P12_InLineInputSolenoid_Relay_OFF_State = HIGH;  /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+uint8 P10_InLineInputSolenoid_Relay = 17;             /*  GPIO 16 @Port Pin 22 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint8 P11_InLineInputSolenoid_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+uint8 P12_InLineInputSolenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater represent time to Solenoid to take action / water start flow.*/
-uint16 P31_InLineInput_Delay_Time_In_ms = 1000;        /*  Indicate the configuration for the time to Solenoid action get effective.. */
-
+uint16 P31_InLineInput_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to Solenoid action get effective.. */
 
 /*===========================================================================================*/
 /*      Paramaters Related to Booster Pump                                                   */
 /*===========================================================================================*/
 /* Paramater to Specify Wheather Booster motor required to support.*/
-uint8 P13_InputBoostMotor_Support = STD_ON;             /*  STD_ON ==> Support Booster motor, STD_OFF ==> Shall not Support Booster motor. */
+uint8 P13_InputBoostMotor_Support = STD_ON; /*  STD_ON ==> Support Booster motor, STD_OFF ==> Shall not Support Booster motor. */
 
 /*Port Paramaters related to Input Booster Motor Relay control */
-uint8 P14_InputBoostMotor_Relay = 18;              /*  GPIO 18 @Port Pin 24 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P15_InputBoostMotor_Relay_ON_State = LOW;    /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P16_InputBoostMotor_Relay_OFF_State = HIGH;  /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+uint8 P14_InputBoostMotor_Relay = 18;             /*  GPIO 18 @Port Pin 24 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint8 P15_InputBoostMotor_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+uint8 P16_InputBoostMotor_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /*Port Paramaters related in input Solinode to control flow of Booster Motor */
-uint8 P17_InputBoostSolenoid_Relay = 19;              /*  GPIO 19 @Port Pin 25 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P18_InputBoostSolenoid_Relay_ON_State = LOW;    /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P19_InputBoostSolenoid_Relay_OFF_State = HIGH;  /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
-
+uint8 P17_InputBoostSolenoid_Relay = 19;             /*  GPIO 19 @Port Pin 25 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint8 P18_InputBoostSolenoid_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+uint8 P19_InputBoostSolenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater represent time to Booster Motor & Solinode to take action / water start flow.*/
-uint16 P33_InputBoost_Delay_Time_In_ms = 1000;        /*  Indicate the configuration for the time to Booster Motor & Solinode action get effective.. */
-
-
-
+uint16 P33_InputBoost_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to Booster Motor & Solinode action get effective.. */
 
 /*===========================================================================================*/
 /*      Paramaters Related to RO motor Pump                                                  */
 /*===========================================================================================*/
 
 /* Paramater to Specify Wheather RO Pump required to support.*/
-uint8 P1A_RO_Motor_Support = STD_ON;             /*  STD_ON ==> Support RO pump, STD_OFF ==> Shall not Support RO Pump. */
+uint8 P1A_RO_Motor_Support = STD_ON; /*  STD_ON ==> Support RO pump, STD_OFF ==> Shall not Support RO Pump. */
 
 /*Port Paramaters related to RO Motor Relay control */
-uint8 P1B_RO_Motor_Relay = 5;               /*  GPIO 5 @Port Pin 23 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P1C_RO_Motor_Relay_ON_State = LOW;    /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P1D_RO_Motor_Relay_OFF_State = HIGH;  /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+uint8 P1B_RO_Motor_Relay = 5;              /*  GPIO 5 @Port Pin 23 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint8 P1C_RO_Motor_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+uint8 P1D_RO_Motor_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /*Port Paramaters related to the Solinode to control flow of RO Motor */
-uint8 P1E_RO_Solenoid_Relay = 5;               /*  GPIO 5 @Port Pin 23 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P1F_RO_Solenoid_Relay_ON_State = LOW;    /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P20_RO_Solenoid_Relay_OFF_State = HIGH;  /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+uint8 P1E_RO_Solenoid_Relay = 5;              /*  GPIO 5 @Port Pin 23 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint8 P1F_RO_Solenoid_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+uint8 P20_RO_Solenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater represent time to RO Motor & Solinode to take action / water start flow.*/
-uint16 P35_RO_Delay_Time_In_ms = 1000;         /*  Indicate the configuration for the time to RO Motor & Solinode action get effective.. */
-
+uint16 P35_RO_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to RO Motor & Solinode action get effective.. */
 
 /*===========================================================================================*/
 /*      Other Analog Input Port  paramaters                                                  */
 /*===========================================================================================*/
 
 /* Paramater for High Presere Detection, to Avoid malfunctioning*/
-uint8  P21_Analog_HighPresere = 32;                /*  Mapped to ADC 1_4, GPIO 32 @Port Pin 10 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint16 P22_Analog_HighPresere_ON_Volt = 1024;      /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
-uint16 P24_Analog_HighPresere_OFF_Volt = 4024;     /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
-uint8  P26_Analog_HighPresere_Tolerance = 10;      /*  Persentage (%) of acceptable tolerance which can be considered.*/
+uint8 P21_Analog_HighPresere = 32;             /*  Mapped to ADC 1_4, GPIO 32 @Port Pin 10 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint16 P22_Analog_HighPresere_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
+uint16 P24_Analog_HighPresere_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
+uint8 P26_Analog_HighPresere_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
 
 /* Paramater represent High Pressure colling Time .
   ==> Once High pressure is detected SHall waite for colling time to leaps..*/
-uint16 P37_HighPresere_CollingTime_In_ms = 5000;    /*  Indicate the High Pressure colling Time... */
-
+uint16 P37_HighPresere_CollingTime_In_ms = 5000; /*  Indicate the High Pressure colling Time... */
 
 /* Paramater for OverFlow Detection and to stop the filtering. */
-uint8  P27_Analog_OverFlow = 33;                /*  Mapped to ADC 1_5, GPIO 33 @Port Pin 9 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint16 P28_Analog_OverFlow_ON_Volt = 1024;      /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
-uint16 P2A_Analog_OverFlow_OFF_Volt = 4024;     /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
-uint8  P2C_Analog_OverFlow_Tolerance = 10;      /*  Persentage (%) of acceptable tolerance which can be considered.*/
-
+uint8 P27_Analog_OverFlow = 33;             /*  Mapped to ADC 1_5, GPIO 33 @Port Pin 9 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint16 P28_Analog_OverFlow_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
+uint16 P2A_Analog_OverFlow_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
+uint8 P2C_Analog_OverFlow_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
 
 /* Paramater represent OverFlow colling Time .
   ==> Once OverFlow is detected SHall waite for colling time to leaps..*/
-uint16 P39_OverFlow_CollingTime_In_ms = 5000;    /*  Indicate the OverFlow colling Time... */
-
+uint16 P39_OverFlow_CollingTime_In_ms = 5000; /*  Indicate the OverFlow colling Time... */
 
 /*===========================================================================================*/
 /*      Water flow meter Input Port  paramaters                                              */
 /*===========================================================================================*/
-uint8  P2D_WaterFlowSensor_Input = 4;         /* GPIO 4 @Port Pin 20 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+uint8 P2D_WaterFlowSensor_Input = 4; /* GPIO 4 @Port Pin 20 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
 
 /*-----------------------------------------------------------------------------
  *  System Utility related Configuration END
 -------------------------------------------------------------------------------*/
-
-
-
 
 /*******************************************************************************
  *  Variables and Constense
@@ -173,93 +155,94 @@ static Sys_UV_Lamp_Status UV_Lamp_Current_Status = UV_Lamp_OFF;
 /* Variable to store the Time at which UV light Started / Stopped.*/
 static uint32 UV_Lamp_Start_Time = Int_Zero;
 /* Mutex to protect the Global variable for UV-Lamp*/
-portMUX_TYPE UV_Lamp_Mux = portMUX_INITIALIZER_UNLOCKED; 
-
+portMUX_TYPE UV_Lamp_Mux = portMUX_INITIALIZER_UNLOCKED;
 
 /* Variable to store the current IN-Line request set by SW.*/
 static Sys_Operatation_Status InLineInput_Current_Status = Operatation_OFF;
 /* Variable to store the Time at which In-Line Input Started / stoped.*/
 static uint32 InLineInput_Start_Time = Int_Zero;
 /* Mutex to protect the Global variable for InLineInput*/
-portMUX_TYPE InLineInput_Mux = portMUX_INITIALIZER_UNLOCKED; 
-
+portMUX_TYPE InLineInput_Mux = portMUX_INITIALIZER_UNLOCKED;
 
 /* Variable to store the current Input Boost request set by SW.*/
 static Sys_Operatation_Status InputBoost_Current_Status = Operatation_OFF;
 /* Variable to store the Time at which InputBoost Input Started / stoped.*/
 static uint32 InputBoost_Start_Time = Int_Zero;
 /* Mutex to protect the Global variable for InputBoost*/
-portMUX_TYPE InputBoost_Mux = portMUX_INITIALIZER_UNLOCKED; 
-
+portMUX_TYPE InputBoost_Mux = portMUX_INITIALIZER_UNLOCKED;
 
 /* Variable to store the current Input RO request set by SW.*/
 static Sys_Operatation_Status InputRO_Current_Status = Operatation_OFF;
 /* Variable to store the Time at which Input RO Input Started / stoped.*/
 static uint32 InputRO_Start_Time = Int_Zero;
 /* Mutex to protect the Global variable for InputRO*/
-portMUX_TYPE InputRO_Mux = portMUX_INITIALIZER_UNLOCKED; 
-
+portMUX_TYPE InputRO_Mux = portMUX_INITIALIZER_UNLOCKED;
 
 /* Variable to store the current High presure sensor input.*/
 static Sensor_InputStatus_Status Sensor_HighPressure_Status = Sensor_OFF;
 /* Variable to store the Time at which High presure sensor input Started / stoped.*/
 static uint32 Sensor_HighPressure_Start_Time = Int_Zero;
 /* Mutex to protect the Global variable for Sensor HighPressure*/
-portMUX_TYPE Sensor_HighPressure_Mux = portMUX_INITIALIZER_UNLOCKED; 
-
+portMUX_TYPE Sensor_HighPressure_Mux = portMUX_INITIALIZER_UNLOCKED;
 
 /* Variable to store the current OverFlow sensor input.*/
 static Sensor_InputStatus_Status Sensor_OverFlow_Status = Sensor_OFF;
 /* Variable to store the Time at which OverFlow sensor input Started / stoped.*/
 static uint32 Sensor_OverFlow_Start_Time = Int_Zero;
 /* Mutex to protect the Global variable for Sensor OverFlow*/
-portMUX_TYPE Sensor_OverFlow_Mux = portMUX_INITIALIZER_UNLOCKED; 
-
-
-
+portMUX_TYPE Sensor_OverFlow_Mux = portMUX_INITIALIZER_UNLOCKED;
 
 /* Variable to store the init status of the Operatation.*/
-Sensor_InputStatus_Status Current_Operatation_Status = Init_State;
-Sensor_InputStatus_Status Previous_Operatation_Status = Init_State;
+System_Operatation_Status Current_Operatation_Status = Init_State;
+System_Operatation_Status Previous_Operatation_Status = Init_State;
 
 /*Macro function to get current state*/
 #define Get_Current_Opp_State() Current_Operatation_Status
 
 /* Macro function to update the state*/
-#define Set_Current_Opp_State(Req_State) {Previous_Operatation_Status = Current_Operatation_Status; Current_Operatation_Status = Req_State;}
+#define Set_Current_Opp_State(Req_State)                      \
+  {                                                           \
+    Previous_Operatation_Status = Current_Operatation_Status; \
+    Current_Operatation_Status = Req_State;                   \
+  }
 
 /* Macro to check wheather any state is changes.*/
 #define Is_Opp_State_Changed() (Previous_Operatation_Status != Current_Operatation_Status)
 
 /* Macro to Print the state Change.*/
-#define Log_State_Changed(Change_Commend) {if(Is_Opp_State_Changed()){Debug_Trace(Change_Commend);}}
+#define Log_State_Changed(Change_Commend) \
+  {                                       \
+    if (Is_Opp_State_Changed())           \
+    {                                     \
+      Debug_Trace(Change_Commend);        \
+    }                                     \
+  }
 
 /* Macro indicating processing of current state completed at-lest once*/
 #define State_Change_completed() (Previous_Operatation_Status = Current_Operatation_Status)
-
 
 /*---------------------------------------------------------------------------------
                        Variables related to Water flow
 -----------------------------------------------------------------------------------*/
 
 /* Maximum flow above below value is not possible, So considered for invalided*/
-#define Invalue_Flow_Value_InL 65000 
+#define Invalue_Flow_Value_InL 65000
 
 /* Variable to store the water flow detected when state changed to "Normal_Tank_Not_Full" */
 double Water_Flow_At_Normal_Tank_Not_Full = 0;
 
-static uint32 CounterOverflow;                 /* Variable to store the over flow count */
-pcnt_isr_handle_t user_isr_handle = NULL;      /* User ISR handler for Interrupt */
+static uint32 CounterOverflow;            /* Variable to store the over flow count */
+pcnt_isr_handle_t user_isr_handle = NULL; /* User ISR handler for Interrupt */
 
 /* Mutex to protect the Global variable for Waterflow*/
-portMUX_TYPE Waterflow_Mux = portMUX_INITIALIZER_UNLOCKED; 
+portMUX_TYPE Waterflow_Mux = portMUX_INITIALIZER_UNLOCKED;
 
 /* Create a array of 60 location to store all water flowed between each second for calculating flow rate*/
 double Water_FlowRate_PerSec[60];
 /* Use to store the Next Index to be filed.*/
-uint8  Water_FlowRate_Log_Current_Index = 0;
+uint8 Water_FlowRate_Log_Current_Index = 0;
 /* Use to store Instantinous Index, Once reached 60, shall hold there.*/
-uint8  Water_FlowRate_Log_Instantaneous_Index = 0;
+uint8 Water_FlowRate_Log_Instantaneous_Index = 0;
 /* Store Previous Logged Value. Shall help to detect first case and avoid travising buffer*/
 double Previous_Section_Value = Invalue_Flow_Value_InL;
 
@@ -272,44 +255,37 @@ uint8 HighWater_Flow_Detected = false;
 /* Global Variable to store the High flow rate detected.*/
 uint8 LowWater_Flow_Detected = false;
 
-
-
 /*******************************************************************************
  *  Functions Forward decleratations deceleration
 *******************************************************************************/
 
-
 /*This function is to Control UV Lamp operatations*/
- static uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin);
+static uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin);
 
- static void ShutDown_All(void);
+static void ShutDown_All(void);
 
- static void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest);
- static Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void );
- static char * GetStatus_UV_Lamp_Sensor_Raw_Value(void);
+static void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest);
+static Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void);
+static char *GetStatus_UV_Lamp_Sensor_Raw_Value(void);
 
- static void Control_InLineInput(Sys_Operatation_Status InputRequest);
- static Sys_Operatation_Status GetStatus_InLineInput(void);
+static void Control_InLineInput(Sys_Operatation_Status InputRequest);
+static Sys_Operatation_Status GetStatus_InLineInput(void);
 
- static void Control_BoostInput(Sys_Operatation_Status InputRequest);
- static Sys_Operatation_Status GetStatus_BoostInput(void);
+static void Control_BoostInput(Sys_Operatation_Status InputRequest);
+static Sys_Operatation_Status GetStatus_BoostInput(void);
 
- static void Control_ROInput(Sys_Operatation_Status InputRequest);
- static Sys_Operatation_Status GetStatus_ROInput(void);
+static void Control_ROInput(Sys_Operatation_Status InputRequest);
+static Sys_Operatation_Status GetStatus_ROInput(void);
 
+static Sensor_InputStatus_Status GetStatus_HighPresere(void);
+static uint16 GetStatus_HighPresere_Sensor_Raw_Value(void);
 
- static Sensor_InputStatus_Status GetStatus_HighPresere(void);
- static uint16 GetStatus_HighPresere_Sensor_Raw_Value(void)
-
- static Sensor_InputStatus_Status GetStatus_OverFlow(void);
- static uint16 GetStatus_OverFlow_Sensor_Raw_Value(void);
-
-
+static Sensor_InputStatus_Status GetStatus_OverFlow(void);
+static uint16 GetStatus_OverFlow_Sensor_Raw_Value(void);
 
 /*******************************************************************************
  *  Class Objects.
 *******************************************************************************/
-
 
 /*
 ===========================================================================
@@ -321,12 +297,12 @@ uint8 LowWater_Flow_Detected = false;
 /* ************************************************************************
  * This Function to read the processed ADC value based Filter designed.
  * *************************************************************************/
- uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin)
- {
-   uint16 Return_Value;
-   /* At present ADC filtering logic are not implemented so reading directely from the ADC.*/
-   Return_Value = analogRead(GPIO_Port_pin);
- }
+uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin)
+{
+  uint16 Return_Value;
+  /* At present ADC filtering logic are not implemented so reading directely from the ADC.*/
+  Return_Value = analogRead(GPIO_Port_pin);
+}
 
 /* ************************************************************************
  * Function to master ShutDown the filtering. 
@@ -339,15 +315,13 @@ void ShutDown_All(void)
 
   /* Switch off the Motor and solinode*/
   Control_BoostInput(Operatation_OFF);
-  
+
   /* Disconnect the Inlet Solenoids*/
   Control_InLineInput(Operatation_OFF);
 
   /* Switch off the UV light.*/
   Control_UV_Lamp(UV_Lamp_OFF);
-
 }
-
 
 /* ************************************************************************
  * This function is to Control UV Lamp operatations
@@ -363,7 +337,6 @@ void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest)
   Temp_Time = millis();
   /* Enter in to Critical Section*/
   portENTER_CRITICAL(&UV_Lamp_Mux);
-
 
   /* Power ON the Lamp is requested.*/
   if (InputRequest == UV_Lamp_ON)
@@ -414,7 +387,7 @@ void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest)
 /* ************************************************************************
  * This function is to Get Feedback status of UV Lamp operatations.
  * *************************************************************************/
-Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void )
+Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void)
 {
   /* Return variable..*/
   Sys_UV_Lamp_Feedback_Status ReturnStatus = UV_Lamp_Feedback_Fault;
@@ -427,7 +400,6 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void )
   UV_LDR_1_ADC_Value = Sys_Read_Processed_ADC_Value(P04_UV_Lamp_Analog_LDR_1);
   UV_LDR_2_ADC_Value = Sys_Read_Processed_ADC_Value(P0A_UV_Lamp_Analog_LDR_2);
 
-
   /* Enter in to Critical Section*/
   portENTER_CRITICAL(&UV_Lamp_Mux);
 
@@ -436,83 +408,82 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void )
   {
 
     /* Check if enough time elapsed after UV Lamp is turned ON*/
-   if(Get_Time_Elapse(UV_Lamp_Start_Time) >= P2F_UV_On_Delay_Time_In_ms)
-   {
+    if (Get_Time_Elapse(UV_Lamp_Start_Time) >= P2F_UV_On_Delay_Time_In_ms)
+    {
 
-    /* Check if LDR 1 detected as UV light ON*/
-    if ( Check_Tolerance((uint32)UV_LDR_1_ADC_Value,(uint32)P05_UV_Lamp_Analog_LDR_1_ON_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
+      /* Check if LDR 1 detected as UV light ON*/
+      if (Check_Tolerance((uint32)UV_LDR_1_ADC_Value, (uint32)P05_UV_Lamp_Analog_LDR_1_ON_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
       {
-      /* Check if Current UV lamp state is also ON, Else decleared as fault*/
-      LDR_1_Status = (UV_Lamp_Current_Status == UV_Lamp_ON) ? UV_Lamp_Feedback_ON : UV_Lamp_Feedback_Fault;
-    }
-    /* Check wheather status is OFF.*/
-    else if (Check_Tolerance((uint32)UV_LDR_1_ADC_Value, (uint32)P07_UV_Lamp_Analog_LDR_1_OFF_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
-    {
-      /* Check if Current UV lamp state is also OFF, Else decleared as fault*/
-      LDR_1_Status = (UV_Lamp_Current_Status == UV_Lamp_OFF) ? UV_Lamp_Feedback_OFF : UV_Lamp_Feedback_Fault;
-    }
-    else /* Unknown State detected, So setting as fault.*/
-    {
-      LDR_1_Status = UV_Lamp_Feedback_Fault;
-    }
+        /* Check if Current UV lamp state is also ON, Else decleared as fault*/
+        LDR_1_Status = (UV_Lamp_Current_Status == UV_Lamp_ON) ? UV_Lamp_Feedback_ON : UV_Lamp_Feedback_Fault;
+      }
+      /* Check wheather status is OFF.*/
+      else if (Check_Tolerance((uint32)UV_LDR_1_ADC_Value, (uint32)P07_UV_Lamp_Analog_LDR_1_OFF_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
+      {
+        /* Check if Current UV lamp state is also OFF, Else decleared as fault*/
+        LDR_1_Status = (UV_Lamp_Current_Status == UV_Lamp_OFF) ? UV_Lamp_Feedback_OFF : UV_Lamp_Feedback_Fault;
+      }
+      else /* Unknown State detected, So setting as fault.*/
+      {
+        LDR_1_Status = UV_Lamp_Feedback_Fault;
+      }
 
-    /* Check if LDR 2 detected as UV light ON*/
-    if (Check_Tolerance((uint32)UV_LDR_2_ADC_Value,(uint32)P0B_UV_Lamp_Analog_LDR_2_ON_Volt, P0F_UV_Lamp_Analog_LDR_2_Tolerance) == E_OK)
-    {
-      /* Check if Current UV lamp state is also ON, Else decleared as fault*/
-      LDR_2_Status = (UV_Lamp_Current_Status == UV_Lamp_ON) ? UV_Lamp_Feedback_ON : UV_Lamp_Feedback_Fault;
-    }
-    /* Check wheather status is OFF.*/
-    else if (Check_Tolerance((uint32)UV_LDR_2_ADC_Value, (uint32)P0D_UV_Lamp_Analog_LDR_2_OFF_Volt, P0F_UV_Lamp_Analog_LDR_2_Tolerance) == E_OK)
-    {
-      /* Check if Current UV lamp state is also OFF, Else decleared as fault*/
-      LDR_2_Status = (UV_Lamp_Current_Status == UV_Lamp_OFF) ? UV_Lamp_Feedback_OFF : UV_Lamp_Feedback_Fault;
-    }
-    else /* Unknown State detected, So setting as fault.*/
-    {
-      LDR_2_Status = UV_Lamp_Feedback_Fault;
-    }
+      /* Check if LDR 2 detected as UV light ON*/
+      if (Check_Tolerance((uint32)UV_LDR_2_ADC_Value, (uint32)P0B_UV_Lamp_Analog_LDR_2_ON_Volt, P0F_UV_Lamp_Analog_LDR_2_Tolerance) == E_OK)
+      {
+        /* Check if Current UV lamp state is also ON, Else decleared as fault*/
+        LDR_2_Status = (UV_Lamp_Current_Status == UV_Lamp_ON) ? UV_Lamp_Feedback_ON : UV_Lamp_Feedback_Fault;
+      }
+      /* Check wheather status is OFF.*/
+      else if (Check_Tolerance((uint32)UV_LDR_2_ADC_Value, (uint32)P0D_UV_Lamp_Analog_LDR_2_OFF_Volt, P0F_UV_Lamp_Analog_LDR_2_Tolerance) == E_OK)
+      {
+        /* Check if Current UV lamp state is also OFF, Else decleared as fault*/
+        LDR_2_Status = (UV_Lamp_Current_Status == UV_Lamp_OFF) ? UV_Lamp_Feedback_OFF : UV_Lamp_Feedback_Fault;
+      }
+      else /* Unknown State detected, So setting as fault.*/
+      {
+        LDR_2_Status = UV_Lamp_Feedback_Fault;
+      }
 
-    /* If feedback config is to check Both then, */
-    if (P2E_UV_Feedback_Support == UV_Feedback_Any)
-    {
-      /* Check if any LDR report same status are not fault detected.*/
-      if (((LDR_1_Status == UV_Lamp_Feedback_OFF) || (LDR_1_Status == UV_Lamp_Feedback_ON)) && (LDR_1_Status != UV_Lamp_Feedback_Fault))
+      /* If feedback config is to check Both then, */
+      if (P2E_UV_Feedback_Support == UV_Feedback_Any)
       {
-        /* Update correct status.*/
-        ReturnStatus = LDR_1_Status;
+        /* Check if any LDR report same status are not fault detected.*/
+        if (((LDR_1_Status == UV_Lamp_Feedback_OFF) || (LDR_1_Status == UV_Lamp_Feedback_ON)) && (LDR_1_Status != UV_Lamp_Feedback_Fault))
+        {
+          /* Update correct status.*/
+          ReturnStatus = LDR_1_Status;
+        }
+        /* Check Second LDR status.*/
+        else if (((LDR_2_Status == UV_Lamp_Feedback_OFF) || (LDR_2_Status == UV_Lamp_Feedback_ON)) && (LDR_2_Status != UV_Lamp_Feedback_Fault))
+        {
+          /* Update correct status.*/
+          ReturnStatus = LDR_2_Status;
+        }
+        else /* Report fault as both LDR get failed.*/
+        {
+          ReturnStatus = UV_Lamp_Feedback_Fault;
+        }
       }
-      /* Check Second LDR status.*/
-      else if (((LDR_2_Status == UV_Lamp_Feedback_OFF) || (LDR_2_Status == UV_Lamp_Feedback_ON)) && (LDR_2_Status != UV_Lamp_Feedback_Fault))
+      else /* All other cases inclusing Both are enabled...*/
       {
-        /* Update correct status.*/
-        ReturnStatus = LDR_2_Status;
-      }
-      else /* Report fault as both LDR get failed.*/
-      {
-        ReturnStatus = UV_Lamp_Feedback_Fault;
+        /* Check if Both LDR report same status are not fault detected.*/
+        if ((LDR_2_Status == LDR_1_Status) && (LDR_1_Status != UV_Lamp_Feedback_Fault))
+        {
+          /* Update correct status.*/
+          ReturnStatus = LDR_1_Status;
+        }
+        else /* Report fault.*/
+        {
+          ReturnStatus = UV_Lamp_Feedback_Fault;
+        }
       }
     }
-    else /* All other cases inclusing Both are enabled...*/
+    else /* If time is Not Elapsed yet to read the feedback status.*/
     {
-      /* Check if Both LDR report same status are not fault detected.*/
-      if ((LDR_2_Status == LDR_1_Status) && (LDR_1_Status != UV_Lamp_Feedback_Fault))
-      {
-        /* Update correct status.*/
-        ReturnStatus = LDR_1_Status;
-      }
-      else /* Report fault.*/
-      {
-        ReturnStatus = UV_Lamp_Feedback_Fault;
-      }
-    }
-
-   }
-   else  /* If time is Not Elapsed yet to read the feedback status.*/
-   {
       /* Set status feedback is in progress..*/
-       ReturnStatus = UV_Lamp_Feedback_InProgres;
-   }
+      ReturnStatus = UV_Lamp_Feedback_InProgres;
+    }
   }
   else /* If Feedback is Dissabled.*/
   {
@@ -531,18 +502,16 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void )
   /* Exit from Critical Section. */
   portEXIT_CRITICAL(&UV_Lamp_Mux);
 
-
   /* Return final status*/
   return (ReturnStatus);
 }
-
 
 /* ************************************************************************
  * This function is get the High Presere Sensor Raw Value.
  * Value shall be process and converted in to string 
  * This interface shall provide its global variable, But its Not Mutely exclusive.
  * *************************************************************************/
-char * GetStatus_UV_Lamp_Sensor_Raw_Value(void)
+char *GetStatus_UV_Lamp_Sensor_Raw_Value(void)
 {
   /* Static variable to Keep the return pointer alive..*/
   static char Return_Buffer[70];
@@ -555,10 +524,8 @@ char * GetStatus_UV_Lamp_Sensor_Raw_Value(void)
 
   sprintf(Return_Buffer, "UV Sensor 1 = %d, UV Sensor 2 = %d ", UV_LDR_1_ADC_Value, UV_LDR_2_ADC_Value);
 
-  return((char *)&Return_Buffer[0]);
+  return ((char *)&Return_Buffer[0]);
 }
-
-
 
 /* ************************************************************************
  * This function is to Control InLine waterInput operatations
@@ -576,8 +543,6 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
 
   /* Enter in to Critical Section*/
   portENTER_CRITICAL(&InLineInput_Mux);
-
-
 
   /* If input request is to ON*/
   if (InputRequest == Operatation_ON)
@@ -605,7 +570,7 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
     if (Operatation_ON == InLineInput_Current_Status)
     {
       /* Reset the Stope time*/
-      InLineInput_Start_Time =Temp_Time;
+      InLineInput_Start_Time = Temp_Time;
     }
     else
     {
@@ -613,7 +578,7 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
     }
 
     /* Update the Output pin state*/
-    Temp_PinStatus =  P12_InLineInputSolenoid_Relay_OFF_State;
+    Temp_PinStatus = P12_InLineInputSolenoid_Relay_OFF_State;
     /* Update current status*/
     InLineInput_Current_Status = Operatation_OFF;
   }
@@ -621,7 +586,6 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
   {
     /* Do Nothing...*/
   }
-
 
   /* Exit from Critical Section. */
   portEXIT_CRITICAL(&InLineInput_Mux);
@@ -632,10 +596,7 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
     /* Switch ON / OFF Port Pin based on the result.*/
     digitalWrite(P10_InLineInputSolenoid_Relay, Temp_PinStatus);
   }
-
-
 }
-
 
 /* ************************************************************************
  * This function is get the status of the InLineInput request
@@ -664,9 +625,6 @@ Sys_Operatation_Status GetStatus_InLineInput(void)
 
   return (Return_Value);
 }
-
-
-
 
 /* ************************************************************************
  * This function is to Control Booster pump operatations
@@ -788,8 +746,6 @@ Sys_Operatation_Status GetStatus_BoostInput(void)
   return (Return_Value);
 }
 
-
-
 /* ************************************************************************
  * This function is to Control RO pump operatations
  * *************************************************************************/
@@ -807,8 +763,6 @@ void Control_ROInput(Sys_Operatation_Status InputRequest)
 
   /* Enter in to Critical Section*/
   portENTER_CRITICAL(&InputRO_Mux);
-
-
 
   /* Check wheather support is enabled..*/
   if (P1A_RO_Motor_Support == STD_ON)
@@ -881,7 +835,6 @@ void Control_ROInput(Sys_Operatation_Status InputRequest)
     /* Switch ON / OFF Port Pin based on the result.*/
     digitalWrite(P1E_RO_Solenoid_Relay, Temp_SolenoidPinStatus);
   }
-
 }
 
 /* ************************************************************************
@@ -906,14 +859,11 @@ Sys_Operatation_Status GetStatus_ROInput(void)
     Return_Value = Operatation_InProgres;
   }
 
-
   /* Exit from Critical Section. */
   portEXIT_CRITICAL(&InputRO_Mux);
 
   return (Return_Value);
 }
-
-
 
 /* ************************************************************************
  * This function is get the status of the High Presere Indication
@@ -937,14 +887,12 @@ Sensor_InputStatus_Status GetStatus_HighPresere(void)
   /* Enter in to Critical Section*/
   portENTER_CRITICAL(&Sensor_HighPressure_Mux);
 
-
-
   /* Check if its detected as ON*/
   if (Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P22_Analog_HighPresere_ON_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
   {
 
-     /* Set Status to ON*/
-     Sensor_HighPressure_Status = Sensor_ON;
+    /* Set Status to ON*/
+    Sensor_HighPressure_Status = Sensor_ON;
     /* Reset the time*/
     Sensor_HighPressure_Start_Time = Temp_Time;
   }
@@ -971,14 +919,11 @@ Sensor_InputStatus_Status GetStatus_HighPresere(void)
     Sensor_HighPressure_Start_Time = Temp_Time;
   }
 
-
   /* Exit from Critical Section. */
   portEXIT_CRITICAL(&Sensor_HighPressure_Mux);
 
-   return(Sensor_HighPressure_Status);
-
+  return (Sensor_HighPressure_Status);
 }
-
 
 /* ************************************************************************
  * This function is get the High Presere Sensor Raw Value.
@@ -987,17 +932,12 @@ uint16 GetStatus_HighPresere_Sensor_Raw_Value(void)
 {
   uint16 ADC_Raw_Value;
 
-
   /* Read Current ADC value for High Presere */
   ADC_Raw_Value = Sys_Read_Processed_ADC_Value(P21_Analog_HighPresere);
 
   /*Return Raw Value*/
-   return(ADC_Raw_Value);
-
+  return (ADC_Raw_Value);
 }
-
-
-
 
 /* ************************************************************************
  * This function is get the status of the OverFlow Indication
@@ -1009,7 +949,7 @@ Sensor_InputStatus_Status GetStatus_OverFlow(void)
 {
   uint16 OverFlow_ADC_Value;
 
- /* Variable to store current Time ( To avoid in mutex protection)*/
+  /* Variable to store current Time ( To avoid in mutex protection)*/
   uint32 Temp_Time;
 
   /* Read Current ADC value for overflow */
@@ -1025,8 +965,8 @@ Sensor_InputStatus_Status GetStatus_OverFlow(void)
   if (Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P28_Analog_OverFlow_ON_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
   {
 
-     /* Set Status to ON*/
-     Sensor_OverFlow_Status = Sensor_ON;
+    /* Set Status to ON*/
+    Sensor_OverFlow_Status = Sensor_ON;
     /* Reset the time*/
     Sensor_OverFlow_Start_Time = Temp_Time;
   }
@@ -1056,10 +996,8 @@ Sensor_InputStatus_Status GetStatus_OverFlow(void)
   /* Exit from Critical Section. */
   portEXIT_CRITICAL(&Sensor_OverFlow_Mux);
 
-   return(Sensor_OverFlow_Status);
-
+  return (Sensor_OverFlow_Status);
 }
-
 
 /* ************************************************************************
  * This function is get the OverFlow Sensor Raw Value.
@@ -1068,18 +1006,12 @@ uint16 GetStatus_OverFlow_Sensor_Raw_Value(void)
 {
   uint16 ADC_Raw_Value;
 
-
   /* Read Current ADC value for overflow */
   ADC_Raw_Value = Sys_Read_Processed_ADC_Value(P27_Analog_OverFlow);
 
   /*Return Raw Value*/
-   return(ADC_Raw_Value);
-
+  return (ADC_Raw_Value);
 }
-
-
-
-
 
 /*
 ===========================================================================
@@ -1089,20 +1021,15 @@ uint16 GetStatus_OverFlow_Sensor_Raw_Value(void)
 ==========================================================================
 */
 
-
-
-
-
-
 /* ************************************************************************
  * Function to Process the Control System
  * *************************************************************************/
 void Process_ControlSystem(void)
 {
   /* Variable to check if Init status is completed.*/
-  Declear_Check_Flag(Local_Init_status);
+  uint8 Local_Init_status;
   /* Variable to flag wheather fault is detected.*/
-  Declear_Check_Flag(Fault_State_Check));
+  uint8 Fault_State_Check;
 
   uint32 OverFlow_Tank_Not_Full_Loop_Index;
 
@@ -1135,7 +1062,6 @@ void Process_ControlSystem(void)
   /* Switch to each state based on the state mechine flow.
     
   */
-
 
   switch (Get_Current_Opp_State())
   {
@@ -1279,7 +1205,7 @@ void Process_ControlSystem(void)
     break;
   }
 
-   /*******************************************************************************
+    /*******************************************************************************
    * Normal_Tank_Not_Full:-                                                      *
    *                                                                             *
    * Indicate Tank is Not full and needs to On the Water flow.                   *
@@ -1332,7 +1258,7 @@ void Process_ControlSystem(void)
           } /* End of While loop */
 
           /* Print log once open First time*/
-          Debug_Trace("Successfully open input solenoid to the water Filter.")
+          Debug_Trace("Successfully open input solenoid to the water Filter.");
 
         } /* End of if (GetStatus_InLineInput() != Operatation_ON)*/
         /*---------------------------------------------------------------------------------
@@ -1352,7 +1278,7 @@ void Process_ControlSystem(void)
           } /* End of While loop */
 
           /* Print log once open First time*/
-          Debug_Trace("Successfully started Boaster pump of the water Filter. ( If available)")
+          Debug_Trace("Successfully started Boaster pump of the water Filter. ( If available)");
 
         } /* End of if (GetStatus_BoostInput() != Operatation_ON)*/
 
@@ -1373,7 +1299,7 @@ void Process_ControlSystem(void)
           } /* End of While loop */
 
           /* Print log once open First time*/
-          Debug_Trace("Successfully started RO pump and solenoid of the water Filter. ( If available)")
+          Debug_Trace("Successfully started RO pump and solenoid of the water Filter. ( If available)");
 
         } /* End of if (GetStatus_ROInput() != Operatation_ON)*/
 
@@ -1381,8 +1307,8 @@ void Process_ControlSystem(void)
                                 Check Wafer Potential Overflow.
            -----------------------------------------------------------------------------------*/
         /* Check wheather water flowed Above the mentioned limit.*/
-          if (((uint32)(floor(Get_Current_SectionWaterFlowedInL() * 1000)) >= Nvm_Read_Each(NVM_ID_Calibration_WaterTankOverflowCapacity))
-          {
+        if (((uint32)(floor(Get_Current_SectionWaterFlowedInL() * 1000))) >= Nvm_Read_Each(NVM_ID_Calibration_WaterTankOverflowCapacity))
+        {
           Debug_Trace("More water than expected transfer, Higher than tank capacity, But still Overflow is not detected by the sensore.");
 
           /* Switch to its respective state.*/
@@ -1393,16 +1319,16 @@ void Process_ControlSystem(void)
           Control_BoostInput(Operatation_OFF);
           Control_InLineInput(Operatation_OFF);
           /* UV is not turning OFF as water may flow through filer to reduce the presure build up.*/
-          }
+        }
 
-          /* Check if water flow rate is above the mentioned Limit..*/
-          /*---------------------------------------------------------------------------------
+        /* Check if water flow rate is above the mentioned Limit..*/
+        /*---------------------------------------------------------------------------------
           *                   Check Wafer Potential Pile Burst, Higher flow rate.  
           *---------------------------------------------------------------------------------*/
 
-          /* If higher water flow detected.*/
-          if((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000)) > Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate))
-          {
+        /* If higher water flow detected.*/
+        if (((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000))) > (Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate)))
+        {
           /* switchoff the Inlet relay and both motor to avoid any damage*/
           ShutDown_All();
           Debug_Trace("A high flow of water is detected By the system based on the configuration, So Switching Off. Current flow rate is %f, And Max Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate) / 1000));
@@ -1421,7 +1347,7 @@ void Process_ControlSystem(void)
               Delay_In_ms(Nvm_Read_Each(NVM_ID_Calibration_FlowRateWarningCollingTime));
 
               /* Wait until flow rate is reduced.*/
-            } while ((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000)) > Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate))
+            } while (((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000))) > Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate));
           }
           /* If recover is after Next power on, Then switch to Tank_Emergency_Stop state.*/
           else if ((Setting_Recovery_Actions)Nvm_Read_Each(NVM_ID_Seting_HighFlowRateWarningAction) == Recovery_On_PowerOn)
@@ -1430,22 +1356,21 @@ void Process_ControlSystem(void)
             /* Switch to the state representing overflow detected.*/
             Set_Current_Opp_State(Tank_Emergency_Stop);
           }
-
-          }
-          else /* High water flow did not detected.*/
-          {
+        }
+        else /* High water flow did not detected.*/
+        {
           /* Set Global variable for High Presure Detection.*/
           HighWater_Flow_Detected = false;
-          }
+        }
 
-          /* Check if water flow rate is above the mentioned Limit..*/
-          /*---------------------------------------------------------------------------------
+        /* Check if water flow rate is above the mentioned Limit..*/
+        /*---------------------------------------------------------------------------------
           *                   Check Wafer Potential Filter Block, Low flow rate.  
           *---------------------------------------------------------------------------------*/
 
-          /* If Lower water flow detected.*/
-          if((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000)) < Nvm_Read_Each(NVM_ID_Calibration_LowFlowRate))
-          {
+        /* If Lower water flow detected.*/
+        if ((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000)) < Nvm_Read_Each(NVM_ID_Calibration_LowFlowRate))
+        {
           /* Just show the warning for the Low flow Rate*/
           Debug_Trace("Potential Filer Jam. A Low flow of water is detected By the system based on the configuration. Current flow rate is %f, And Max Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate) / 1000));
 
@@ -1453,13 +1378,12 @@ void Process_ControlSystem(void)
           LowWater_Flow_Detected = true;
 
           /* No Action logic for Low flow rate is considered, As same did not make any sense. */
-
-          }
-          else /* Low water flow did not detected.*/
-          {
+        }
+        else /* Low water flow did not detected.*/
+        {
           /* Set Global variable for Low Presure Detection.*/
           LowWater_Flow_Detected = false;
-          }
+        }
 
       } /* End of If for High presure*/
       /* High presure is detected.*/
@@ -1487,8 +1411,7 @@ void Process_ControlSystem(void)
     break;
   }
 
-  
-   /*******************************************************************************
+    /*******************************************************************************
    * OverFlow_Tank_Not_Full:-                                                    *
    *                                                                             *
    * Indicate Indicate Tank full indicator not responding after considerable     *
@@ -1500,7 +1423,7 @@ void Process_ControlSystem(void)
     Log_State_Changed("Water Filer Operatation state changed to \"OverFlow_Tank_Not_Full\" state.");
     /* Indicate current sate is executed.*/
     State_Change_completed();
- 
+
     /* Shut Down Every think. */
     ShutDown_All();
 
@@ -1516,61 +1439,59 @@ void Process_ControlSystem(void)
     {
       Debug_Trace("Wait until Overflow sensor Detect as OFF for 5 Sec continually.");
       Debug_Trace("For Reference, Current water Filtered = %f, And configured level is %f", Get_Current_SectionWaterFlowedInL(), (double)(Nvm_Read_Each(NVM_ID_Calibration_WaterTankOverflowCapacity) / 1000));
-      
-     OverFlow_Tank_Not_Full_Loop_Index = 0;
 
-     do
-     {
-      /* Check if Tank Full is Not detected. If so clear the counter.*/
-       if(GetStatus_OverFlow() == Sensor_OFF )
-       {
-        /* Reset the counter*/
-         OverFlow_Tank_Not_Full_Loop_Index = 0;
-       }
-       else if(GetStatus_OverFlow() == Sensor_ON )
-       {
-         /* Increment the counter.*/
-         OverFlow_Tank_Not_Full_Loop_Index++;
-       }
-       else /* Could be a fault So switch the State.*/
-       {
+      OverFlow_Tank_Not_Full_Loop_Index = 0;
+
+      do
+      {
+        /* Check if Tank Full is Not detected. If so clear the counter.*/
+        if (GetStatus_OverFlow() == Sensor_OFF)
+        {
+          /* Reset the counter*/
+          OverFlow_Tank_Not_Full_Loop_Index = 0;
+        }
+        else if (GetStatus_OverFlow() == Sensor_ON)
+        {
+          /* Increment the counter.*/
+          OverFlow_Tank_Not_Full_Loop_Index++;
+        }
+        else /* Could be a fault So switch the State.*/
+        {
           /* Switch to the state to Tank_Sensor_Fault.*/
           Set_Current_Opp_State(Tank_Sensor_Fault);
 
           /* Update condonation to exit the loop.*/
           OverFlow_Tank_Not_Full_Loop_Index = OverFlow_Tank_Not_Full_Wait_Time;
-       }
+        }
 
-       /* Give 100ms Delay*/
-       Delay_In_ms(100);
-       /* Waite until time out reached, Considering the delay of 100ms */
-     } while (OverFlow_Tank_Not_Full_Loop_Index <= (uint32)(OverFlow_Tank_Not_Full_Wait_Time/100));
-     
-     /* If No fault detected and Overflow detected, Then Switch to Tank full state.*/
-     if((GetStatus_OverFlow() == Sensor_ON) && (OverFlow_Tank_Not_Full_Loop_Index != OverFlow_Tank_Not_Full_Wait_Time))
-     {
-       Debug_Trace("System Recovered form Potential Overflow case.")
+        /* Give 100ms Delay*/
+        Delay_In_ms(100);
+        /* Waite until time out reached, Considering the delay of 100ms */
+      } while (OverFlow_Tank_Not_Full_Loop_Index <= (uint32)(OverFlow_Tank_Not_Full_Wait_Time / 100));
+
+      /* If No fault detected and Overflow detected, Then Switch to Tank full state.*/
+      if ((GetStatus_OverFlow() == Sensor_ON) && (OverFlow_Tank_Not_Full_Loop_Index != OverFlow_Tank_Not_Full_Wait_Time))
+      {
+        Debug_Trace("System Recovered form Potential Overflow case.");
         /* Switch to the state to Tank_Sensor_Fault.*/
         Set_Current_Opp_State(Tank_Full);
-     }
-     else
-     {
-       /* Do nothing Loop back this state again.*/
-     }
-
-
+      }
+      else
+      {
+        /* Do nothing Loop back this state again.*/
+      }
 
     } /* End of Recovery Mode check If statement.*/
 
     break;
   }
 
-   /*******************************************************************************
+  /*******************************************************************************
    * Tank_Full:-                                                                 *
    *                                                                             *
    * Indicate Tank is full and Stop the flow.                                    *
    * *****************************************************************************/
-   case Tank_Full:
+  case Tank_Full:
   {
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Tank_Full\" state.");
@@ -1579,8 +1500,8 @@ void Process_ControlSystem(void)
     /* If first time Entering this state from any other state.*/
     if (Is_Opp_State_Changed())
     {
-       Debug_Trace(" Waitting for %d ms Based on configuration after Overflow detected.",P39_OverFlow_CollingTime_In_ms);
-       Delay_In_ms(P39_OverFlow_CollingTime_In_ms);
+      Debug_Trace(" Waitting for %d ms Based on configuration after Overflow detected.", P39_OverFlow_CollingTime_In_ms);
+      Delay_In_ms(P39_OverFlow_CollingTime_In_ms);
     }
     /* Indicate current sate is executed.*/
     State_Change_completed();
@@ -1588,20 +1509,20 @@ void Process_ControlSystem(void)
     /* Shut Down Every think. */
     ShutDown_All();
 
-      /* switch the state based om the Over flow sensor state.*/
-       if(GetStatus_OverFlow() == Sensor_OFF )
-       {
-         Set_Current_Opp_State(Normal_Tank_Not_Full);
-       }
-       else 
-       {
-          /* Do Nothing.*/
-       }
+    /* switch the state based om the Over flow sensor state.*/
+    if (GetStatus_OverFlow() == Sensor_OFF)
+    {
+      Set_Current_Opp_State(Normal_Tank_Not_Full);
+    }
+    else
+    {
+      /* Do Nothing.*/
+    }
 
     break;
   }
 
-   /*******************************************************************************
+    /*******************************************************************************
    * Tank_High_Presure:-                                                         *
    *                                                                             *
    * Indicate aHigh presure is detected at its input.                            *
@@ -1754,7 +1675,6 @@ void Process_ControlSystem(void)
     break;
   }
 
- 
   /*******************************************************************************
    * Tank_Emergency_Stop:-                                                       *
    *                                                                             *
@@ -1770,15 +1690,13 @@ void Process_ControlSystem(void)
 
     /* Initate Shut down*/
     ShutDown_All();
-    
+
     /* And keep on this state until Next power On reset.*/
-  
+
     break;
   }
-  
+
   } /* End of Switch statement*/
-
-
 
   /* Generic State mechine / General monitering*/
   /*  
@@ -1804,7 +1722,6 @@ void Process_ControlSystem(void)
       Debug_Trace("Sensor fault detected in Normal Execution, SO Switching to state \"Tank_Sensor_Fault\" and Excute force shutdown.");
     }
   }
-
 
   /* Logic for Perodic reset to make sure every think work properly.
    * This is mainely to avoid misinterpretation of the values stored for different time related record.
@@ -1836,91 +1753,88 @@ void Web_Server_Processing(void)
 {
 
   /* Variable to store the HTTP request*/
-   String Client_Header_Request;
-   String currentLine;
+  String Client_Header_Request;
+  String currentLine;
 
-   /* Previous time for time out purpose.*/
-   unsigned long previousTime = 0;
+  /* Previous time for time out purpose.*/
+  unsigned long previousTime = 0;
 
-   char ClientCurrent_Char;
+  char ClientCurrent_Char;
 
-   /* Check if any  client has connected*/
-   WiFiClient client = server.available();
+  /* Check if any  client has connected*/
+  WiFiClient client = server.available();
 
-   if (client)
-   { /* If a new client connects,*/
+  if (client)
+  { /* If a new client connects,*/
 
-      /* Read current time.*/
-      previousTime = millis();
+    /* Read current time.*/
+    previousTime = millis();
 
-      //Debug_Trace("New Clint has been connected...");
+    //Debug_Trace("New Clint has been connected...");
 
-      /* Clean the string to make a String to hold incoming data from the client*/
-      currentLine = "";
+    /* Clean the string to make a String to hold incoming data from the client*/
+    currentLine = "";
 
-      /*loop while the client's connected and No time out detected.*/
-      while ((client.connected() ) &&  (Get_Time_Elapse(previousTime) <= html_TimeOut_Clint))
+    /*loop while the client's connected and No time out detected.*/
+    while ((client.connected()) && (Get_Time_Elapse(previousTime) <= html_TimeOut_Clint))
+    {
+
+      /* if there's bytes to read from the client, */
+      if (client.available())
       {
+        /* Read each available Byte form client*/
+        ClientCurrent_Char = client.read();
 
-         /* if there's bytes to read from the client, */
-         if (client.available())
-         {
-            /* Read each available Byte form client*/
-            ClientCurrent_Char = client.read();
+        /* Stor into a string variable.*/
+        Client_Header_Request += ClientCurrent_Char;
 
-            /* Stor into a string variable.*/
-            Client_Header_Request += ClientCurrent_Char;
-
-            /* if the byte is a newline character */
-            if (ClientCurrent_Char == '\n')
-            {
-               /* if the current line is blank, you got two newline characters in a row.
+        /* if the byte is a newline character */
+        if (ClientCurrent_Char == '\n')
+        {
+          /* if the current line is blank, you got two newline characters in a row.
              that's the end of the client HTTP request, so send a response:
           */
-               if (currentLine.length() == 0)
-               {
-                  /* HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK) */
-                  /* and a content-type so the client knows what's coming, then a blank line:*/
-                  client.println("HTTP/1.1 200 OK");
-                  client.println("Content-type:text/html");
-                  client.println();
+          if (currentLine.length() == 0)
+          {
+            /* HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK) */
+            /* and a content-type so the client knows what's coming, then a blank line:*/
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println();
 
-                  // Display the HTML web Header part
-                  client.print(Html_Templates_Debug_Trace_Page_Header);
+            // Display the HTML web Header part
+            client.print(Html_Templates_Debug_Trace_Page_Header);
 
-                  /* Get Queue string*/
-                  Populate_BufferStream_FromQueue(BufferStream_ForDebugHTMLTrace, BufferStream_Max_Size);
-                  /* Print HTML processed Page*/
-                  client.print(BufferStream_ForDebugHTMLTrace);
- 
-                  /* Print Html Footer for the Debug trace*/
-                  client.print(Html_Templates_Debug_Trace_Page_Footer);
+            /* Get Queue string*/
+            Populate_BufferStream_FromQueue(BufferStream_ForDebugHTMLTrace, BufferStream_Max_Size);
+            /* Print HTML processed Page*/
+            client.print(BufferStream_ForDebugHTMLTrace);
 
-                  // The HTTP response ends with another blank line
-                  client.println();
-                  // Break out of the while loop
-                  break;
-               }
-               else
-               { // if you got a newline, then clear currentLine
-                  currentLine = "";
-               }
-            }
-            else if (ClientCurrent_Char != '\r')
-            {                                     // if you got anything else but a carriage return character,
-               currentLine += ClientCurrent_Char; // add it to the end of the currentLine
-            }
-         }
+            /* Print Html Footer for the Debug trace*/
+            client.print(Html_Templates_Debug_Trace_Page_Footer);
+
+            // The HTTP response ends with another blank line
+            client.println();
+            // Break out of the while loop
+            break;
+          }
+          else
+          { // if you got a newline, then clear currentLine
+            currentLine = "";
+          }
+        }
+        else if (ClientCurrent_Char != '\r')
+        {                                    // if you got anything else but a carriage return character,
+          currentLine += ClientCurrent_Char; // add it to the end of the currentLine
+        }
       }
-      // Clear the header variable
-      Client_Header_Request = "";
-      // Close the connection
-      client.stop();
-   }
-
-
+    }
+    // Clear the header variable
+    Client_Header_Request = "";
+    // Close the connection
+    client.stop();
+  }
 }
-
 
 /* ************************************************************************
  * Function to Init the Web server Required 
@@ -1928,49 +1842,41 @@ void Web_Server_Processing(void)
 void Web_Server_Init(void)
 {
   /* change these values to match your network*/
-char Current_ssid[100];
-char Current_password[100];
+  char Current_ssid[100];
+  char Current_password[100];
 
   /*Read SSID from NVM.*/
-  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDName, (uint8*) Current_ssid );
-  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDPasword, (uint8*) Current_password );
+  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDName, (uint8 *)Current_ssid);
+  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDPasword, (uint8 *)Current_password);
 
-   /* Try to connect to Wifi Access point based on the configuration.*/
-   WiFi.begin(Current_ssid, Current_password);
+  /* Try to connect to Wifi Access point based on the configuration.*/
+  WiFi.begin(Current_ssid, Current_password);
 
   /* Waite until it get connect*/
-   while (WiFi.status() != WL_CONNECTED)
-   {
-     /* Waite for 100ns befor reading status again.*/
-     delay(100 / portTICK_PERIOD_MS);
-   }
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    /* Waite for 100ns befor reading status again.*/
+    delay(100 / portTICK_PERIOD_MS);
+  }
 
-   /* If connected began the server.*/
-   if (WiFi.status() == WL_CONNECTED)
-   {
-     /* Start the server.*/
-     server.begin();
+  /* If connected began the server.*/
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    /* Start the server.*/
+    server.begin();
 
-     Debug_Trace("WiFi get connected and IP address is %s", WiFi.localIP().toString().c_str());
-   }
-   /* If not able to connect to the Web server.*/
-   else
-   {
-     Debug_Trace("Failed to connect to the configured WiFi %s", NVM_ID_Value_WiFiSSIDName);
+    Debug_Trace("WiFi get connected and IP address is %s", WiFi.localIP().toString().c_str());
+  }
+  /* If not able to connect to the Web server.*/
+  else
+  {
+    Debug_Trace("Failed to connect to the configured WiFi %s", NVM_ID_Value_WiFiSSIDName);
+  }
 
-   }
-
-   /* Add additional logic for Time out and automatic switching between AP and WiFi station based on the availability.
+  /* Add additional logic for Time out and automatic switching between AP and WiFi station based on the availability.
     Reffer the Approach mentioned in https://techtutorialsx.com/2021/01/04/esp32-soft-ap-and-station-modes/
    */
-
-
-
-
 }
-
-
-
 
 /* ************************************************************************
  * Function to Initialise all System related functions.
@@ -1979,11 +1885,7 @@ void Init_MCU(void)
 {
   /* WDG is already enabled.. So no change required.*/
 
-
   /* Initializes all port settings.*/
-  
-  
-
 }
 
 /* ************************************************************************
@@ -1993,8 +1895,7 @@ void Init_GPT_ICU(void)
 {
   /* Initializes all timer related settings.*/
 
- /* Initializes all External interrupts.*/
-
+  /* Initializes all External interrupts.*/
 }
 
 /* ************************************************************************
@@ -2010,74 +1911,65 @@ void Perform_Reset(void)
   ESP.restart();
 }
 
-
 /* ************************************************************************
  * Function to initialise all required variables.
  * *************************************************************************/
 void Init_System_Utilityes_Variables(void)
 {
   /* Variable to store the current UV lamp state set by SW.*/
-UV_Lamp_Current_Status = UV_Lamp_OFF;
-/* Variable to store the Time at which UV light Started / Stopped.*/
-UV_Lamp_Start_Time = Int_Zero;
+  UV_Lamp_Current_Status = UV_Lamp_OFF;
+  /* Variable to store the Time at which UV light Started / Stopped.*/
+  UV_Lamp_Start_Time = Int_Zero;
 
-/* Variable to store the current IN-Line request set by SW.*/
-InLineInput_Current_Status = Operatation_OFF;
-/* Variable to store the Time at which In-Line Input Started / stoped.*/
-InLineInput_Start_Time = Int_Zero;
+  /* Variable to store the current IN-Line request set by SW.*/
+  InLineInput_Current_Status = Operatation_OFF;
+  /* Variable to store the Time at which In-Line Input Started / stoped.*/
+  InLineInput_Start_Time = Int_Zero;
 
+  /* Variable to store the current Input Boost request set by SW.*/
+  InputBoost_Current_Status = Operatation_OFF;
+  /* Variable to store the Time at which InputBoost Input Started / stoped.*/
+  InputBoost_Start_Time = Int_Zero;
 
-/* Variable to store the current Input Boost request set by SW.*/
-InputBoost_Current_Status = Operatation_OFF;
-/* Variable to store the Time at which InputBoost Input Started / stoped.*/
-InputBoost_Start_Time = Int_Zero;
+  /* Variable to store the current Input RO request set by SW.*/
+  InputRO_Current_Status = Operatation_OFF;
+  /* Variable to store the Time at which Input RO Input Started / stoped.*/
+  InputRO_Start_Time = Int_Zero;
 
+  /* Variable to store the current High presure sensor input.*/
+  Sensor_HighPressure_Status = Sensor_OFF;
+  /* Variable to store the Time at which High presure sensor input Started / stoped.*/
+  Sensor_HighPressure_Start_Time = Int_Zero;
 
-/* Variable to store the current Input RO request set by SW.*/
-InputRO_Current_Status = Operatation_OFF;
-/* Variable to store the Time at which Input RO Input Started / stoped.*/
-InputRO_Start_Time = Int_Zero; 
+  /* Variable to store the current OverFlow sensor input.*/
+  Sensor_OverFlow_Status = Sensor_OFF;
+  /* Variable to store the Time at which OverFlow sensor input Started / stoped.*/
+  Sensor_OverFlow_Start_Time = Int_Zero;
 
+  /* Variable to store the init status of the Operatation.*/
+  Current_Operatation_Status = Init_State;
 
-/* Variable to store the current High presure sensor input.*/
-Sensor_HighPressure_Status = Sensor_OFF;
-/* Variable to store the Time at which High presure sensor input Started / stoped.*/
-Sensor_HighPressure_Start_Time = Int_Zero;
+  /* Variable to store the water flow detected when state changed to "Normal_Tank_Not_Full" */
+  Water_Flow_At_Normal_Tank_Not_Full = 0;
 
+  /* Use to store the Next Index to be filed.*/
+  Water_FlowRate_Log_Current_Index = 0;
 
-/* Variable to store the current OverFlow sensor input.*/
-Sensor_OverFlow_Status = Sensor_OFF;
-/* Variable to store the Time at which OverFlow sensor input Started / stoped.*/
-Sensor_OverFlow_Start_Time = Int_Zero; 
+  /* Use to store Instantinous Index, Once reached 60, shall hold there.*/
+  Water_FlowRate_Log_Instantaneous_Index = 0;
 
-/* Variable to store the init status of the Operatation.*/
-Current_Operatation_Status = Init_State;
+  /* Store Previous Logged Value. Shall help to detect first case and avoid travising buffer*/
+  Previous_Section_Value = Invalue_Flow_Value_InL;
 
-/* Variable to store the water flow detected when state changed to "Normal_Tank_Not_Full" */
-Water_Flow_At_Normal_Tank_Not_Full = 0;
+  /*Store final processed Instantaneous flow value.*/
+  Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
 
-/* Use to store the Next Index to be filed.*/
-Water_FlowRate_Log_Current_Index = 0;
+  /* Global Variable to store the High flow rate detected.*/
+  HighWater_Flow_Detected = false;
 
-/* Use to store Instantinous Index, Once reached 60, shall hold there.*/
-Water_FlowRate_Log_Instantaneous_Index = 0;
-
-/* Store Previous Logged Value. Shall help to detect first case and avoid travising buffer*/
-Previous_Section_Value = Invalue_Flow_Value_InL;
-
-/*Store final processed Instantaneous flow value.*/
-Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
-
-/* Global Variable to store the High flow rate detected.*/
-HighWater_Flow_Detected = false;
-
-/* Global Variable to store the High flow rate detected.*/
-LowWater_Flow_Detected = false;
-
-
+  /* Global Variable to store the High flow rate detected.*/
+  LowWater_Flow_Detected = false;
 }
-
-
 
 /*
 ===========================================================================
@@ -2090,99 +1982,92 @@ LowWater_Flow_Detected = false;
 /* *********************************************************************************
  * ISR Function to trigen when ever over flow is detected.......
 *************************************************************************************/
-void IRAM_ATTR CounterOverflow_ISR(void *arg)             
+void IRAM_ATTR CounterOverflow_ISR(void *arg)
 {
 
   /* Increment Over flow counter */
-  CounterOverflow = CounterOverflow + 1;  
+  CounterOverflow = CounterOverflow + 1;
 
-  /* Clear counter*/              
-  PCNT.int_clr.val = BIT(PCNT_UNIT_Used);                 
-  pcnt_counter_clear(PCNT_UNIT_Used);                     
+  /* Clear counter*/
+  PCNT.int_clr.val = BIT(PCNT_UNIT_Used);
+  pcnt_counter_clear(PCNT_UNIT_Used);
 }
-
 
 /* *********************************************************************************
  * Function to init PCNT based on HW configuration..
 *************************************************************************************/
 
-void Init_PulseCounter (void)
+void Init_PulseCounter(void)
 {
-  pcnt_config_t pcntFreqConfig = { };                        // Declear variable for cinfig
-  pcntFreqConfig.pulse_gpio_num = PCNT_INPUT_SIG_IO;         // Set the port ping using for counting
-  pcntFreqConfig.pos_mode = PCNT_COUNT_INC;                  // set Counter mode: Increase counter value
-  pcntFreqConfig.counter_h_lim = PCNT_Overflow_LIM_VAL;      // Set Over flow Interupt / event value
-  pcntFreqConfig.unit = PCNT_UNIT_Used;                      //  Set Pulsos unit to ne used
-  pcntFreqConfig.channel = PCNT_CHANNEL_0;                   //  select PCNT channel 0
-  pcnt_unit_config(&pcntFreqConfig);                         // Configure PCNT.
+  pcnt_config_t pcntFreqConfig = {};                    // Declear variable for cinfig
+  pcntFreqConfig.pulse_gpio_num = PCNT_INPUT_SIG_IO;    // Set the port ping using for counting
+  pcntFreqConfig.pos_mode = PCNT_COUNT_INC;             // set Counter mode: Increase counter value
+  pcntFreqConfig.counter_h_lim = PCNT_Overflow_LIM_VAL; // Set Over flow Interupt / event value
+  pcntFreqConfig.unit = PCNT_UNIT_Used;                 //  Set Pulsos unit to ne used
+  pcntFreqConfig.channel = PCNT_CHANNEL_0;              //  select PCNT channel 0
+  pcnt_unit_config(&pcntFreqConfig);                    // Configure PCNT.
 
-  pcnt_counter_pause(PCNT_UNIT_Used);                        // Pause PCNT counter such that we can set event.
-  pcnt_counter_clear(PCNT_UNIT_Used);                        // Clear PCNT counter to avoid ant mis counting.
+  pcnt_counter_pause(PCNT_UNIT_Used); // Pause PCNT counter such that we can set event.
+  pcnt_counter_clear(PCNT_UNIT_Used); // Clear PCNT counter to avoid ant mis counting.
 
-  pcnt_event_enable(PCNT_UNIT_Used, PCNT_EVT_H_LIM);         // Enable event for when PCNT watch point event: Maximum counter value
-  pcnt_isr_register(CounterOverflow_ISR, NULL, 0, &user_isr_handle);  // Set call back function for the Event.
-  pcnt_intr_enable(PCNT_UNIT_Used);                          // Enable PCNT
+  pcnt_event_enable(PCNT_UNIT_Used, PCNT_EVT_H_LIM);                 // Enable event for when PCNT watch point event: Maximum counter value
+  pcnt_isr_register(CounterOverflow_ISR, NULL, 0, &user_isr_handle); // Set call back function for the Event.
+  pcnt_intr_enable(PCNT_UNIT_Used);                                  // Enable PCNT
 
-  pcnt_counter_resume(PCNT_UNIT_Used);                       // Re-started PCNT.
+  pcnt_counter_resume(PCNT_UNIT_Used); // Re-started PCNT.
 
- Debug_Trace("PCNT Init Completed....");
+  Debug_Trace("PCNT Init Completed....");
 }
-
 
 /* *********************************************************************************
    Function to clean the Counter and its variables......
 *************************************************************************************/
-void Clean_Water_Flow_Counters(void)                                       
+void Clean_Water_Flow_Counters(void)
 {
 
-  pcnt_counter_pause(PCNT_UNIT_Used);                      // Pause PCNT counter such that we can set event.
+  pcnt_counter_pause(PCNT_UNIT_Used); // Pause PCNT counter such that we can set event.
 
   /* Enter in to Critical Section*/
   portENTER_CRITICAL(&Waterflow_Mux);
 
-  CounterOverflow = 0;                                     // Clear global Over flow counter.
+  CounterOverflow = 0; // Clear global Over flow counter.
 
   /* Exit from Critical Section. */
   portEXIT_CRITICAL(&Waterflow_Mux);
 
-  pcnt_counter_clear(PCNT_UNIT_Used);                      // Clean Pulse Counter...
-  pcnt_counter_resume(PCNT_UNIT_Used);                     // Re-started PCNT.
-
+  pcnt_counter_clear(PCNT_UNIT_Used);  // Clean Pulse Counter...
+  pcnt_counter_resume(PCNT_UNIT_Used); // Re-started PCNT.
 }
-
-
 
 /* *********************************************************************************
    Function to get total water flowed from last clear / restart in Liters......
 *************************************************************************************/
-double Get_Current_WaterFlowedInL(void)                                       
+double Get_Current_WaterFlowedInL(void)
 {
-   double Return_Water_Flowed_InL;
-   int16_t Current_Counter_Value;
-   uint32 Calib_Value;
+  double Return_Water_Flowed_InL;
+  int16_t Current_Counter_Value;
+  uint32 Calib_Value;
 
   /* Enter in to Critical Section*/
   portENTER_CRITICAL(&Waterflow_Mux);
 
-   /* Consider Over-flowed values*/
-   Return_Water_Flowed_InL = CounterOverflow * PCNT_Overflow_LIM_VAL;
+  /* Consider Over-flowed values*/
+  Return_Water_Flowed_InL = CounterOverflow * PCNT_Overflow_LIM_VAL;
 
   /* Exit from Critical Section. */
   portEXIT_CRITICAL(&Waterflow_Mux);
 
-   /*Read the counter Value */
-   pcnt_get_counter_value(PCNT_UNIT_Used, &Current_Counter_Value);
-
-
+  /*Read the counter Value */
+  pcnt_get_counter_value(PCNT_UNIT_Used, &Current_Counter_Value);
 
   /* Add Current Counter Value*/
   Return_Water_Flowed_InL += Current_Counter_Value;
 
-   /* Get NVM Calib Value*/
-   Calib_Value = Nvm_Read_Each(NVM_ID_Calibration_FlowMeaterFactor);
+  /* Get NVM Calib Value*/
+  Calib_Value = Nvm_Read_Each(NVM_ID_Calibration_FlowMeaterFactor);
 
-   /* Check is value is Zero, If So applay safe default value.*/
-   Calib_Value  = ((Calib_Value == 0)?WaterFlow_Default_Calib_VAL:Calib_Value);
+  /* Check is value is Zero, If So applay safe default value.*/
+  Calib_Value = ((Calib_Value == 0) ? WaterFlow_Default_Calib_VAL : Calib_Value);
 
   /* Convert In to Liters*/
   /* Consider the Value in NVM paramater NVM_ID_Calibration_FlowMeaterFactor = Number of counter tick for 1 Letter of water.*/
@@ -2190,8 +2075,6 @@ double Get_Current_WaterFlowedInL(void)
 
   return (Return_Water_Flowed_InL);
 }
-
-
 
 /* *********************************************************************************
    Function to get total water flowed after started last time or Now ongoing section......
@@ -2223,8 +2106,6 @@ double Get_Current_SectionWaterFlowedInL(void)
 
   return (Current_SectionWaterFlowedInL);
 }
-
-
 
 /* *********************************************************************************
     Cyclic runnable to process the water glow rate based on the previous water flow value
@@ -2324,29 +2205,28 @@ void ProcessWaterFlowRate(void)
 *************************************************************************************/
 void ReStartFlowRate_Processing(void)
 {
+  uint8 LoopIndex;
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&Waterflow_Mux);
 
-   /* Enter in to Critical Section*/
-   portENTER_CRITICAL(&Waterflow_Mux);
+  /* Clear the current value*/
+  Previous_Section_Value = Invalue_Flow_Value_InL;
 
-   /* Clear the current value*/
-   Previous_Section_Value = Invalue_Flow_Value_InL;
+  /* Clear Variables */
+  Water_FlowRate_Log_Current_Index = 0;
+  Water_FlowRate_Log_Instantaneous_Index = 0;
 
-   /* Clear Variables */
-   Water_FlowRate_Log_Current_Index = 0;
-   Water_FlowRate_Log_Instantaneous_Index = 0;
+  Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
 
-   Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
+  /* Clear all buffer element*/
+  for (LoopIndex = 0; LoopIndex < 60; LoopIndex++)
+  {
+    /* Clear buffer*/
+    Water_FlowRate_PerSec[LoopIndex] = 0;
+  }
 
- 
-   /* Clear all buffer element*/
-   for(LoopIndex = 0; LoopIndex < 60; LoopIndex++)
-   {
-       /* Clear buffer*/
-       Water_FlowRate_PerSec[LoopIndex] = 0 ;
-   }
-
-      /* Exit from Critical Section. */
-   portEXIT_CRITICAL(&Waterflow_Mux);
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&Waterflow_Mux);
 }
 
 /* *********************************************************************************
@@ -2376,16 +2256,14 @@ double Get_Instantinous_FlowRate_InLpM(void)
   return (Temp_Local_Current_Value);
 }
 
-
 /* *********************************************************************************
    Function to return wheather any High flow rate is detected.
 *************************************************************************************/
 int Is_HighWaterFlowRateDetected(void)
 {
 
-/* Return true if detected*/
-return(HighWater_Flow_Detected == true);
-
+  /* Return true if detected*/
+  return (HighWater_Flow_Detected == true);
 }
 
 /* *********************************************************************************
@@ -2394,17 +2272,6 @@ return(HighWater_Flow_Detected == true);
 int Is_LowWaterFlowRateDetected(void)
 {
 
-/* Return true if detected*/
-return(LowWater_Flow_Detected == true);
-
+  /* Return true if detected*/
+  return (LowWater_Flow_Detected == true);
 }
-
-
-
-
-
-
-
-
-
-
