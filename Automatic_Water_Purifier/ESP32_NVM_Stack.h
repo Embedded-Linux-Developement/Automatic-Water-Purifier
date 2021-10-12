@@ -52,17 +52,17 @@ const uint8 NVM_Default_Value_WiFiServerName[75]  = "Automatic Water Purifier"; 
 const uint8 NVM_Default_Value_AdminPasword[30]    = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
 
 
-const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
-const uint8 NVM_Default_Calibration_LowFlowRate[4]               = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_LowFlowRate NVM paramater.*/
-const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_HighFlowRate NVM paramater.*/
-const uint8 NVM_Default_Calibration_HighPresureCollingTime[4]    = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_HighPresureCollingTime NVM paramater.*/
-const uint8 NVM_Default_Calibration_FlowRateWarningCollingTime[4]= {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_FlowRateWarningCollingTime NVM paramater.*/
-const uint8 NVM_Default_Calibration_WaterTankOverflowCapacity[4] = {0x00,0x00,0x00,0x00};  /*Array to hold the default value for the NVM_ID_Calibration_WaterTankOverflowCapacity NVM paramater.*/
+const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x00,0x00,0x03,0xE8};  /*  1100Tick = 1L   = 0x03E8 Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
+const uint8 NVM_Default_Calibration_LowFlowRate[4]               = {0x00,0x00,0x01,0xF4};  /*  500mLpM = 0.5LpM= 0x01F4 Array to hold the default value for the NVM_ID_Calibration_LowFlowRate NVM paramater.*/
+const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0x00,0x00,0x0F,0xA0};  /* 4000mLpM = 4LpM  = 0x0FA0 Array to hold the default value for the NVM_ID_Calibration_HighFlowRate NVM paramater.*/
+const uint8 NVM_Default_Calibration_HighPresureCollingTime[4]    = {0x00,0x00,0x27,0x10};  /* 10000ms  = 10S   = 0x2710 Array to hold the default value for the NVM_ID_Calibration_HighPresureCollingTime NVM paramater.*/
+const uint8 NVM_Default_Calibration_FlowRateWarningCollingTime[4]= {0x00,0x00,0x13,0x88};  /*  5000ms  =  5S   = 0x1388 Array to hold the default value for the NVM_ID_Calibration_FlowRateWarningCollingTime NVM paramater.*/
+const uint8 NVM_Default_Calibration_WaterTankOverflowCapacity[4] = {0x00,0x00,0x4E,0x20};  /* 20000mL  = 20L   = 0x4E20 Array to hold the default value for the NVM_ID_Calibration_WaterTankOverflowCapacity NVM paramater.*/
 
 const uint8 NVM_Default_Seting_WaterTankOverflowAction    = Recovery_On_PowerOn;       /*Variable to hold the default value for the NVM_ID_Seting_WaterTankOverflowAction NVM paramater.*/
 const uint8 NVM_Default_Seting_HighPresureAction          = Recovery_Time_Bound;       /*Variable to hold the default value for the NVM_ID_Seting_HighPresureAction NVM paramater.*/
 const uint8 NVM_Default_Seting_LowFlowRateWarningAction   = Recovery_Time_Bound;       /*Variable to hold the default value for the NVM_ID_Seting_LowFlowRateWarningAction NVM paramater.*/
-const uint8 NVM_Default_Seting_HighFlowRateWarningAction  = Recovery_On_PowerOn;       /*Variable to hold the default value for the NVM_ID_Seting_HighFlowRateWarningAction NVM paramater.*/
+const uint8 NVM_Default_Seting_HighFlowRateWarningAction  = Recovery_Time_Bound;       /*Variable to hold the default value for the NVM_ID_Seting_HighFlowRateWarningAction NVM paramater.*/
 const uint8 NVM_Default_Seting_OperatationMode            = WF_Mode_Inline;            /*Variable to hold the default value for the NVM_ID_Seting_OperatationMode NVM paramater.*/
 
 /* Below Variables and Macros are for setting the NVM Signature Value*/
@@ -99,11 +99,11 @@ enum  NVMParam_ID_Enum{
   NVM_ID_Value_AdminPasword,                     /* This NVM paramater is storing the Admin pasword User has been set. Default password shall be "Admin"*/
 
   NVM_ID_Calibration_FlowMeaterFactor,             /* This NVM paramater is storing the convertion factor for the flow meter, Number of ticks for 1 Liter.*/
-  NVM_ID_Calibration_LowFlowRate,                  /* This NVM paramater is storing the Lowest Flow rate allowed without any warning.*/
-  NVM_ID_Calibration_HighFlowRate,                 /* This NVM paramater is storing the Higest Flow rate allowed without any warning.*/
-  NVM_ID_Calibration_HighPresureCollingTime,       /* This NVM paramater is storing the Cool off time in Second after High presure is being detected.*/
-  NVM_ID_Calibration_FlowRateWarningCollingTime,   /* This NVM paramater is storing the Cool off time in Second after High / Low flow rate detected.*/
-  NVM_ID_Calibration_WaterTankOverflowCapacity,    /* This NVM paramater is storing the Maximum Tank Capacity. After reaching this level if float sensor is not detected, Then will take action*/
+  NVM_ID_Calibration_LowFlowRate,                  /* This NVM paramater is storing the Lowest Flow rate in milli Litter per Min allowed without any warning.*/
+  NVM_ID_Calibration_HighFlowRate,                 /* This NVM paramater is storing the Higest Flow rate in milli Litter per Min allowed without any warning.*/
+  NVM_ID_Calibration_HighPresureCollingTime,       /* This NVM paramater is storing the Cool off time in milli Second after High presure is being detected.*/
+  NVM_ID_Calibration_FlowRateWarningCollingTime,   /* This NVM paramater is storing the Cool off time in milli Second after High / Low flow rate detected.*/
+  NVM_ID_Calibration_WaterTankOverflowCapacity,    /* This NVM paramater is storing the Maximum Tank Capacity in milli Litter. After reaching this level if float sensor is not detected, Then will take action*/
       
   NVM_ID_Seting_WaterTankOverflowAction,          /* This NVM paramater is storing Action to me considered once Potential Overflow is detected.*/
   NVM_ID_Seting_HighPresureAction,                /* This NVM paramater is storing Action to me considered once High presure is detected detected.*/

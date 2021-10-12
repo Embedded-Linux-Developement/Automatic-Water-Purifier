@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <math.h>
 #include "MyStdTypes.h"
 #include "ESP32_NVM_Stack.h"
 #include "Generic_Utilityes.h"
@@ -265,6 +266,13 @@ double Previous_Section_Value = Invalue_Flow_Value_InL;
 /*Store final processed Instantaneous flow value.*/
 double Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
 
+/* Global Variable to store the High flow rate detected.*/
+uint8 HighWater_Flow_Detected = false;
+
+/* Global Variable to store the High flow rate detected.*/
+uint8 LowWater_Flow_Detected = false;
+
+
 
 /*******************************************************************************
  *  Functions Forward decleratations deceleration
@@ -273,6 +281,8 @@ double Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
 
 /*This function is to Control UV Lamp operatations*/
  static uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin);
+
+ static void ShutDown_All(void);
 
  static void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest);
  static Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback( void );
@@ -1094,6 +1104,8 @@ void Process_ControlSystem(void)
   /* Variable to flag wheather fault is detected.*/
   Declear_Check_Flag(Fault_State_Check));
 
+  uint32 OverFlow_Tank_Not_Full_Loop_Index;
+
   /* Get the State of Overflow, If over flow detected then Switch off..*/
 
   /* State Flow Is as mentioned below
@@ -1128,7 +1140,11 @@ void Process_ControlSystem(void)
   switch (Get_Current_Opp_State())
   {
 
-  /* Process State Indicating Initialization sequence is in progress. */
+  /*******************************************************************************
+   * Init_State:-                                                                *
+   *                                                                             *
+   * Process State Indicating Initialization sequence is in progress.            *
+   * *****************************************************************************/
   case Init_State:
   {
     /*Print State change Message*/
@@ -1145,9 +1161,9 @@ void Process_ControlSystem(void)
     /*Wait to complete the shutdown.*/
     Delay_In_ms(CompleteSystem_ShutDown_Wait_Time);
 
-/*---------------------------------------------------------------------------------
-                       Start UV lamp Operatation checking.
------------------------------------------------------------------------------------*/
+    /*---------------------------------------------------------------------------------
+     *                      Start UV lamp Operatation checking.
+    -----------------------------------------------------------------------------------*/
 
     /* Assumption by this time UV light could be OFF.*/
     /* Wait until UV lamp status changed to ON*/
@@ -1195,9 +1211,9 @@ void Process_ControlSystem(void)
       False_Check_Flag(Local_Init_status);
     }
 
-/*---------------------------------------------------------------------------------
-                       Start Float Sensor validatation  checking.
------------------------------------------------------------------------------------*/
+    /*---------------------------------------------------------------------------------
+      *                     Start Float Sensor validatation  checking.
+     -----------------------------------------------------------------------------------*/
     /* Check wheather High Pressure detected detected as off, Because Now systen is Down*/
     if (GetStatus_HighPresere() == Sensor_OFF)
     {
@@ -1214,9 +1230,9 @@ void Process_ControlSystem(void)
       Debug_Trace("Failed to detect the High presur Sensor As OFF, At present detected as ON. Not expected at init. For reference Sensor RAW value is  %d ", GetStatus_HighPresere_Sensor_Raw_Value());
     }
 
-/*---------------------------------------------------------------------------------
-                       Start High Presure Sensor validatation  checking.
------------------------------------------------------------------------------------*/
+    /*---------------------------------------------------------------------------------
+     *                      Start High Presure Sensor validatation  checking.
+    -----------------------------------------------------------------------------------*/
     /* Check wheather fault detected in flot sensor*/
     if (GetStatus_OverFlow() == Sensor_Fault)
     {
@@ -1227,17 +1243,17 @@ void Process_ControlSystem(void)
     }
     else /* If sensor is in a valied state*/
     {
-        Debug_Trace("Correctely detect Over flow Sensor Sensor is in valied state, as expected in init.");
+      Debug_Trace("Correctely detect Over flow Sensor Sensor is in valied state, as expected in init.");
     }
 
-/*---------------------------------------------------------------------------------
-                       Start Next state conclusion.
------------------------------------------------------------------------------------*/
+    /*---------------------------------------------------------------------------------
+     *                      Start Next state conclusion.
+    -----------------------------------------------------------------------------------*/
     /* If local Init status is OK, Then switch to New state.*/
     if (Is_Check_Flag_True(Local_Init_status))
     {
 
-      /* Re-start Water flow counter*/  
+      /* Re-start Water flow counter*/
       Clean_Water_Flow_Counters();
 
       /* If tank is full move to Tank_Full state*/
@@ -1263,7 +1279,11 @@ void Process_ControlSystem(void)
     break;
   }
 
-  /* Indicate Tank is Not full and needs to On the Water flow.*/
+   /*******************************************************************************
+   * Normal_Tank_Not_Full:-                                                      *
+   *                                                                             *
+   * Indicate Tank is Not full and needs to On the Water flow.                   *
+   * *****************************************************************************/
   case Normal_Tank_Not_Full:
   {
     /*Print State change Message*/
@@ -1289,160 +1309,317 @@ void Process_ControlSystem(void)
     State_Change_completed();
 
     /* Check Wheather level is Low, Over flow Nor detected, If low shall process further.*/
-    if(GetStatus_OverFlow() == Sensor_OFF)
+    if (GetStatus_OverFlow() == Sensor_OFF)
     {
-        /* Check if presure is Normal, else switch to its state. */
-        if(GetStatus_HighPresere() == Sensor_OFF)
+      /* Check if presure is Normal, else switch to its state. */
+      if (GetStatus_HighPresere() == Sensor_OFF)
+      {
+
+        /*---------------------------------------------------------------------------------
+                                 Open Inlet.
+          -----------------------------------------------------------------------------------*/
+        /* If Inlet is Not already open.*/
+        if (GetStatus_InLineInput() != Operatation_ON)
         {
-
- /*---------------------------------------------------------------------------------
-                       Open Inlet.
------------------------------------------------------------------------------------*/
-          /* If Inlet is Not already open.*/
-          if (GetStatus_InLineInput() != Operatation_ON)
+          /* Switch On the inlet valve and wait until its get open.*/
+          while (GetStatus_InLineInput() != Operatation_ON)
           {
-            /* Switch On the inlet valve and wait until its get open.*/
-            while (GetStatus_InLineInput() != Operatation_ON)
-            {
-              /* Switch it ON, For same operatation mode Timeout flag shall not re-Init*/
-              Control_InLineInput(Operatation_ON);
+            /* Switch it ON, For same operatation mode Timeout flag shall not re-Init*/
+            Control_InLineInput(Operatation_ON);
 
-              /* Add Nominal Delay for 100ms between each check.*/
-              Delay_In_ms(100);
-            } /* End of While loop */
-             
-             /* Print log once open First time*/
-             Debug_Trace("Successfully open input solenoid to the water Filter.")
+            /* Add Nominal Delay for 100ms between each check.*/
+            Delay_In_ms(100);
+          } /* End of While loop */
 
-          }/* End of if (GetStatus_InLineInput() != Operatation_ON)*/
- /*---------------------------------------------------------------------------------
-                       Open Boaster pump.
------------------------------------------------------------------------------------*/
-          /* If Boaster pump is Not already open.*/
-          if (GetStatus_BoostInput() != Operatation_ON)
+          /* Print log once open First time*/
+          Debug_Trace("Successfully open input solenoid to the water Filter.")
+
+        } /* End of if (GetStatus_InLineInput() != Operatation_ON)*/
+        /*---------------------------------------------------------------------------------
+                                Open Boaster pump.
+          -----------------------------------------------------------------------------------*/
+        /* If Boaster pump is Not already open.*/
+        if (GetStatus_BoostInput() != Operatation_ON)
+        {
+          /* Switch On the Boaster pump and wait until its get open.*/
+          while (GetStatus_BoostInput() != Operatation_ON)
           {
-            /* Switch On the Boaster pump and wait until its get open.*/
-            while (GetStatus_BoostInput() != Operatation_ON)
-            {
-              /* Switch it ON, For same operatation mode Timeout flag shall not re-Init*/
-              Control_BoostInput(Operatation_ON);
+            /* Switch it ON, For same operatation mode Timeout flag shall not re-Init*/
+            Control_BoostInput(Operatation_ON);
 
-              /* Add Nominal Delay for 100ms between each check.*/
-              Delay_In_ms(100);
-            } /* End of While loop */
-             
-             /* Print log once open First time*/
-             Debug_Trace("Successfully started Boaster pump of the water Filter. ( If available)")
+            /* Add Nominal Delay for 100ms between each check.*/
+            Delay_In_ms(100);
+          } /* End of While loop */
 
-          }/* End of if (GetStatus_BoostInput() != Operatation_ON)*/
+          /* Print log once open First time*/
+          Debug_Trace("Successfully started Boaster pump of the water Filter. ( If available)")
 
- /*---------------------------------------------------------------------------------
-                       Open RO pump and solenoid.
------------------------------------------------------------------------------------*/
-          /* If RO pump and solenoid is Not already open.*/
-          if (GetStatus_ROInput() != Operatation_ON)
+        } /* End of if (GetStatus_BoostInput() != Operatation_ON)*/
+
+        /*---------------------------------------------------------------------------------
+                                 Open RO pump and solenoid.
+          -----------------------------------------------------------------------------------*/
+        /* If RO pump and solenoid is Not already open.*/
+        if (GetStatus_ROInput() != Operatation_ON)
+        {
+          /* Switch On the RO pump and solenoid, and wait until its get open.*/
+          while (GetStatus_ROInput() != Operatation_ON)
           {
-            /* Switch On the RO pump and solenoid, and wait until its get open.*/
-            while (GetStatus_ROInput() != Operatation_ON)
-            {
-              /* Switch it ON, For same operatation mode Timeout flag shall not re-Init*/
-              Control_ROInput(Operatation_ON);
+            /* Switch it ON, For same operatation mode Timeout flag shall not re-Init*/
+            Control_ROInput(Operatation_ON);
 
-              /* Add Nominal Delay for 100ms between each check.*/
-              Delay_In_ms(100);
-            } /* End of While loop */
-             
-             /* Print log once open First time*/
-             Debug_Trace("Successfully started RO pump and solenoid of the water Filter. ( If available)")
+            /* Add Nominal Delay for 100ms between each check.*/
+            Delay_In_ms(100);
+          } /* End of While loop */
 
-          }/* End of if (GetStatus_ROInput() != Operatation_ON)*/
+          /* Print log once open First time*/
+          Debug_Trace("Successfully started RO pump and solenoid of the water Filter. ( If available)")
 
- /*---------------------------------------------------------------------------------
-                      Check Wafer Potential Overflow.
------------------------------------------------------------------------------------*/
-          /* Check wheather water flowed Above the mentioned limit.*/
-          if (((uint32)(Get_Current_SectionWaterFlowedInL()) >= Nvm_Read_Each(NVM_ID_Calibration_WaterTankOverflowCapacity))
+        } /* End of if (GetStatus_ROInput() != Operatation_ON)*/
+
+        /*---------------------------------------------------------------------------------
+                                Check Wafer Potential Overflow.
+           -----------------------------------------------------------------------------------*/
+        /* Check wheather water flowed Above the mentioned limit.*/
+          if (((uint32)(floor(Get_Current_SectionWaterFlowedInL() * 1000)) >= Nvm_Read_Each(NVM_ID_Calibration_WaterTankOverflowCapacity))
           {
-            Debug_Trace("More water than expected transfer, Higher than tank capacity, But still Overflow is not detected by the sensore.");
+          Debug_Trace("More water than expected transfer, Higher than tank capacity, But still Overflow is not detected by the sensore.");
 
-            /* Switch to its respective state.*/
-            Set_Current_Opp_State(OverFlow_Tank_Not_Full);
+          /* Switch to its respective state.*/
+          Set_Current_Opp_State(OverFlow_Tank_Not_Full);
 
-            /* switchoff the Inlet relay and both motor to avoid any damage*/
-            Control_InLineInput(Operatation_OFF);
-            Control_BoostInput(Operatation_OFF);
-            Control_ROInput(Operatation_OFF);
-            /* UV is not turning OFF as water may flow through filer to reduce the presure build up.*/
+          /* switchoff the Inlet relay and both motor to avoid any damage*/
+          Control_ROInput(Operatation_OFF);
+          Control_BoostInput(Operatation_OFF);
+          Control_InLineInput(Operatation_OFF);
+          /* UV is not turning OFF as water may flow through filer to reduce the presure build up.*/
           }
 
           /* Check if water flow rate is above the mentioned Limit..*/
- /*---------------------------------------------------------------------------------
-                      Check Wafer Potential Pile Burst, Higher flow rate.  
------------------------------------------------------------------------------------*/
+          /*---------------------------------------------------------------------------------
+          *                   Check Wafer Potential Pile Burst, Higher flow rate.  
+          *---------------------------------------------------------------------------------*/
 
-
-
-        }
-        /* High presure is detected.*/
-        else if (GetStatus_HighPresere() == Sensor_ON)
-        {
-          /* Switch to the state representing overflow detected.*/
-          Set_Current_Opp_State(Tank_High_Presure);
-
+          /* If higher water flow detected.*/
+          if((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000)) > Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate))
+          {
           /* switchoff the Inlet relay and both motor to avoid any damage*/
-          Control_InLineInput(Operatation_OFF);
-          Control_BoostInput(Operatation_OFF);
-          Control_ROInput(Operatation_OFF);
-          /* UV is not turning OFF as water may flow through filer to reduce the presure build up.*/
-        }
+          ShutDown_All();
+          Debug_Trace("A high flow of water is detected By the system based on the configuration, So Switching Off. Current flow rate is %f, And Max Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate) / 1000));
 
+          /* Set Global variable for High Presure Detection.*/
+          HighWater_Flow_Detected = true;
+
+          /* Take Action for High water flow rate */
+          if ((Setting_Recovery_Actions)Nvm_Read_Each(NVM_ID_Seting_HighFlowRateWarningAction) == Recovery_Time_Bound)
+          {
+            Debug_Trace("Waitting for High flow rate to recover..");
+            /* Wait for configured time and then switch back to same state, Come out only once Water flow go below required level.*/
+            do
+            {
+
+              Delay_In_ms(Nvm_Read_Each(NVM_ID_Calibration_FlowRateWarningCollingTime));
+
+              /* Wait until flow rate is reduced.*/
+            } while ((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000)) > Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate))
+          }
+          /* If recover is after Next power on, Then switch to Tank_Emergency_Stop state.*/
+          else if ((Setting_Recovery_Actions)Nvm_Read_Each(NVM_ID_Seting_HighFlowRateWarningAction) == Recovery_On_PowerOn)
+          {
+            Debug_Trace("Switch state to \"Tank_Emergency_Stop\" because of Higher flow rate, And shall remain Down until Next Power ON.");
+            /* Switch to the state representing overflow detected.*/
+            Set_Current_Opp_State(Tank_Emergency_Stop);
+          }
+
+          }
+          else /* High water flow did not detected.*/
+          {
+          /* Set Global variable for High Presure Detection.*/
+          HighWater_Flow_Detected = false;
+          }
+
+          /* Check if water flow rate is above the mentioned Limit..*/
+          /*---------------------------------------------------------------------------------
+          *                   Check Wafer Potential Filter Block, Low flow rate.  
+          *---------------------------------------------------------------------------------*/
+
+          /* If Lower water flow detected.*/
+          if((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000)) < Nvm_Read_Each(NVM_ID_Calibration_LowFlowRate))
+          {
+          /* Just show the warning for the Low flow Rate*/
+          Debug_Trace("Potential Filer Jam. A Low flow of water is detected By the system based on the configuration. Current flow rate is %f, And Max Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate) / 1000));
+
+          /* Set Global variable for High Presure Detection.*/
+          LowWater_Flow_Detected = true;
+
+          /* No Action logic for Low flow rate is considered, As same did not make any sense. */
+
+          }
+          else /* Low water flow did not detected.*/
+          {
+          /* Set Global variable for Low Presure Detection.*/
+          LowWater_Flow_Detected = false;
+          }
+
+      } /* End of If for High presure*/
+      /* High presure is detected.*/
+      else if (GetStatus_HighPresere() == Sensor_ON)
+      {
+        /* Switch to the state representing overflow detected.*/
+        Set_Current_Opp_State(Tank_High_Presure);
+
+        /* switchoff the Inlet relay and both motor to avoid any damage*/
+        Control_ROInput(Operatation_OFF);
+        Control_BoostInput(Operatation_OFF);
+        Control_InLineInput(Operatation_OFF);
+        /* UV is not turning OFF as water may flow through filer to reduce the presure build up.*/
+      }
     }
     /* If Over flow detected.*/
     else if (GetStatus_OverFlow() == Sensor_ON)
     {
-       /* Switch to the state representing overflow detected.*/
-       Set_Current_Opp_State(Tank_Full);
+      /* Switch to the state representing overflow detected.*/
+      Set_Current_Opp_State(Tank_Full);
 
-       /* Power down shall be performed in Next state.*/
+      /* Power down shall be performed in Next state.*/
     }
-
-
 
     break;
   }
 
-  /* Indicate Indicate Tank full indicator not responding after considerable amound of water flows.*/
+  
+   /*******************************************************************************
+   * OverFlow_Tank_Not_Full:-                                                    *
+   *                                                                             *
+   * Indicate Indicate Tank full indicator not responding after considerable     *
+   *            amound of water flows.                                           *
+   * *****************************************************************************/
   case OverFlow_Tank_Not_Full:
   {
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"OverFlow_Tank_Not_Full\" state.");
     /* Indicate current sate is executed.*/
     State_Change_completed();
+ 
+    /* Shut Down Every think. */
+    ShutDown_All();
 
+    /* Check if the Action configured is Recovery_On_PowerOn.*/
+    if ((Setting_Recovery_Actions)Nvm_Read_Each(NVM_ID_Seting_WaterTankOverflowAction) == Recovery_On_PowerOn)
+    {
+      Debug_Trace("Switch State to \"Tank_Emergency_Stop\" because Overflow sensor did not detect, But consumed More water that configured. For recover Please do Power OFF and then ON.");
+      Debug_Trace("For Reference, Current water Filtered = %f, And configured level is %f", Get_Current_SectionWaterFlowedInL(), (double)(Nvm_Read_Each(NVM_ID_Calibration_WaterTankOverflowCapacity) / 1000));
+      /* Switch to the state representing overflow detected.*/
+      Set_Current_Opp_State(Tank_Emergency_Stop);
+    }
+    else /* Waite until the filter Overflow sensor detect its state OFF continuesly for moe than 5 Second.*/
+    {
+      Debug_Trace("Wait until Overflow sensor Detect as OFF for 5 Sec continually.");
+      Debug_Trace("For Reference, Current water Filtered = %f, And configured level is %f", Get_Current_SectionWaterFlowedInL(), (double)(Nvm_Read_Each(NVM_ID_Calibration_WaterTankOverflowCapacity) / 1000));
+      
+     OverFlow_Tank_Not_Full_Loop_Index = 0;
+
+     do
+     {
+      /* Check if Tank Full is Not detected. If so clear the counter.*/
+       if(GetStatus_OverFlow() == Sensor_OFF )
+       {
+        /* Reset the counter*/
+         OverFlow_Tank_Not_Full_Loop_Index = 0;
+       }
+       else if(GetStatus_OverFlow() == Sensor_ON )
+       {
+         /* Increment the counter.*/
+         OverFlow_Tank_Not_Full_Loop_Index++;
+       }
+       else /* Could be a fault So switch the State.*/
+       {
+          /* Switch to the state to Tank_Sensor_Fault.*/
+          Set_Current_Opp_State(Tank_Sensor_Fault);
+
+          /* Update condonation to exit the loop.*/
+          OverFlow_Tank_Not_Full_Loop_Index = OverFlow_Tank_Not_Full_Wait_Time;
+       }
+
+       /* Give 100ms Delay*/
+       Delay_In_ms(100);
+       /* Waite until time out reached, Considering the delay of 100ms */
+     } while (OverFlow_Tank_Not_Full_Loop_Index <= (uint32)(OverFlow_Tank_Not_Full_Wait_Time/100));
+     
+     /* If No fault detected and Overflow detected, Then Switch to Tank full state.*/
+     if((GetStatus_OverFlow() == Sensor_ON) && (OverFlow_Tank_Not_Full_Loop_Index != OverFlow_Tank_Not_Full_Wait_Time))
+     {
+       Debug_Trace("System Recovered form Potential Overflow case.")
+        /* Switch to the state to Tank_Sensor_Fault.*/
+        Set_Current_Opp_State(Tank_Full);
+     }
+     else
+     {
+       /* Do nothing Loop back this state again.*/
+     }
+
+
+
+    } /* End of Recovery Mode check If statement.*/
 
     break;
   }
 
-  /* Indicate Tank is full and Stop the flow.*/
-  case Tank_Full:
+   /*******************************************************************************
+   * Tank_Full:-                                                                 *
+   *                                                                             *
+   * Indicate Tank is full and Stop the flow.                                    *
+   * *****************************************************************************/
+   case Tank_Full:
   {
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Tank_Full\" state.");
+
+    /* Wait for overflow colling time based on the paramayer P39_OverFlow_CollingTime_In_ms*/
+    /* If first time Entering this state from any other state.*/
+    if (Is_Opp_State_Changed())
+    {
+       Debug_Trace(" Waitting for %d ms Based on configuration after Overflow detected.",P39_OverFlow_CollingTime_In_ms);
+       Delay_In_ms(P39_OverFlow_CollingTime_In_ms);
+    }
     /* Indicate current sate is executed.*/
     State_Change_completed();
 
+    /* Shut Down Every think. */
+    ShutDown_All();
 
-
-
+      /* switch the state based om the Over flow sensor state.*/
+       if(GetStatus_OverFlow() == Sensor_OFF )
+       {
+         Set_Current_Opp_State(Normal_Tank_Not_Full);
+       }
+       else 
+       {
+          /* Do Nothing.*/
+       }
 
     break;
   }
 
-    /* Indicate aHigh presure is detected at its input.*/
+   /*******************************************************************************
+   * Tank_High_Presure:-                                                         *
+   *                                                                             *
+   * Indicate aHigh presure is detected at its input.                            *
+   * *****************************************************************************/
+
   case Tank_High_Presure:
   {
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Tank_High_Presure\" state.");
+
+    /* Wait for overflow colling time based on the paramayer P39_OverFlow_CollingTime_In_ms*/
+    /* If first time Entering this state from any other state.*/
+    if (Is_Opp_State_Changed())
+    {
+      Debug_Trace(" Waitting for %d ms Based on configuration after High pressure is detected.", P37_HighPresere_CollingTime_In_ms);
+      Delay_In_ms(P37_HighPresere_CollingTime_In_ms);
+    }
+
     /* Indicate current sate is executed.*/
     State_Change_completed();
 
@@ -1450,25 +1627,50 @@ void Process_ControlSystem(void)
     Control_InLineInput(Operatation_OFF);
     Control_BoostInput(Operatation_OFF);
     Control_ROInput(Operatation_OFF);
-    /* UV is not turning OFF as water may flow through filer to reduce the presure build up.*/
 
+    /* Turn off the UV lamp once flow Rate is reached to Zero.*/
+    if (Get_Instantinous_FlowRate_InLpM == 0)
+    {
+      /* Switch off the UV lamp, Because there was No Water flow.*/
+      Control_UV_Lamp(UV_Lamp_OFF);
+    }
 
+    /* If presure is recovered, Then switch back to respective State.*/
+    if (GetStatus_HighPresere() == Sensor_OFF)
+    {
+      /* switch the state based om the Over flow sensor state.*/
+      if (GetStatus_OverFlow() == Sensor_OFF)
+      {
+        Set_Current_Opp_State(Normal_Tank_Not_Full);
+      }
+      /* If tank is full*/
+      else if (GetStatus_OverFlow() == Sensor_ON)
+      {
+        Set_Current_Opp_State(Tank_Full);
+      }
+      else /* Some fault present*/
+      {
+        Set_Current_Opp_State(Tank_Sensor_Fault);
+      }
 
-
-
+    } /* End of GetStatus_HighPresere == Sensor_OFF If statement. */
 
     break;
   }
 
-  /* Indicate Some of the Sensor detected the Fault.*/
+    /*******************************************************************************
+   * Tank_Sensor_Fault:-                                                         *
+   *                                                                             *
+   * Indicate Some of the Sensor detected the Fault.                             *
+   * *****************************************************************************/
   case Tank_Sensor_Fault:
   {
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Tank_Sensor_Fault\" state.");
     /* Indicate current sate is executed.*/
     State_Change_completed();
-     
-    /* Clear Check flag.*/ 
+
+    /* Clear Check flag.*/
     Clear_Check_Flag(Fault_State_Check);
 
     /* DO complete Shut down, As a Pre-condation.*/
@@ -1494,9 +1696,9 @@ void Process_ControlSystem(void)
       True_Check_Flag(Fault_State_Check);
     }
 
-/*---------------------------------------------------------------------------------
-                       Start Float Sensor validatation  checking.
------------------------------------------------------------------------------------*/
+    /*---------------------------------------------------------------------------------
+     *                      Start Float Sensor validatation  checking.
+    -----------------------------------------------------------------------------------*/
     /* Check wheather fault detected in flot sensor*/
     if (GetStatus_HighPresere() == Sensor_Fault)
     {
@@ -1511,9 +1713,9 @@ void Process_ControlSystem(void)
       True_Check_Flag(Fault_State_Check);
     }
 
-/*---------------------------------------------------------------------------------
-                       Start High Presure Sensor validatation  checking.
------------------------------------------------------------------------------------*/
+    /*---------------------------------------------------------------------------------
+    *                       Start High Presure Sensor validatation  checking.
+    -----------------------------------------------------------------------------------*/
     /* Check wheather fault detected in flot sensor*/
     if (GetStatus_OverFlow() == Sensor_Fault)
     {
@@ -1528,32 +1730,37 @@ void Process_ControlSystem(void)
       True_Check_Flag(Fault_State_Check);
     }
 
-/*---------------------------------------------------------------------------------
-              Take consultation for state switching based on the fault status.
------------------------------------------------------------------------------------*/
-   /* Check if No fault is detected.*/
-  if(Is_Check_Flag_True(Fault_State_Check))
-  {
+    /*---------------------------------------------------------------------------------
+    *              Take consultation for state switching based on the fault status.
+    -----------------------------------------------------------------------------------*/
+    /* Check if No fault is detected.*/
+    if (Is_Check_Flag_True(Fault_State_Check))
+    {
       /* Check global count is increased after the desired limit.*/
-     Debug_Trace("All Fault are recovered, So now Re initiating System operatation.");
-     
-     /* Switch to Init state after fault is recovered.*/
-     Set_Current_Opp_State(Init_State);
+      Debug_Trace("All Fault are recovered, So now Re initiating System operatation.");
 
-  }
-  /* If fault is detected. */
-  else if(Is_Check_Flag_False(Fault_State_Check)) 
-  {
-    Debug_Trace("Still fault not recovered, Shall wait for %f Sec and retry again...", (Fault_Recheck_Wait_Time/1000));
-    
-   /* Waite for configured time..*/
-   Delay_In_ms(Fault_Recheck_Wait_Time);
-  }
+      /* Switch to Init state after fault is recovered.*/
+      Set_Current_Opp_State(Init_State);
+    }
+    /* If fault is detected. */
+    else if (Is_Check_Flag_False(Fault_State_Check))
+    {
+      Debug_Trace("Still fault not recovered, Shall wait for %f Sec and retry again...", (Fault_Recheck_Wait_Time / 1000));
+
+      /* Waite for configured time..*/
+      Delay_In_ms(Fault_Recheck_Wait_Time);
+    }
 
     break;
   }
 
-  /* Performe Emergency stop, Once inter in to this state It cannot come out. Needs power cycle.*/
+ 
+  /*******************************************************************************
+   * Tank_Emergency_Stop:-                                                       *
+   *                                                                             *
+   * Performe Emergency stop, Once inter in to this state It cannot come out.    *
+   * Needs power cycle to Recover.                                               *
+   * *****************************************************************************/
   case Tank_Emergency_Stop:
   {
     /*Print State change Message*/
@@ -1596,6 +1803,29 @@ void Process_ControlSystem(void)
       Debug_Trace("Sensor fault detected in Normal Execution, SO Switching to state \"Tank_Sensor_Fault\" and Excute force shutdown.");
     }
   }
+
+
+  /* Logic for Perodic reset to make sure every think work properly.
+   * This is mainely to avoid misinterpretation of the values stored for different time related record.
+  */
+  if (millis() >= System_Periodic_Reset_Time_in_ms)
+  {
+
+    /* Force shutdown to prevent any malfunction.*/
+    ShutDown_All();
+
+    /*Wait to complete the shutdown.*/
+    Delay_In_ms(CompleteSystem_ShutDown_Wait_Time);
+
+    /* Request for SW reset.*/
+    Perform_Reset();
+
+    /* Add infinit loop such that same shall not recover after this point.*/
+    while (1)
+    {
+      /* Do nothing.*/
+    }
+  } /* End of if (millis() >= System_Periodic_Reset_Time_in_ms)*/
 }
 
 /* ************************************************************************
@@ -1837,6 +2067,11 @@ Previous_Section_Value = Invalue_Flow_Value_InL;
 /*Store final processed Instantaneous flow value.*/
 Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
 
+/* Global Variable to store the High flow rate detected.*/
+HighWater_Flow_Detected = false;
+
+/* Global Variable to store the High flow rate detected.*/
+LowWater_Flow_Detected = false;
 
 
 }
@@ -1999,7 +2234,10 @@ void ProcessWaterFlowRate(void)
   double Temp_Local_Current_Value;
   uint8 LoopIndex;
 
- /* Check if its NOT the first loop*/
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&Waterflow_Mux);
+
+  /* Check if its NOT the first loop*/
   if (Previous_Section_Value != Invalue_Flow_Value_InL)
   {
 
@@ -2024,20 +2262,18 @@ void ProcessWaterFlowRate(void)
     Water_FlowRate_Log_Current_Index++;
 
     /* Check if buffer index overflowed*/
-    if(Water_FlowRate_Log_Current_Index >= 60)
+    if (Water_FlowRate_Log_Current_Index >= 60)
     {
       /* Reset Index to zero.*/
-       Water_FlowRate_Log_Current_Index = 0;
+      Water_FlowRate_Log_Current_Index = 0;
     }
 
-
-     /* Loop for get the sum.*/
-   for(LoopIndex = 0, Temp_Local_Current_Value = 0; LoopIndex < 60; LoopIndex++)
-   {
-       /* Clear buffer*/
-       Temp_Local_Current_Value += Water_FlowRate_PerSec[LoopIndex];
-   }
-
+    /* Loop for get the sum.*/
+    for (LoopIndex = 0, Temp_Local_Current_Value = 0; LoopIndex < 60; LoopIndex++)
+    {
+      /* Clear buffer*/
+      Temp_Local_Current_Value += Water_FlowRate_PerSec[LoopIndex];
+    }
 
     /* Increment buffer Instantaneous Index*/
     Water_FlowRate_Log_Instantaneous_Index++;
@@ -2048,65 +2284,49 @@ void ProcessWaterFlowRate(void)
       /* Reset Instantaneous Index to zero.*/
       Water_FlowRate_Log_Instantaneous_Index = 60;
 
-      /* Enter in to Critical Section*/
-      portENTER_CRITICAL(&Waterflow_Mux);
-
       /* Update final value, No additional calculation required after first 60 Iteration*/
       Final_Instantinous_Flow_In_LpM = Temp_Local_Current_Value;
-
-      /* Exit from Critical Section. */
-      portEXIT_CRITICAL(&Waterflow_Mux);
     }
     else /* For First 60 Iteration*/
     {
 
-      /* Enter in to Critical Section*/
-      portENTER_CRITICAL(&Waterflow_Mux);
-
       /* Update final value*/
       Final_Instantinous_Flow_In_LpM = (double)(Temp_Local_Current_Value * (60 / Water_FlowRate_Log_Instantaneous_Index));
-
-      /* Exit from Critical Section. */
-      portEXIT_CRITICAL(&Waterflow_Mux);
     }
   }
- /* Its the first loop*/
- else
- {
-   /* Get the current value*/
-   Previous_Section_Value = Get_Current_WaterFlowedInL();
+  /* Its the first loop*/
+  else
+  {
+    /* Get the current value*/
+    Previous_Section_Value = Get_Current_WaterFlowedInL();
 
-   /* Clear Variables */
-   Water_FlowRate_Log_Current_Index = 0;
-   Water_FlowRate_Log_Instantaneous_Index = 0;
+    /* Clear Variables */
+    Water_FlowRate_Log_Current_Index = 0;
+    Water_FlowRate_Log_Instantaneous_Index = 0;
 
-   /* Enter in to Critical Section*/
-   portENTER_CRITICAL(&Waterflow_Mux);
+    Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
 
-   Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
+    /* Clear all buffer element*/
+    for (LoopIndex = 0; LoopIndex < 60; LoopIndex++)
+    {
+      /* Clear buffer*/
+      Water_FlowRate_PerSec[LoopIndex] = 0;
+    }
+  }
 
-   /* Exit from Critical Section. */
-   portEXIT_CRITICAL(&Waterflow_Mux);
-
- 
-   /* Clear all buffer element*/
-   for(LoopIndex = 0; LoopIndex < 60; LoopIndex++)
-   {
-       /* Clear buffer*/
-       Water_FlowRate_PerSec[LoopIndex] = 0 ;
-   }
-
-
- }
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&Waterflow_Mux);
 }
-
-
 
 /* *********************************************************************************
     This function is to Re-Start the flow Rate processing.
 *************************************************************************************/
 void ReStartFlowRate_Processing(void)
 {
+
+   /* Enter in to Critical Section*/
+   portENTER_CRITICAL(&Waterflow_Mux);
+
    /* Clear the current value*/
    Previous_Section_Value = Invalue_Flow_Value_InL;
 
@@ -2114,13 +2334,7 @@ void ReStartFlowRate_Processing(void)
    Water_FlowRate_Log_Current_Index = 0;
    Water_FlowRate_Log_Instantaneous_Index = 0;
 
-   /* Enter in to Critical Section*/
-   portENTER_CRITICAL(&Waterflow_Mux);
-
    Final_Instantinous_Flow_In_LpM = Invalue_Flow_Value_InL;
-
-   /* Exit from Critical Section. */
-   portEXIT_CRITICAL(&Waterflow_Mux);
 
  
    /* Clear all buffer element*/
@@ -2129,6 +2343,9 @@ void ReStartFlowRate_Processing(void)
        /* Clear buffer*/
        Water_FlowRate_PerSec[LoopIndex] = 0 ;
    }
+
+      /* Exit from Critical Section. */
+   portEXIT_CRITICAL(&Waterflow_Mux);
 }
 
 /* *********************************************************************************
@@ -2137,16 +2354,56 @@ void ReStartFlowRate_Processing(void)
 double Get_Instantinous_FlowRate_InLpM(void)
 {
 
- double Temp_Local_Current_Value;
-   /* Enter in to Critical Section*/
-   portENTER_CRITICAL(&Waterflow_Mux);
+  double Temp_Local_Current_Value;
 
-   Temp_Local_Current_Value = Final_Instantinous_Flow_In_LpM;
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&Waterflow_Mux);
 
-   /* Exit from Critical Section. */
-   portEXIT_CRITICAL(&Waterflow_Mux);
+  Temp_Local_Current_Value = Final_Instantinous_Flow_In_LpM;
 
-return(Temp_Local_Current_Value);
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&Waterflow_Mux);
+
+  /* Check is Its Invalid, If so return Zero*/
+  if (Temp_Local_Current_Value == Invalue_Flow_Value_InL)
+  {
+    /* Set Return to Zero.*/
+    Temp_Local_Current_Value = 0;
+  }
+
+  /* Return the value.*/
+  return (Temp_Local_Current_Value);
 }
+
+
+/* *********************************************************************************
+   Function to return wheather any High flow rate is detected.
+*************************************************************************************/
+int Is_HighWaterFlowRateDetected(void)
+{
+
+/* Return true if detected*/
+return(HighWater_Flow_Detected == true);
+
+}
+
+/* *********************************************************************************
+   Function to return wheather any Low flow rate is detected.
+*************************************************************************************/
+int Is_LowWaterFlowRateDetected(void)
+{
+
+/* Return true if detected*/
+return(LowWater_Flow_Detected == true);
+
+}
+
+
+
+
+
+
+
+
 
 

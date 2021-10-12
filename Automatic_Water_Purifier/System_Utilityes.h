@@ -16,6 +16,13 @@
 /* Macro to defining the wait Time to Restart the fault checking in ms*/
 #define Fault_Recheck_Wait_Time  2000    /* Configured as 2 Sec*/
 
+/* Macro to defining the wait Time after Overflow detected without sensor in ms*/
+#define OverFlow_Tank_Not_Full_Wait_Time  5000    /* Configured as 5 Sec*/
+
+/* Macro to represent the Time at which Reset needs to be triggered after system is powered on
+   Here configured for 45 Days = 3888000000ms. So reset after every 45days.
+*/
+#define System_Periodic_Reset_Time_in_ms 3888000000U
 
 
 /*-----------------------------------------------------------------------------
@@ -150,5 +157,7 @@ extern double Get_Current_SectionWaterFlowedInL(void);
 extern void ProcessWaterFlowRate(void);
 extern void ReStartFlowRate_Processing(void);
 extern double Get_Instantinous_FlowRate_InLpM(void);
+extern int Is_HighWaterFlowRateDetected(void);
+extern int Is_LowWaterFlowRateDetected(void);
 
 #endif /* End of  System_Utilityes_H */
