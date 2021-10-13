@@ -62,15 +62,15 @@ uint8 P2E_UV_Feedback_Support = UV_Feedback_Both; /*  Indicate the configuration
 
 /* Paramater for LDR 1 , to detect UV light operatation*/
 Config_Var uint8 P04_UV_Lamp_Analog_LDR_1 = 35;             /*  Mapped to ADC 1_7, GPIO 35 @Port Pin 11 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
-Config_Var uint16 P07_UV_Lamp_Analog_LDR_1_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
-Config_Var uint8 P09_UV_Lamp_Analog_LDR_1_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
+Config_Var uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 3600;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
+Config_Var uint16 P07_UV_Lamp_Analog_LDR_1_OFF_Volt = 750;  /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
+Config_Var uint8 P09_UV_Lamp_Analog_LDR_1_Tolerance = 15;   /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
 /* Paramater for LDR 2 , to detect UV light operatation*/
 Config_Var uint8 P0A_UV_Lamp_Analog_LDR_2 = 34;             /*  Mapped to ADC 1_6, GPIO 34 @Port Pin 12 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
-Config_Var uint16 P0D_UV_Lamp_Analog_LDR_2_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
-Config_Var uint8 P0F_UV_Lamp_Analog_LDR_2_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
+Config_Var uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 3600;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
+Config_Var uint16 P0D_UV_Lamp_Analog_LDR_2_OFF_Volt = 125;  /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
+Config_Var uint8 P0F_UV_Lamp_Analog_LDR_2_Tolerance = 15;   /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
 /* Paramater to Set UV lamp turn ON Delay.*/
 Config_Var uint16 P2F_UV_On_Delay_Time_In_ms = 5000; /*  Indicate the configuration for the UV lamp turned ON time.. */
@@ -132,9 +132,9 @@ Config_Var uint16 P35_RO_Delay_Time_In_ms = 1000; /*  Indicate the configuration
 
 /* Paramater for High Presere Detection, to Avoid malfunctioning*/
 Config_Var uint8 P21_Analog_HighPresere = 32;             /*  Mapped to ADC 1_4, GPIO 32 @Port Pin 10 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P22_Analog_HighPresere_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
-Config_Var uint16 P24_Analog_HighPresere_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
-Config_Var uint8 P26_Analog_HighPresere_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
+Config_Var uint16 P22_Analog_HighPresere_ON_Volt = 3800;  /*  Represent the Voltage level representing the High presure is Not Full. OFF for Over flow sensor.*/
+Config_Var uint16 P24_Analog_HighPresere_OFF_Volt = 1834; /*  Represent the Voltage level representing the High presure is Not Full. OFF for Over flow sensor.*/
+Config_Var uint8 P26_Analog_HighPresere_Tolerance = 20;   /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
 /* Paramater represent High Pressure colling Time .
   ==> Once High pressure is detected SHall waite for colling time to leaps..*/
@@ -142,9 +142,9 @@ Config_Var uint16 P37_HighPresere_CollingTime_In_ms = 5000; /*  Indicate the Hig
 
 /* Paramater for OverFlow Detection and to stop the filtering. */
 Config_Var uint8 P27_Analog_OverFlow = 33;             /*  Mapped to ADC 1_5, GPIO 33 @Port Pin 9 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P28_Analog_OverFlow_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
-Config_Var uint16 P2A_Analog_OverFlow_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
-Config_Var uint8 P2C_Analog_OverFlow_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
+Config_Var uint16 P28_Analog_OverFlow_ON_Volt = 3800;  /*  Represent the Voltage level representing the Tank is Full. ON for Over flow sensor.*/
+Config_Var uint16 P2A_Analog_OverFlow_OFF_Volt = 1843; /*  Represent the Voltage level representing the Tank is Not Full. OFF for Over flow sensor.*/
+Config_Var uint8 P2C_Analog_OverFlow_Tolerance = 20;   /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
 /* Paramater represent OverFlow colling Time .
   ==> Once OverFlow is detected SHall waite for colling time to leaps..*/
@@ -427,13 +427,13 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void)
     {
 
       /* Check if LDR 1 detected as UV light ON*/
-      if (Check_Tolerance((uint32)UV_LDR_1_ADC_Value, (uint32)P05_UV_Lamp_Analog_LDR_1_ON_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
+      if (ADC_Check_Tolerance((uint32)UV_LDR_1_ADC_Value, (uint32)P05_UV_Lamp_Analog_LDR_1_ON_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
       {
         /* Check if Current UV lamp state is also ON, Else decleared as fault*/
         LDR_1_Status = (UV_Lamp_Current_Status == UV_Lamp_ON) ? UV_Lamp_Feedback_ON : UV_Lamp_Feedback_Fault;
       }
       /* Check wheather status is OFF.*/
-      else if (Check_Tolerance((uint32)UV_LDR_1_ADC_Value, (uint32)P07_UV_Lamp_Analog_LDR_1_OFF_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
+      else if (ADC_Check_Tolerance((uint32)UV_LDR_1_ADC_Value, (uint32)P07_UV_Lamp_Analog_LDR_1_OFF_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
       {
         /* Check if Current UV lamp state is also OFF, Else decleared as fault*/
         LDR_1_Status = (UV_Lamp_Current_Status == UV_Lamp_OFF) ? UV_Lamp_Feedback_OFF : UV_Lamp_Feedback_Fault;
@@ -444,13 +444,13 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void)
       }
 
       /* Check if LDR 2 detected as UV light ON*/
-      if (Check_Tolerance((uint32)UV_LDR_2_ADC_Value, (uint32)P0B_UV_Lamp_Analog_LDR_2_ON_Volt, P0F_UV_Lamp_Analog_LDR_2_Tolerance) == E_OK)
+      if (ADC_Check_Tolerance((uint32)UV_LDR_2_ADC_Value, (uint32)P0B_UV_Lamp_Analog_LDR_2_ON_Volt, P0F_UV_Lamp_Analog_LDR_2_Tolerance) == E_OK)
       {
         /* Check if Current UV lamp state is also ON, Else decleared as fault*/
         LDR_2_Status = (UV_Lamp_Current_Status == UV_Lamp_ON) ? UV_Lamp_Feedback_ON : UV_Lamp_Feedback_Fault;
       }
       /* Check wheather status is OFF.*/
-      else if (Check_Tolerance((uint32)UV_LDR_2_ADC_Value, (uint32)P0D_UV_Lamp_Analog_LDR_2_OFF_Volt, P0F_UV_Lamp_Analog_LDR_2_Tolerance) == E_OK)
+      else if (ADC_Check_Tolerance((uint32)UV_LDR_2_ADC_Value, (uint32)P0D_UV_Lamp_Analog_LDR_2_OFF_Volt, P0F_UV_Lamp_Analog_LDR_2_Tolerance) == E_OK)
       {
         /* Check if Current UV lamp state is also OFF, Else decleared as fault*/
         LDR_2_Status = (UV_Lamp_Current_Status == UV_Lamp_OFF) ? UV_Lamp_Feedback_OFF : UV_Lamp_Feedback_Fault;
@@ -903,7 +903,7 @@ Sensor_InputStatus_Status GetStatus_HighPresere(void)
   portENTER_CRITICAL(&Sensor_HighPressure_Mux);
 
   /* Check if its detected as ON*/
-  if (Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P22_Analog_HighPresere_ON_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
+  if (ADC_Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P22_Analog_HighPresere_ON_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
   {
 
     /* Set Status to ON*/
@@ -912,7 +912,7 @@ Sensor_InputStatus_Status GetStatus_HighPresere(void)
     Sensor_HighPressure_Start_Time = Temp_Time;
   }
   /* Check wheather its status is OFF*/
-  else if (Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P24_Analog_HighPresere_OFF_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
+  else if (ADC_Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P24_Analog_HighPresere_OFF_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
   {
     /* Check wheather time is elapsed to correct the status, And check time only if previous state is ON or Fault*/
     if ((Get_Time_Elapse(Sensor_HighPressure_Start_Time) >= P37_HighPresere_CollingTime_In_ms) ||
@@ -977,7 +977,7 @@ Sensor_InputStatus_Status GetStatus_OverFlow(void)
   portENTER_CRITICAL(&Sensor_OverFlow_Mux);
 
   /* Check if its detected as ON*/
-  if (Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P28_Analog_OverFlow_ON_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
+  if (ADC_Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P28_Analog_OverFlow_ON_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
   {
 
     /* Set Status to ON*/
@@ -986,7 +986,7 @@ Sensor_InputStatus_Status GetStatus_OverFlow(void)
     Sensor_OverFlow_Start_Time = Temp_Time;
   }
   /* Check wheather its status is OFF*/
-  else if (Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P2A_Analog_OverFlow_OFF_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
+  else if (ADC_Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P2A_Analog_OverFlow_OFF_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
   {
     /* Check wheather time is elapsed to correct the status, And check time only if previous state is ON or Fault*/
     if ((Get_Time_Elapse(Sensor_OverFlow_Start_Time) >= P39_OverFlow_CollingTime_In_ms) ||

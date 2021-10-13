@@ -104,7 +104,7 @@ void Get_Randam_String(uint16 String_Length, uint8 *OutPutStringBuffer)
  *                   E_NOT_OK  => Outside the targered limit.
  * ************************************************************************
  */
-uint8 Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 ToleranceAllowed)
+uint8 ADC_Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 ToleranceAllowed)
 {
 
   uint8 Return_Value = E_NOT_OK;
@@ -112,14 +112,14 @@ uint8 Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 ToleranceAl
   uint32 LowerCutoff;
 
   /* Get upper cutoff Value*/
-  UpperCutoff = TargetedValue + ((TargetedValue * ToleranceAllowed) / 100U);
+  UpperCutoff = TargetedValue + (uint32)((uint32)(System_ADC_Max_Value * ToleranceAllowed) / 100U);
   /* RE-correct Uppercut off, if Overflow detected.*/
-  UpperCutoff = ((UpperCutoff >= TargetedValue) ? (((UpperCutoff + InputValue) >= TargetedValue) ? (UpperCutoff + InputValue) : 0xFFFFFFFFU) : 0xFFFFFFFFU);
+  UpperCutoff = ((UpperCutoff >= TargetedValue) ? UpperCutoff : 0xFFFFFFFFU);
 
   /* Get Lower cutoff Value*/
-  LowerCutoff = TargetedValue - ((TargetedValue * ToleranceAllowed) / 100U);
+  LowerCutoff = TargetedValue - (uint32)((uint32)(System_ADC_Max_Value * ToleranceAllowed) / 100U);
   /* RE-correct Lower off, if Under flow detected.*/
-   LowerCutoff = ((LowerCutoff <= TargetedValue )? ((LowerCutoff <= InputValue )?(InputValue - LowerCutoff) : 0x00000000U) : 0x00000000U);
+   LowerCutoff = ((LowerCutoff <= TargetedValue )? LowerCutoff : 0x00000000U) ;
 
   /* Check wheather is within the Tolerance limit..*/
   if( (InputValue <= UpperCutoff) && (InputValue >= LowerCutoff) )
@@ -132,6 +132,8 @@ uint8 Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 ToleranceAl
     /* Set return as NOT OK*/
     Return_Value = E_NOT_OK;
   }
+
+  return(Return_Value);
 }
 
 

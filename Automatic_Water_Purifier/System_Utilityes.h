@@ -28,6 +28,8 @@
 /* MAcro to specify wheather system specific Configuration needs to be get from NVM or NOT*/
 #define System_Config_From_NVM_Support STD_OFF
 
+/* MAcro to define ADC Max value, Same shall use to calculate the tolerance value for the ADC sensor values.*/
+#define System_ADC_Max_Value 4095
 
 /*-----------------------------------------------------------------------------
  *  System Utility related Configuration END
@@ -126,8 +128,6 @@ enum  System_Operatation_Status{
 /* Macro to check if flag is set to False atleast once after last clean, 
      After Init if false is not set atleast once then also return false.*/
 #define Is_Check_Flag_False(Flag_Name) (Flag_Name == Sys_Flag_False)
-
-
 
 
 
