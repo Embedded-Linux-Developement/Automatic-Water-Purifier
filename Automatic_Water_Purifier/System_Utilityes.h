@@ -74,6 +74,7 @@ enum  System_Operatation_Status{
   Tank_Full                  = 0x85, /* Indicate Tank is full and Stop the flow..*/
   Tank_High_Presure          = 0x99, /* Indicate Some of the High Presure is detected at the input.*/
   Tank_Sensor_Fault          = 0x95, /* Indicate Some of the Sensor detected the Fault.*/
+  Tank_UV_Lamp_Fault         = 0x59, /* Indicate Some of the UV lamp Sensor detected the Fault or Wrong reading based on lamp state..*/
   Tank_Emergency_Stop        = 0xA5  /* Performe Emergency stop, Once inter in to this state It cannot come out. Needs power cycle.*/
 };
 
