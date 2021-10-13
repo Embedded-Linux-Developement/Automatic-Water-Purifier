@@ -31,6 +31,19 @@ WiFiServer server(80);
  *  System Utility related Configuration Start
 *******************************************************************************/
 
+/* If configuration is On NVM*/
+#if (System_Config_From_NVM_Support == STD_ON)
+
+/* Define as blank, because Normal global variable needed to store NVM paramater*/
+#define Config_Var 
+
+#else  /* If configuration is not ON NVM*/
+
+/* Convert global variables into const for storing its value.*/
+#define Config_Var const
+
+#endif /* End of #if (System_Config_From_NVM_Support == STD_ON)*/
+
 /*******************************************************************************
  *  Following are the Global variables for each Used Port Pins
  *  Global variables are used because later same can be updated via Configuration.
@@ -40,107 +53,107 @@ WiFiServer server(80);
 /*      Paramaters for UV Lamp Related                                                       */
 /*===========================================================================================*/
 /*Port Paramaters for UV Lamp control Repay. */
-uint8 P01_UV_Lamp_Relay = 16;             /*  GPIO 16 @Port Pin 21 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P02_UV_Lamp_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P03_UV_Lamp_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+Config_Var uint8 P01_UV_Lamp_Relay = 16;             /*  GPIO 16 @Port Pin 21 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint8 P02_UV_Lamp_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+Config_Var uint8 P03_UV_Lamp_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater to configure UV lamp Support*/
 uint8 P2E_UV_Feedback_Support = UV_Feedback_Both; /*  Indicate the configuration for the UV lamp feedback.. */
 
 /* Paramater for LDR 1 , to detect UV light operatation*/
-uint8 P04_UV_Lamp_Analog_LDR_1 = 35;             /*  Mapped to ADC 1_7, GPIO 35 @Port Pin 11 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
-uint16 P07_UV_Lamp_Analog_LDR_1_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
-uint8 P09_UV_Lamp_Analog_LDR_1_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
+Config_Var uint8 P04_UV_Lamp_Analog_LDR_1 = 35;             /*  Mapped to ADC 1_7, GPIO 35 @Port Pin 11 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
+Config_Var uint16 P07_UV_Lamp_Analog_LDR_1_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
+Config_Var uint8 P09_UV_Lamp_Analog_LDR_1_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
 
 /* Paramater for LDR 2 , to detect UV light operatation*/
-uint8 P0A_UV_Lamp_Analog_LDR_2 = 34;             /*  Mapped to ADC 1_6, GPIO 34 @Port Pin 12 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
-uint16 P0D_UV_Lamp_Analog_LDR_2_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
-uint8 P0F_UV_Lamp_Analog_LDR_2_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
+Config_Var uint8 P0A_UV_Lamp_Analog_LDR_2 = 34;             /*  Mapped to ADC 1_6, GPIO 34 @Port Pin 12 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
+Config_Var uint16 P0D_UV_Lamp_Analog_LDR_2_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
+Config_Var uint8 P0F_UV_Lamp_Analog_LDR_2_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
 
 /* Paramater to Set UV lamp turn ON Delay.*/
-uint16 P2F_UV_On_Delay_Time_In_ms = 5000; /*  Indicate the configuration for the UV lamp turned ON time.. */
+Config_Var uint16 P2F_UV_On_Delay_Time_In_ms = 5000; /*  Indicate the configuration for the UV lamp turned ON time.. */
 
 /*===========================================================================================*/
 /*      Paramaters Related to Input flow                                                     */
 /*===========================================================================================*/
 
 /*Port Paramaters related in InLine Input Solinode Relay control */
-uint8 P10_InLineInputSolenoid_Relay = 17;             /*  GPIO 16 @Port Pin 22 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P11_InLineInputSolenoid_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P12_InLineInputSolenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+Config_Var uint8 P10_InLineInputSolenoid_Relay = 17;             /*  GPIO 16 @Port Pin 22 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint8 P11_InLineInputSolenoid_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+Config_Var uint8 P12_InLineInputSolenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater represent time to Solenoid to take action / water start flow.*/
-uint16 P31_InLineInput_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to Solenoid action get effective.. */
+Config_Var uint16 P31_InLineInput_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to Solenoid action get effective.. */
 
 /*===========================================================================================*/
 /*      Paramaters Related to Booster Pump                                                   */
 /*===========================================================================================*/
 /* Paramater to Specify Wheather Booster motor required to support.*/
-uint8 P13_InputBoostMotor_Support = STD_ON; /*  STD_ON ==> Support Booster motor, STD_OFF ==> Shall not Support Booster motor. */
+Config_Var uint8 P13_InputBoostMotor_Support = STD_ON; /*  STD_ON ==> Support Booster motor, STD_OFF ==> Shall not Support Booster motor. */
 
 /*Port Paramaters related to Input Booster Motor Relay control */
-uint8 P14_InputBoostMotor_Relay = 18;             /*  GPIO 18 @Port Pin 24 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P15_InputBoostMotor_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P16_InputBoostMotor_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+Config_Var uint8 P14_InputBoostMotor_Relay = 18;             /*  GPIO 18 @Port Pin 24 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint8 P15_InputBoostMotor_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+Config_Var uint8 P16_InputBoostMotor_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /*Port Paramaters related in input Solinode to control flow of Booster Motor */
-uint8 P17_InputBoostSolenoid_Relay = 19;             /*  GPIO 19 @Port Pin 25 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P18_InputBoostSolenoid_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P19_InputBoostSolenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+Config_Var uint8 P17_InputBoostSolenoid_Relay = 19;             /*  GPIO 19 @Port Pin 25 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint8 P18_InputBoostSolenoid_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+Config_Var uint8 P19_InputBoostSolenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater represent time to Booster Motor & Solinode to take action / water start flow.*/
-uint16 P33_InputBoost_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to Booster Motor & Solinode action get effective.. */
+Config_Var uint16 P33_InputBoost_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to Booster Motor & Solinode action get effective.. */
 
 /*===========================================================================================*/
 /*      Paramaters Related to RO motor Pump                                                  */
 /*===========================================================================================*/
 
 /* Paramater to Specify Wheather RO Pump required to support.*/
-uint8 P1A_RO_Motor_Support = STD_ON; /*  STD_ON ==> Support RO pump, STD_OFF ==> Shall not Support RO Pump. */
+Config_Var uint8 P1A_RO_Motor_Support = STD_ON; /*  STD_ON ==> Support RO pump, STD_OFF ==> Shall not Support RO Pump. */
 
 /*Port Paramaters related to RO Motor Relay control */
-uint8 P1B_RO_Motor_Relay = 5;              /*  GPIO 5 @Port Pin 23 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P1C_RO_Motor_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P1D_RO_Motor_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+Config_Var uint8 P1B_RO_Motor_Relay = 5;              /*  GPIO 5 @Port Pin 23 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint8 P1C_RO_Motor_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+Config_Var uint8 P1D_RO_Motor_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /*Port Paramaters related to the Solinode to control flow of RO Motor */
-uint8 P1E_RO_Solenoid_Relay = 5;              /*  GPIO 5 @Port Pin 23 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint8 P1F_RO_Solenoid_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
-uint8 P20_RO_Solenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
+Config_Var uint8 P1E_RO_Solenoid_Relay = 5;              /*  GPIO 5 @Port Pin 23 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint8 P1F_RO_Solenoid_Relay_ON_State = LOW;   /*  Indicate on which Port pin State UV lamp relay make Lamp ON */
+Config_Var uint8 P20_RO_Solenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater represent time to RO Motor & Solinode to take action / water start flow.*/
-uint16 P35_RO_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to RO Motor & Solinode action get effective.. */
+Config_Var uint16 P35_RO_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to RO Motor & Solinode action get effective.. */
 
 /*===========================================================================================*/
 /*      Other Analog Input Port  paramaters                                                  */
 /*===========================================================================================*/
 
 /* Paramater for High Presere Detection, to Avoid malfunctioning*/
-uint8 P21_Analog_HighPresere = 32;             /*  Mapped to ADC 1_4, GPIO 32 @Port Pin 10 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint16 P22_Analog_HighPresere_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
-uint16 P24_Analog_HighPresere_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
-uint8 P26_Analog_HighPresere_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
+Config_Var uint8 P21_Analog_HighPresere = 32;             /*  Mapped to ADC 1_4, GPIO 32 @Port Pin 10 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint16 P22_Analog_HighPresere_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
+Config_Var uint16 P24_Analog_HighPresere_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
+Config_Var uint8 P26_Analog_HighPresere_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
 
 /* Paramater represent High Pressure colling Time .
   ==> Once High pressure is detected SHall waite for colling time to leaps..*/
-uint16 P37_HighPresere_CollingTime_In_ms = 5000; /*  Indicate the High Pressure colling Time... */
+Config_Var uint16 P37_HighPresere_CollingTime_In_ms = 5000; /*  Indicate the High Pressure colling Time... */
 
 /* Paramater for OverFlow Detection and to stop the filtering. */
-uint8 P27_Analog_OverFlow = 33;             /*  Mapped to ADC 1_5, GPIO 33 @Port Pin 9 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-uint16 P28_Analog_OverFlow_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
-uint16 P2A_Analog_OverFlow_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
-uint8 P2C_Analog_OverFlow_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
+Config_Var uint8 P27_Analog_OverFlow = 33;             /*  Mapped to ADC 1_5, GPIO 33 @Port Pin 9 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint16 P28_Analog_OverFlow_ON_Volt = 1024;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
+Config_Var uint16 P2A_Analog_OverFlow_OFF_Volt = 4024; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
+Config_Var uint8 P2C_Analog_OverFlow_Tolerance = 10;   /*  Persentage (%) of acceptable tolerance which can be considered.*/
 
 /* Paramater represent OverFlow colling Time .
   ==> Once OverFlow is detected SHall waite for colling time to leaps..*/
-uint16 P39_OverFlow_CollingTime_In_ms = 5000; /*  Indicate the OverFlow colling Time... */
+Config_Var uint16 P39_OverFlow_CollingTime_In_ms = 5000; /*  Indicate the OverFlow colling Time... */
 
 /*===========================================================================================*/
 /*      Water flow meter Input Port  paramaters                                              */
 /*===========================================================================================*/
-uint8 P2D_WaterFlowSensor_Input = 4; /* GPIO 4 @Port Pin 20 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint8 P2D_WaterFlowSensor_Input = 4; /* GPIO 4 @Port Pin 20 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
 
 /*-----------------------------------------------------------------------------
  *  System Utility related Configuration END
@@ -302,6 +315,8 @@ uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin)
   uint16 Return_Value;
   /* At present ADC filtering logic are not implemented so reading directely from the ADC.*/
   Return_Value = analogRead(GPIO_Port_pin);
+
+  return(Return_Value);
 }
 
 /* ************************************************************************
@@ -1704,7 +1719,7 @@ void Process_ControlSystem(void)
     /* If fault is detected. */
     else if (Is_Check_Flag_False(Fault_State_Check))
     {
-      Debug_Trace("Still fault not recovered, Shall wait for %f Sec and retry again...", (Fault_Recheck_Wait_Time / 1000));
+      Debug_Trace("Still fault not recovered, Shall wait for %f Sec and retry again...", (float)(Fault_Recheck_Wait_Time / 1000));
 
       /* Waite for configured time..*/
       Delay_In_ms(Fault_Recheck_Wait_Time);

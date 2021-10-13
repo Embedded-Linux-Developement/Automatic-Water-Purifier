@@ -170,7 +170,7 @@ version:- V1.0.1
 
 /* Macro for define the Max buffer reserved for */
 #define Max_BackGround_Buffer_Reserved 6144   /* Indicate Total of 6KB reserved for debug back up buffers.*/
-#define Max_BackGround_Buffer_Queue 100       /* Indicate total 100 Queue is allocated for backup buffer.*/
+#define Max_BackGround_Buffer_Queue 200       /* Indicate total 100 Queue is allocated for backup buffer.*/
 
 /* To Define the periodicity of the task for processing the background task for printing.*/
 #define BackGround_Debug_Trace_Task_Perion_ms 100 

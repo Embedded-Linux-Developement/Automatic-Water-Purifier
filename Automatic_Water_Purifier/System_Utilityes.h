@@ -14,7 +14,7 @@
 #define CompleteSystem_ShutDown_Wait_Time  6000    /* Configured as 6 Sec*/
 
 /* Macro to defining the wait Time to Restart the fault checking in ms*/
-#define Fault_Recheck_Wait_Time  2000    /* Configured as 2 Sec*/
+#define Fault_Recheck_Wait_Time  10000    /* Configured as 2 Sec*/
 
 /* Macro to defining the wait Time after Overflow detected without sensor in ms*/
 #define OverFlow_Tank_Not_Full_Wait_Time  5000    /* Configured as 5 Sec*/
@@ -23,6 +23,10 @@
    Here configured for 45 Days = 3888000000ms. So reset after every 45days.
 */
 #define System_Periodic_Reset_Time_in_ms 3888000000U
+
+
+/* MAcro to specify wheather system specific Configuration needs to be get from NVM or NOT*/
+#define System_Config_From_NVM_Support STD_OFF
 
 
 /*-----------------------------------------------------------------------------
