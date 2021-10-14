@@ -1,6 +1,6 @@
 /*******************************************************************************
  *  External Includes
-*******************************************************************************/
+ *******************************************************************************/
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -29,15 +29,15 @@ WiFiServer server(80);
 
 /*******************************************************************************
  *  System Utility related Configuration Start
-*******************************************************************************/
+ *******************************************************************************/
 
 /* If configuration is On NVM*/
 #if (System_Config_From_NVM_Support == STD_ON)
 
 /* Define as blank, because Normal global variable needed to store NVM paramater*/
-#define Config_Var 
+#define Config_Var
 
-#else  /* If configuration is not ON NVM*/
+#else /* If configuration is not ON NVM*/
 
 /* Convert global variables into const for storing its value.*/
 #define Config_Var const
@@ -47,7 +47,7 @@ WiFiServer server(80);
 /*******************************************************************************
  *  Following are the Global variables for each Used Port Pins
  *  Global variables are used because later same can be updated via Configuration.
-*******************************************************************************/
+ *******************************************************************************/
 
 /*===========================================================================================*/
 /*      Paramaters for UV Lamp Related                                                       */
@@ -61,16 +61,16 @@ Config_Var uint8 P03_UV_Lamp_Relay_OFF_State = HIGH; /*  Indicate on which Port 
 uint8 P2E_UV_Feedback_Support = UV_Feedback_Both; /*  Indicate the configuration for the UV lamp feedback.. */
 
 /* Paramater for LDR 1 , to detect UV light operatation*/
-Config_Var uint8 P04_UV_Lamp_Analog_LDR_1 = 35;             /*  Mapped to ADC 1_7, GPIO 35 @Port Pin 11 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 3600;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
-Config_Var uint16 P07_UV_Lamp_Analog_LDR_1_OFF_Volt = 750;  /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
-Config_Var uint8 P09_UV_Lamp_Analog_LDR_1_Tolerance = 15;   /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
+Config_Var uint8 P04_UV_Lamp_Analog_LDR_1 = 35;            /*  Mapped to ADC 1_7, GPIO 35 @Port Pin 11 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 2500; /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
+Config_Var uint16 P07_UV_Lamp_Analog_LDR_1_OFF_Volt = 125; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
+Config_Var uint8 P09_UV_Lamp_Analog_LDR_1_Tolerance = 15;  /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
 /* Paramater for LDR 2 , to detect UV light operatation*/
-Config_Var uint8 P0A_UV_Lamp_Analog_LDR_2 = 34;             /*  Mapped to ADC 1_6, GPIO 34 @Port Pin 12 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 3600;  /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
-Config_Var uint16 P0D_UV_Lamp_Analog_LDR_2_OFF_Volt = 125;  /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
-Config_Var uint8 P0F_UV_Lamp_Analog_LDR_2_Tolerance = 15;   /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
+Config_Var uint8 P0A_UV_Lamp_Analog_LDR_2 = 34;            /*  Mapped to ADC 1_6, GPIO 34 @Port Pin 12 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
+Config_Var uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 2500; /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
+Config_Var uint16 P0D_UV_Lamp_Analog_LDR_2_OFF_Volt = 125; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
+Config_Var uint8 P0F_UV_Lamp_Analog_LDR_2_Tolerance = 15;  /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
 /* Paramater to Set UV lamp turn ON Delay.*/
 Config_Var uint16 P2F_UV_On_Delay_Time_In_ms = 5000; /*  Indicate the configuration for the UV lamp turned ON time.. */
@@ -161,7 +161,7 @@ Config_Var uint8 P2D_WaterFlowSensor_Input = 4; /* GPIO 4 @Port Pin 20 ( Based o
 
 /*******************************************************************************
  *  Variables and Constense
-*******************************************************************************/
+ *******************************************************************************/
 
 /* Variable to store the current UV lamp state set by SW.*/
 static Sys_UV_Lamp_Status UV_Lamp_Current_Status = UV_Lamp_OFF;
@@ -270,7 +270,7 @@ uint8 LowWater_Flow_Detected = false;
 
 /*******************************************************************************
  *  Functions Forward decleratations deceleration
-*******************************************************************************/
+ *******************************************************************************/
 
 /*This function is to Control UV Lamp operatations*/
 static uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin);
@@ -298,7 +298,7 @@ static uint16 GetStatus_OverFlow_Sensor_Raw_Value(void);
 
 /*******************************************************************************
  *  Class Objects.
-*******************************************************************************/
+ *******************************************************************************/
 
 /*
 ===========================================================================
@@ -316,14 +316,15 @@ uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin)
   /* At present ADC filtering logic are not implemented so reading directely from the ADC.*/
   Return_Value = analogRead(GPIO_Port_pin);
 
-  return(Return_Value);
+  return (Return_Value);
 }
 
 /* ************************************************************************
- * Function to master ShutDown the filtering. 
+ * Function to master ShutDown the filtering.
  * *************************************************************************/
 void ShutDown_All(void)
 {
+  // Debug_Trace("Requested Complete ShutDown..");
 
   /* Switch off the Motor and solinode*/
   Control_ROInput(Operatation_OFF);
@@ -361,6 +362,9 @@ void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest)
     {
       /* Reset the Start time*/
       UV_Lamp_Start_Time = Temp_Time;
+
+      /*Print Debug Info.*/
+      Debug_Trace("Requested UV lamp to turn ON...");
     }
 
     /* Switch ON the UV light.*/
@@ -376,6 +380,9 @@ void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest)
     {
       /* Reset the Start time*/
       UV_Lamp_Start_Time = Temp_Time;
+
+      /*Print Debug Info.*/
+      Debug_Trace("Requested UV lamp to turn OFF...");
     }
 
     /* Switch off the UV light.*/
@@ -523,7 +530,7 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void)
 
 /* ************************************************************************
  * This function is get the High Presere Sensor Raw Value.
- * Value shall be process and converted in to string 
+ * Value shall be process and converted in to string
  * This interface shall provide its global variable, But its Not Mutely exclusive.
  * *************************************************************************/
 char *GetStatus_UV_Lamp_Sensor_Raw_Value(void)
@@ -567,6 +574,9 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
     {
       /* Reset the Start time*/
       InLineInput_Start_Time = Temp_Time;
+
+      /*Print Debug Info.*/
+      Debug_Trace("Requested Inline solenoid valve to turn ON...");
     }
     else
     {
@@ -586,6 +596,9 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
     {
       /* Reset the Stope time*/
       InLineInput_Start_Time = Temp_Time;
+
+      /*Print Debug Info.*/
+      Debug_Trace("Requested Inline solenoid valve to turn OFF...");
     }
     else
     {
@@ -671,6 +684,9 @@ void Control_BoostInput(Sys_Operatation_Status InputRequest)
       {
         /* Reset the Start time*/
         InputBoost_Start_Time = Temp_Time;
+
+        /*Print Debug Info.*/
+        Debug_Trace("Requested Booster pump to turn ON...");
       }
       else
       {
@@ -691,6 +707,9 @@ void Control_BoostInput(Sys_Operatation_Status InputRequest)
       {
         /* Reset the Stope time*/
         InputBoost_Start_Time = Temp_Time;
+
+        /*Print Debug Info.*/
+        Debug_Trace("Requested Booster pump to turn OFF...");
       }
       else
       {
@@ -790,6 +809,9 @@ void Control_ROInput(Sys_Operatation_Status InputRequest)
       {
         /* Reset the Start time*/
         InputRO_Start_Time = Temp_Time;
+
+        /*Print Debug Info.*/
+        Debug_Trace("Requested RO pump and solenoid valve to turn ON...");
       }
       else
       {
@@ -810,6 +832,9 @@ void Control_ROInput(Sys_Operatation_Status InputRequest)
       {
         /* Reset the Stope time*/
         InputRO_Start_Time = Temp_Time;
+
+        /*Print Debug Info.*/
+        Debug_Trace("Requested RO pump and solenoid valve to turn OFF...");
       }
       else
       {
@@ -882,7 +907,7 @@ Sys_Operatation_Status GetStatus_ROInput(void)
 
 /* ************************************************************************
  * This function is get the status of the High Presere Indication
-* Return value meaning
+ * Return value meaning
  *    Sensor_ON    ==> Indicate High Presure detected.
  *    Sensor_OFF   ==> Indicate NO High Presure detected.
  * *************************************************************************/
@@ -1058,11 +1083,11 @@ void Process_ControlSystem(void)
 
 
       -Init_State ( Entry Point)
-          - Shut down all 
-          - Check UV Sensor Working 
+          - Shut down all
+          - Check UV Sensor Working
           - Water Flow Working  ? Not considered, because same may be issue if Tank is already full.
       - Normal_Tank_Not_Full
-          - Water Flow Keep on going 
+          - Water Flow Keep on going
       - OverFlow_Tank_Not_Full
           - Tank Not full, But More than expected water flowed.
       - Tank_Full
@@ -1071,11 +1096,11 @@ void Process_ControlSystem(void)
           - Fault in any of the sensor detected.
       - Emergency_Stop
           - If any failtel System error detected, Only exit is power on reset.
-  
+
    */
 
   /* Switch to each state based on the state mechine flow.
-    
+
   */
 
   switch (Get_Current_Opp_State())
@@ -1101,56 +1126,6 @@ void Process_ControlSystem(void)
 
     /*Wait to complete the shutdown.*/
     Delay_In_ms(CompleteSystem_ShutDown_Wait_Time);
-
-    /*---------------------------------------------------------------------------------
-     *                      Start UV lamp Operatation checking.
-    -----------------------------------------------------------------------------------*/
-
-    /* Assumption by this time UV light could be OFF.*/
-    /* Wait until UV lamp status changed to ON*/
-    while (Get_UV_Lamp_Feedback() == UV_Lamp_Feedback_InProgres)
-    {
-      /*Wait to Switch the task excitation, each time wait for 100ms, because time to make UV light ON is high*/
-      Delay_In_ms(100);
-    }
-    /* Check if UV Lamp status is in OFF*/
-    if (Get_UV_Lamp_Feedback() == UV_Lamp_Feedback_OFF)
-    {
-
-      /* On the UV Light*/
-      Control_UV_Lamp(UV_Lamp_ON);
-
-      /* Wait until UV lamp status changed to ON*/
-      while (Get_UV_Lamp_Feedback() == UV_Lamp_Feedback_InProgres)
-      {
-        /*Wait to Switch the task excitation, each time wait for 100ms, because time to make UV light ON is high*/
-        Delay_In_ms(100);
-      }
-      /* Check if UV Lamp status is in ON*/
-      if (Get_UV_Lamp_Feedback() == UV_Lamp_Feedback_ON)
-      {
-        Debug_Trace("UV Lamp testing passed with flying colours. And for Reference ON state value %s ", GetStatus_UV_Lamp_Sensor_Raw_Value());
-
-        /* Set Init status to true.*/
-        True_Check_Flag(Local_Init_status);
-      }
-      else /* Failed to detect the UV light*/
-      {
-        /* Get current raw value and print same ro debug trace.*/
-        Debug_Trace("Failed to detect Wheather UV lamp is ON, could be because of faulty LDR or UV Lamp ss damaged, %s ", GetStatus_UV_Lamp_Sensor_Raw_Value());
-
-        /* Indicate check failed.*/
-        False_Check_Flag(Local_Init_status);
-      }
-    }
-    else /* Feed back failed to detect wheather Lamp is OFF, So wait until it get ready after logging the error*/
-    {
-      /* Get current raw value and print same ro debug trace.*/
-      Debug_Trace("Failed to detect Wheather UV lamp is OFF, could be because of faulty LDR or if LDR Not possinied properly, %s ", GetStatus_UV_Lamp_Sensor_Raw_Value());
-
-      /* Indicate check failed.*/
-      False_Check_Flag(Local_Init_status);
-    }
 
     /*---------------------------------------------------------------------------------
       *                     Start Float Sensor validatation  checking.
@@ -1187,6 +1162,60 @@ void Process_ControlSystem(void)
       Debug_Trace("Correctely detect Over flow Sensor Sensor is in valied state, as expected in init.");
     }
 
+    /* If local Init status is OK, Then Start checking UV lamp.*/
+    if (Is_Check_Flag_True(Local_Init_status))
+    {
+      /*---------------------------------------------------------------------------------
+       *                      Start UV lamp Operatation checking.
+      -----------------------------------------------------------------------------------*/
+
+      /* Assumption by this time UV light could be OFF.*/
+      /* Wait until UV lamp status changed to ON*/
+      while (Get_UV_Lamp_Feedback() == UV_Lamp_Feedback_InProgres)
+      {
+        /*Wait to Switch the task excitation, each time wait for 100ms, because time to make UV light ON is high*/
+        Delay_In_ms(100);
+      }
+      /* Check if UV Lamp status is in OFF*/
+      if (Get_UV_Lamp_Feedback() == UV_Lamp_Feedback_OFF)
+      {
+
+        /* On the UV Light*/
+        Control_UV_Lamp(UV_Lamp_ON);
+
+        /* Wait until UV lamp status changed to ON*/
+        while (Get_UV_Lamp_Feedback() == UV_Lamp_Feedback_InProgres)
+        {
+          /*Wait to Switch the task excitation, each time wait for 100ms, because time to make UV light ON is high*/
+          Delay_In_ms(100);
+        }
+        /* Check if UV Lamp status is in ON*/
+        if (Get_UV_Lamp_Feedback() == UV_Lamp_Feedback_ON)
+        {
+          Debug_Trace("UV Lamp testing passed with flying colours. And for Reference ON state value %s ", GetStatus_UV_Lamp_Sensor_Raw_Value());
+
+          /* Set Init status to true.*/
+          True_Check_Flag(Local_Init_status);
+        }
+        else /* Failed to detect the UV light*/
+        {
+          /* Get current raw value and print same ro debug trace.*/
+          Debug_Trace("Failed to detect Wheather UV lamp is ON, could be because of faulty LDR or UV Lamp ss damaged, %s ", GetStatus_UV_Lamp_Sensor_Raw_Value());
+
+          /* Indicate check failed.*/
+          False_Check_Flag(Local_Init_status);
+        }
+      }
+      else /* Feed back failed to detect wheather Lamp is OFF, So wait until it get ready after logging the error*/
+      {
+        /* Get current raw value and print same ro debug trace.*/
+        Debug_Trace("Failed to detect Wheather UV lamp is OFF, could be because of faulty LDR or if LDR Not possinied properly, %s ", GetStatus_UV_Lamp_Sensor_Raw_Value());
+
+        /* Indicate check failed.*/
+        False_Check_Flag(Local_Init_status);
+      }
+
+    } /* End of if Is_Check_Flag_True(Local_Init_status) for UV lamp.*/
     /*---------------------------------------------------------------------------------
      *                      Start Next state conclusion.
     -----------------------------------------------------------------------------------*/
@@ -1221,18 +1250,26 @@ void Process_ControlSystem(void)
   }
 
     /*******************************************************************************
-   * Normal_Tank_Not_Full:-                                                      *
-   *                                                                             *
-   * Indicate Tank is Not full and needs to On the Water flow.                   *
-   * *****************************************************************************/
+     * Normal_Tank_Not_Full:-                                                      *
+     *                                                                             *
+     * Indicate Tank is Not full and needs to On the Water flow.                   *
+     * *****************************************************************************/
   case Normal_Tank_Not_Full:
   {
+    /* Define New Perodic statement*/
+    Define_Perodic_Statement(Filter_Block_Msg);
+    Define_Perodic_Statement(UV_Lamp_Ready_Msg);
+
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Normal_Tank_Not_Full\" state.");
 
     /* If first time Entering this state from any other state.*/
     if (Is_Opp_State_Changed())
     {
+      /* Reset the Perodic statement.*/
+      ReStart_Perodic_Statement(Filter_Block_Msg);
+      ReStart_Perodic_Statement(UV_Lamp_Ready_Msg);
+
       /* Enter in to Critical Section*/
       portENTER_CRITICAL(&Waterflow_Mux);
 
@@ -1276,13 +1313,19 @@ void Process_ControlSystem(void)
         /* Check if UV Lamp status is in ON*/
         if (Get_UV_Lamp_Feedback() == UV_Lamp_Feedback_ON)
         {
-          Debug_Trace("UV Lamp is ON and Ready to use. And for Reference Raw value of sensor%s ", GetStatus_UV_Lamp_Sensor_Raw_Value());
+          /* Start the Perodic statement section for UV_Lamp_Ready_Msg, for every 12 Hour*/
+          Start_Perodic_Statement(UV_Lamp_Ready_Msg, (12 * 60 * 60 * 1000))
 
-          /*---------------------------------------------------------------------------------
-                                 Open Inlet.
-          -----------------------------------------------------------------------------------*/
-          /* If Inlet is Not already open.*/
-          if (GetStatus_InLineInput() != Operatation_ON)
+              Debug_Trace("UV Lamp is ON and Ready to use. And for Reference Raw value of sensor%s ", GetStatus_UV_Lamp_Sensor_Raw_Value());
+
+          /* Start the Perodic statement section for UV_Lamp_Ready_Msg, for every 12 Hour*/
+          End_Perodic_Statement()
+
+              /*---------------------------------------------------------------------------------
+                                     Open Inlet.
+              -----------------------------------------------------------------------------------*/
+              /* If Inlet is Not already open.*/
+              if (GetStatus_InLineInput() != Operatation_ON)
           {
             /* Switch On the inlet valve and wait until its get open.*/
             while (GetStatus_InLineInput() != Operatation_ON)
@@ -1360,8 +1403,8 @@ void Process_ControlSystem(void)
 
           /* Check if water flow rate is above the mentioned Limit..*/
           /*---------------------------------------------------------------------------------
-          *                   Check Wafer Potential Pile Burst, Higher flow rate.  
-          *---------------------------------------------------------------------------------*/
+           *                   Check Wafer Potential Pile Burst, Higher flow rate.
+           *---------------------------------------------------------------------------------*/
 
           /* If higher water flow detected.*/
           if (((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000))) > (Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate)))
@@ -1402,17 +1445,24 @@ void Process_ControlSystem(void)
 
           /* Check if water flow rate is above the mentioned Limit..*/
           /*---------------------------------------------------------------------------------
-          *                   Check Wafer Potential Filter Block, Low flow rate.  
-          *---------------------------------------------------------------------------------*/
+           *                   Check Wafer Potential Filter Block, Low flow rate.
+           *---------------------------------------------------------------------------------*/
 
           /* If Lower water flow detected.*/
           if ((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000)) < Nvm_Read_Each(NVM_ID_Calibration_LowFlowRate))
           {
-            /* Just show the warning for the Low flow Rate*/
-            Debug_Trace("Potential Filer Jam. A Low flow of water is detected By the system based on the configuration. Current flow rate is %f, And Max Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate) / 1000));
 
-            /* Set Global variable for High Presure Detection.*/
-            LowWater_Flow_Detected = true;
+            /* Add perodic statement to show Once in every 2 Hour*/
+            Start_Perodic_Statement(Filter_Block_Msg, (2 * 60 * 60 * 1000))
+
+                /* Just show the warning for the Low flow Rate*/
+                Debug_Trace("Potential Filer Jam. A Low flow of water is detected By the system based on the configuration. Current flow rate is %f, And Max Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(Nvm_Read_Each(NVM_ID_Calibration_LowFlowRate) / 1000));
+
+            /* End above perodic statement */
+            End_Perodic_Statement()
+
+                /* Set Global variable for High Presure Detection.*/
+                LowWater_Flow_Detected = true;
 
             /* No Action logic for Low flow rate is considered, As same did not make any sense. */
           }
@@ -1441,6 +1491,7 @@ void Process_ControlSystem(void)
       /* High presure is detected.*/
       else if (GetStatus_HighPresere() == Sensor_ON)
       {
+        Debug_Trace("High Water presure is detected, So Switching off the system, to avoid further damage");
         /* Switch to the state representing High presure is detected.*/
         Set_Current_Opp_State(Tank_High_Presure);
 
@@ -1465,15 +1516,23 @@ void Process_ControlSystem(void)
   }
 
     /*******************************************************************************
-   * OverFlow_Tank_Not_Full:-                                                    *
-   *                                                                             *
-   * Indicate Indicate Tank full indicator not responding after considerable     *
-   *            amound of water flows.                                           *
-   * *****************************************************************************/
+     * OverFlow_Tank_Not_Full:-                                                    *
+     *                                                                             *
+     * Indicate Indicate Tank full indicator not responding after considerable     *
+     *            amound of water flows.                                           *
+     * *****************************************************************************/
   case OverFlow_Tank_Not_Full:
   {
+    Define_Perodic_Statement(OverFlow_Wait);
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"OverFlow_Tank_Not_Full\" state.");
+
+    /* If first time Entering this state from any other state.*/
+    if (Is_Opp_State_Changed())
+    {
+      ReStart_Perodic_Statement(OverFlow_Wait);
+    }
+
     /* Indicate current sate is executed.*/
     State_Change_completed();
 
@@ -1490,10 +1549,14 @@ void Process_ControlSystem(void)
     }
     else /* Waite until the filter Overflow sensor detect its state OFF continuesly for moe than 5 Second.*/
     {
-      Debug_Trace("Wait until Overflow sensor Detect as OFF for 5 Sec continually.");
+      Start_Perodic_Statement(OverFlow_Wait, 30000)
+
+          Debug_Trace("Wait until Overflow sensor Detect as OFF for 5 Sec continually.");
       Debug_Trace("For Reference, Current water Filtered = %f, And configured level is %f", Get_Current_SectionWaterFlowedInL(), (double)(Nvm_Read_Each(NVM_ID_Calibration_WaterTankOverflowCapacity) / 1000));
 
-      OverFlow_Tank_Not_Full_Loop_Index = 0;
+      End_Perodic_Statement()
+
+          OverFlow_Tank_Not_Full_Loop_Index = 0;
 
       do
       {
@@ -1576,10 +1639,10 @@ void Process_ControlSystem(void)
   }
 
     /*******************************************************************************
-   * Tank_High_Presure:-                                                         *
-   *                                                                             *
-   * Indicate aHigh presure is detected at its input.                            *
-   * *****************************************************************************/
+     * Tank_High_Presure:-                                                         *
+     *                                                                             *
+     * Indicate aHigh presure is detected at its input.                            *
+     * *****************************************************************************/
 
   case Tank_High_Presure:
   {
@@ -1612,6 +1675,7 @@ void Process_ControlSystem(void)
     /* If presure is recovered, Then switch back to respective State.*/
     if (GetStatus_HighPresere() == Sensor_OFF)
     {
+      Debug_Trace("Recovered from High presure detected.");
       /* switch the state based om the Over flow sensor state.*/
       if (GetStatus_OverFlow() == Sensor_OFF)
       {
@@ -1633,10 +1697,10 @@ void Process_ControlSystem(void)
   }
 
     /*******************************************************************************
-   * Tank_Sensor_Fault:-                                                         *
-   *                                                                             *
-   * Indicate Some of the Sensor detected the Fault.                             *
-   * *****************************************************************************/
+     * Tank_Sensor_Fault:-                                                         *
+     *                                                                             *
+     * Indicate Some of the Sensor detected the Fault.                             *
+     * *****************************************************************************/
   case Tank_Sensor_Fault:
   {
     /*Print State change Message*/
@@ -1810,7 +1874,7 @@ void Process_ControlSystem(void)
   } /* End of Switch statement*/
 
   /* Generic State mechine / General monitering*/
-  /*  
+  /*
      1. Check if any fault detected in UV
      2. Check if any fault detected in Over flow Sensor
      3. Check if any fault detected in Over High presure sensor.
@@ -1836,7 +1900,7 @@ void Process_ControlSystem(void)
 
   /* Logic for Perodic reset to make sure every think work properly.
    * This is mainely to avoid misinterpretation of the values stored for different time related record.
-  */
+   */
   if (millis() >= System_Periodic_Reset_Time_in_ms)
   {
 
@@ -1881,7 +1945,7 @@ void Web_Server_Processing(void)
     /* Read current time.*/
     previousTime = millis();
 
-    //Debug_Trace("New Clint has been connected...");
+    // Debug_Trace("New Clint has been connected...");
 
     /* Clean the string to make a String to hold incoming data from the client*/
     currentLine = "";
@@ -1948,7 +2012,7 @@ void Web_Server_Processing(void)
 }
 
 /* ************************************************************************
- * Function to Init the Web server Required 
+ * Function to Init the Web server Required
  * *************************************************************************/
 void Web_Server_Init(void)
 {
@@ -1997,6 +2061,23 @@ void Init_MCU(void)
   /* WDG is already enabled.. So no change required.*/
 
   /* Initializes all port settings.*/
+  pinMode(P01_UV_Lamp_Relay, OUTPUT);
+  digitalWrite(P01_UV_Lamp_Relay, P03_UV_Lamp_Relay_OFF_State);
+
+  pinMode(P10_InLineInputSolenoid_Relay, OUTPUT);
+  digitalWrite(P10_InLineInputSolenoid_Relay, P12_InLineInputSolenoid_Relay_OFF_State);
+
+  pinMode(P14_InputBoostMotor_Relay, OUTPUT);
+  digitalWrite(P14_InputBoostMotor_Relay, P16_InputBoostMotor_Relay_OFF_State);
+
+  pinMode(P17_InputBoostSolenoid_Relay, OUTPUT);
+  digitalWrite(P17_InputBoostSolenoid_Relay, P19_InputBoostSolenoid_Relay_OFF_State);
+
+  pinMode(P1B_RO_Motor_Relay, OUTPUT);
+  digitalWrite(P1B_RO_Motor_Relay, P1D_RO_Motor_Relay_OFF_State);
+
+  pinMode(P1E_RO_Solenoid_Relay, OUTPUT);
+  digitalWrite(P1E_RO_Solenoid_Relay, P20_RO_Solenoid_Relay_OFF_State);
 }
 
 /* ************************************************************************
@@ -2092,7 +2173,7 @@ void Init_System_Utilityes_Variables(void)
 
 /* *********************************************************************************
  * ISR Function to trigen when ever over flow is detected.......
-*************************************************************************************/
+ *************************************************************************************/
 void IRAM_ATTR CounterOverflow_ISR(void *arg)
 {
 
@@ -2106,7 +2187,7 @@ void IRAM_ATTR CounterOverflow_ISR(void *arg)
 
 /* *********************************************************************************
  * Function to init PCNT based on HW configuration..
-*************************************************************************************/
+ *************************************************************************************/
 
 void Init_PulseCounter(void)
 {

@@ -28,6 +28,11 @@ portMUX_TYPE NVM_Mirror_Mux = portMUX_INITIALIZER_UNLOCKED; /* Mutex to protect 
   uint8 Temp_Buffer_2[Int_OneHundred]; /* Expecting maximum Size of a paramater is 100 bytes.*/
 #endif
 
+
+#if (NVM_Stack_Read_And_Display_Test ==  STD_ON)
+
+  uint8 ReadBuffer_To_Test[100];
+#endif
 /*******************************************************************************
  *  Functions Extern deceleration
 *******************************************************************************/
@@ -321,7 +326,9 @@ void Nvm_Read_From_EEPROM(NVMParam_ID_Enum Input_Requested_NVMParam)
 
   /* Print Respective mirror value and its check sums based on the type.*/
 #if Debug_Print_All_NVM_Read_All_Value == STD_ON
-  Debug_Trace("Info:- NVM Mirror final value for paramater %d is as mentioned below", Input_Requested_NVMParam);
+  Serial.write("Info:- NVM Mirror final value for paramater ");
+  Serial.print(Input_Requested_NVMParam, DEC);
+  Serial.write(" is as mentioned below");
 
   /* If type is string then Print it as a string, Else print all value.*/
   /* If data type is of String*/
@@ -431,7 +438,7 @@ void Init_NVM_Stack(void)
   /* Variated all read data*/
   for (ForLoopIndex = 0; ForLoopIndex < Total_NVM_Paramaters; ForLoopIndex++)
   {
-    Debug_Trace("Validating the NVM paralater in index %d after NVM Read all operatation", ForLoopIndex);
+    Debug_Trace("Validating the NVM Paramater in index %d after NVM Read all operatation", ForLoopIndex);
     /* Do validatation*/
     Nvm_Validate_CRC_And_Recover((NVMParam_ID_Enum)ForLoopIndex);
   }
@@ -1127,6 +1134,72 @@ void NVM_READ_Write_Test(void)
   }
 
 #endif
+
+
+
+/*========================================================================*/
+/*This test is to just read the Variable and prient same to show its value.*/
+#if (NVM_Stack_Read_And_Display_Test ==  STD_ON)
+{
+  /* For all String Paramaters*/
+
+  /* For paramater NVM_ID_Value_WiFiSSIDName */
+  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDName, ReadBuffer_To_Test);
+  Debug_Trace("Value of NVM Paramater NVM_ID_Value_WiFiSSIDName = %s", (char *)ReadBuffer_To_Test);
+
+  /* For paramater NVM_ID_Value_WiFiSSIDPasword */
+  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDPasword, ReadBuffer_To_Test);
+  Debug_Trace("Value of NVM Paramater NVM_ID_Value_WiFiSSIDPasword = %s", (char *)ReadBuffer_To_Test);
+
+  /* For paramater NVM_ID_Value_WiFiServerName */
+  Nvm_Read_Each(NVM_ID_Value_WiFiServerName, ReadBuffer_To_Test);
+  Debug_Trace("Value of NVM Paramater NVM_ID_Value_WiFiServerName = %s", (char *)ReadBuffer_To_Test);
+
+  /* For paramater NVM_ID_Value_AdminPasword */
+  Nvm_Read_Each(NVM_ID_Value_AdminPasword, ReadBuffer_To_Test);
+  Debug_Trace("Value of NVM Paramater NVM_ID_Value_AdminPasword = %s", (char *)ReadBuffer_To_Test);
+
+
+  /* For all Integer Paramaters*/
+
+  /* For paramater NVM_ID_Calibration_FlowMeaterFactor */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Calibration_FlowMeaterFactor = 0X%08X", Nvm_Read_Each(NVM_ID_Calibration_FlowMeaterFactor));
+
+  /* For paramater NVM_ID_Calibration_LowFlowRate */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Calibration_LowFlowRate = 0X%08X", Nvm_Read_Each(NVM_ID_Calibration_LowFlowRate));
+
+  /* For paramater NVM_ID_Calibration_HighFlowRate */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Calibration_HighFlowRate = 0X%08X", Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate));
+
+  /* For paramater NVM_ID_Calibration_HighPresureCollingTime */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Calibration_HighPresureCollingTime = 0X%08X", Nvm_Read_Each(NVM_ID_Calibration_HighPresureCollingTime));
+
+  /* For paramater NVM_ID_Calibration_FlowRateWarningCollingTime */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Calibration_FlowRateWarningCollingTime = 0X%08X", Nvm_Read_Each(NVM_ID_Calibration_FlowRateWarningCollingTime));
+
+  /* For paramater NVM_ID_Calibration_WaterTankOverflowCapacity */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Calibration_WaterTankOverflowCapacity = 0X%08X", Nvm_Read_Each(NVM_ID_Calibration_WaterTankOverflowCapacity));
+
+  /* For paramater NVM_ID_Seting_WaterTankOverflowAction */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Seting_WaterTankOverflowAction = 0X%08X", Nvm_Read_Each(NVM_ID_Seting_WaterTankOverflowAction));
+
+  /* For paramater NVM_ID_Seting_HighPresureAction */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Seting_HighPresureAction = 0X%08X", Nvm_Read_Each(NVM_ID_Seting_HighPresureAction));
+
+  /* For paramater NVM_ID_Seting_OperatationMode */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Seting_OperatationMode = 0X%08X", Nvm_Read_Each(NVM_ID_Seting_OperatationMode));
+
+  /* For paramater NVM_ID_Seting_LowFlowRateWarningAction */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Seting_LowFlowRateWarningAction = 0X%08X", Nvm_Read_Each(NVM_ID_Seting_LowFlowRateWarningAction));
+
+  /* For paramater NVM_ID_Seting_HighFlowRateWarningAction */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Seting_HighFlowRateWarningAction = 0X%08X", Nvm_Read_Each(NVM_ID_Seting_HighFlowRateWarningAction));
+
+
+
+
+}
+#endif /* End of (NVM_Stack_Read_And_Display_Test ==  STD_ON)*/
 
 
 

@@ -1,27 +1,23 @@
 /*******************************************************************************
  *  External Includes
-*******************************************************************************/
+ *******************************************************************************/
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 #include "MyStdTypes.h"
 #include "Generic_Utilityes.h"
 
-
 /*******************************************************************************
  *  Variables and Constense
-*******************************************************************************/
-
+ *******************************************************************************/
 
 /*******************************************************************************
  *  Functions Extern deceleration
-*******************************************************************************/
-
+ *******************************************************************************/
 
 /*******************************************************************************
  *  Class Objects.
-*******************************************************************************/
-
+ *******************************************************************************/
 
 /*
 ===========================================================================
@@ -32,7 +28,7 @@
 */
 
 /* ************************************************************************
- * Function to get time difference with respect to current time, 
+ * Function to get time difference with respect to current time,
  *    Shall consider over flow case also.
  * ************************************************************************
  * */
@@ -62,7 +58,6 @@ unsigned long Get_Time_Elapse(unsigned long Reference_Time)
   return (Delta_Time);
 }
 
-
 /* ************************************************************************
  * Function to get Random string.
  * ************************************************************************
@@ -76,7 +71,7 @@ void Get_Randam_String(uint16 String_Length, uint8 *OutPutStringBuffer)
   Trace_Function_Call();
 
   /* Loop for each element.*/
-  for (LoopIndex = 0; LoopIndex < (String_Length -1); LoopIndex++)
+  for (LoopIndex = 0; LoopIndex < (String_Length - 1); LoopIndex++)
   {
     /* get a random number.*/
     randomValue = random(0, 37);
@@ -93,14 +88,13 @@ void Get_Randam_String(uint16 String_Length, uint8 *OutPutStringBuffer)
     }
   }
   /* Add null pointer at the end*/
-  OutPutStringBuffer[String_Length -1] = '\0';
+  OutPutStringBuffer[String_Length - 1] = '\0';
 }
-
 
 /* ************************************************************************
  * Function to Check wheather the input value is within the tolerance of.
  *    targeted value.
- *   Shall Return :- E_OK      => Within the targeted range 
+ *   Shall Return :- E_OK      => Within the targeted range
  *                   E_NOT_OK  => Outside the targered limit.
  * ************************************************************************
  */
@@ -119,10 +113,12 @@ uint8 ADC_Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 Toleran
   /* Get Lower cutoff Value*/
   LowerCutoff = TargetedValue - (uint32)((uint32)(System_ADC_Max_Value * ToleranceAllowed) / 100U);
   /* RE-correct Lower off, if Under flow detected.*/
-   LowerCutoff = ((LowerCutoff <= TargetedValue )? LowerCutoff : 0x00000000U) ;
+  LowerCutoff = ((LowerCutoff <= TargetedValue) ? LowerCutoff : 0x00000000U);
+
+  // Debug_Trace("TargetedValue = %d:- LowerCutoff = %d, InputValue = %d, UpperCutoff = %d .", TargetedValue, LowerCutoff, InputValue, UpperCutoff);
 
   /* Check wheather is within the Tolerance limit..*/
-  if( (InputValue <= UpperCutoff) && (InputValue >= LowerCutoff) )
+  if ((InputValue <= UpperCutoff) && (InputValue >= LowerCutoff))
   {
     /* Set return as OK*/
     Return_Value = E_OK;
@@ -133,9 +129,5 @@ uint8 ADC_Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 Toleran
     Return_Value = E_NOT_OK;
   }
 
-  return(Return_Value);
+  return (Return_Value);
 }
-
-
-
-

@@ -119,7 +119,7 @@ void loop()
 
 
   /* Keep this Loop Ideal for around 1 Second. As Not expected to do much critival processing*/
-  delay(1000);
+  Delay_In_ms(1000);
 
 }
 

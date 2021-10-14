@@ -43,6 +43,13 @@
 */
 #define NVM_Stack_Signature_Test STD_ON   
 
+/*
+ * This test is to just read the Variable and prient same to show its value.
+ * 1. This Test shall just read the NVM paramater using the interface and Print to show the value.
+ * 2. Recommenced to be STD_OFF on production, As it can compermise the Security Informatations in NVM.
+ */
+#define NVM_Stack_Read_And_Display_Test STD_ON
+
 
 /* Following are the default Value for each NVM paramaters.*/
 const uint8 NVM_Default_Value_WiFiSSIDName[75]    = "Test";                       /*String to hold the default value for the NVM_ID_Value_WiFiSSIDName NVM paramater.*/
@@ -51,13 +58,13 @@ const uint8 NVM_Default_Value_WiFiStsticIP[4]     = {198,168,1,10};             
 const uint8 NVM_Default_Value_WiFiServerName[75]  = "Automatic Water Purifier";   /*String to hold the default value for the NVM_ID_Value_WiFiServerName NVM paramater.*/
 const uint8 NVM_Default_Value_AdminPasword[30]    = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
 
-
-const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x00,0x00,0x03,0xE8};  /*  1100Tick = 1L   = 0x03E8 Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
-const uint8 NVM_Default_Calibration_LowFlowRate[4]               = {0x00,0x00,0x01,0xF4};  /*  500mLpM = 0.5LpM= 0x01F4 Array to hold the default value for the NVM_ID_Calibration_LowFlowRate NVM paramater.*/
-const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0x00,0x00,0x0F,0xA0};  /* 4000mLpM = 4LpM  = 0x0FA0 Array to hold the default value for the NVM_ID_Calibration_HighFlowRate NVM paramater.*/
-const uint8 NVM_Default_Calibration_HighPresureCollingTime[4]    = {0x00,0x00,0x27,0x10};  /* 10000ms  = 10S   = 0x2710 Array to hold the default value for the NVM_ID_Calibration_HighPresureCollingTime NVM paramater.*/
-const uint8 NVM_Default_Calibration_FlowRateWarningCollingTime[4]= {0x00,0x00,0x13,0x88};  /*  5000ms  =  5S   = 0x1388 Array to hold the default value for the NVM_ID_Calibration_FlowRateWarningCollingTime NVM paramater.*/
-const uint8 NVM_Default_Calibration_WaterTankOverflowCapacity[4] = {0x00,0x00,0x4E,0x20};  /* 20000mL  = 20L   = 0x4E20 Array to hold the default value for the NVM_ID_Calibration_WaterTankOverflowCapacity NVM paramater.*/
+      /* Byte arrangement after converting to uint32 Byte 0 - 3    {LSB0,LSB1,LSB2,MSB3}             */
+const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0xE8,0x03,0x00,0x00};  /*  1100Tick = 1L   = 0x03E8 Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
+const uint8 NVM_Default_Calibration_LowFlowRate[4]               = {0xF4,0x01,0x00,0x00};  /*  500mLpM = 0.5LpM= 0x01F4 Array to hold the default value for the NVM_ID_Calibration_LowFlowRate NVM paramater.*/
+const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0xA0,0x0F,0x00,0x00};  /* 4000mLpM = 4LpM  = 0x0FA0 Array to hold the default value for the NVM_ID_Calibration_HighFlowRate NVM paramater.*/
+const uint8 NVM_Default_Calibration_HighPresureCollingTime[4]    = {0x10,0x27,0x00,0x00};  /* 10000ms  = 10S   = 0x2710 Array to hold the default value for the NVM_ID_Calibration_HighPresureCollingTime NVM paramater.*/
+const uint8 NVM_Default_Calibration_FlowRateWarningCollingTime[4]= {0x88,0x13,0x00,0x00};  /*  5000ms  =  5S   = 0x1388 Array to hold the default value for the NVM_ID_Calibration_FlowRateWarningCollingTime NVM paramater.*/
+const uint8 NVM_Default_Calibration_WaterTankOverflowCapacity[4] = {0x20,0x4E,0x00,0x00};  /* 20000mL  = 20L   = 0x4E20 Array to hold the default value for the NVM_ID_Calibration_WaterTankOverflowCapacity NVM paramater.*/
 
 const uint8 NVM_Default_Seting_WaterTankOverflowAction    = Recovery_On_PowerOn;       /*Variable to hold the default value for the NVM_ID_Seting_WaterTankOverflowAction NVM paramater.*/
 const uint8 NVM_Default_Seting_HighPresureAction          = Recovery_Time_Bound;       /*Variable to hold the default value for the NVM_ID_Seting_HighPresureAction NVM paramater.*/
