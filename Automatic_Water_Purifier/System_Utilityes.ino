@@ -1616,6 +1616,9 @@ void Process_ControlSystem(void)
     /* If first time Entering this state from any other state.*/
     if (Is_Opp_State_Changed())
     {
+      /* Shut Down Every think. */
+      ShutDown_All();
+
       Debug_Trace(" Waitting for %d ms Based on configuration after Overflow detected.", P39_OverFlow_CollingTime_In_ms);
       Delay_In_ms(P39_OverFlow_CollingTime_In_ms);
     }
