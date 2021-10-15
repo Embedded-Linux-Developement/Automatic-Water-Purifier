@@ -60,6 +60,14 @@ version:- V2.0.1
 /* MAcro to define ADC Max value, Same shall use to calculate the tolerance value for the ADC sensor values.*/
 #define System_ADC_Max_Value 4095
 
+ /* MAcro to store the debounce time to registor Fault state, And register fault only after debouncing time is elapsed.
+      This is because ADC shall not change its level like GPIO, 
+      And we did not want to register fault on transition from ON to OFF and vis versa, To avoid False positive fault can trigger.
+    1. Unit shall be in ms 
+    2. Please make sure Debounce time shall be double that of Filter window configured for ADC, else False positive fault can trigger.*/
+#define ADC_Sensor_FaultDebouncing_Time_ms 700
+
+
 /*-----------------------------------------------------------------------------
  *  System Utility related Configuration END
 -------------------------------------------------------------------------------*/
@@ -147,6 +155,6 @@ extern double Get_Instantinous_FlowRate_InLpM(void);
 extern int Is_HighWaterFlowRateDetected(void);
 extern int Is_LowWaterFlowRateDetected(void);
 
-extern void Process_ADC_BackEndFilter(void);
+
 
 #endif /* End of  System_Utilityes_H */

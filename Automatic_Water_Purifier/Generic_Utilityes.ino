@@ -207,8 +207,8 @@ ADC_filter_Config_Table_Type ADC_filter_Config_Table[Max_Filter_Configured_ADC]{
 /*ADC_ChannelGPIO_ID,   FilterWindowTime_ms,   Max_Dead_Time_ms */
 {    35             ,         600           ,      300            },   /* ADC channel for LDR 1 @ GPIO 35*/
 {    34             ,         600           ,      300            },   /* ADC channel for LDR 2 @ GPIO 34*/
-{    33             ,         600           ,      300            },   /* ADC channel for OverFlow Detection @ GPIO 33*/
-{    32             ,         600           ,      300            }   /* ADC channel for High Presere Detection @ GPIO 32*/
+{    33             ,         300           ,      150            },   /* ADC channel for OverFlow Detection @ GPIO 33*/
+{    32             ,         300           ,      150            }    /* ADC channel for High Presere Detection @ GPIO 32*/
 };
 
 

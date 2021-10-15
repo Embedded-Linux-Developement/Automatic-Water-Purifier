@@ -921,6 +921,15 @@ Sys_Operatation_Status GetStatus_ROInput(void)
  * *************************************************************************/
 Sensor_InputStatus_Status GetStatus_HighPresere(void)
 {
+
+  /* Variable to store the time at which valied state is found, otherthan Fault,
+    And register fault only after debouncing time is elapsed.
+    To avoid False positive fault can trigger.
+  */
+  static uint32 Local_FaultDebouncing_Time = 0;
+  /* Variable to store previous valied state.*/
+  static Sensor_InputStatus_Status Previous_Registored_State = Sensor_Fault;
+
   uint16 HighPressure_ADC_Value;
 
   /* Variable to store current Time ( To avoid in mutex protection)*/
@@ -967,6 +976,41 @@ Sensor_InputStatus_Status GetStatus_HighPresere(void)
     Sensor_HighPressure_Start_Time = Temp_Time;
   }
 
+
+  /*----------------------------------------------------------------------------------
+                  Fault Debouncing Logic Started
+  -----------------------------------------------------------------------------------*/
+
+  /* Check if cirrent state is other than fault.*/
+  if (Sensor_HighPressure_Status != Sensor_Fault)
+  {
+    /* Reset the Fault debouncing timer.*/
+    Local_FaultDebouncing_Time = Temp_Time;
+
+    /* Store current registored state, to use same in fault state.*/
+    Previous_Registored_State = Sensor_HighPressure_Status;
+  }
+  else /* If fault is detected.*/
+  {
+    /* Check if Fault Debouncing timer expaired, If yes the confirm it as a fault.*/
+    if (Get_Time_Elapse(Local_FaultDebouncing_Time) >= ADC_Sensor_FaultDebouncing_Time_ms)
+    {
+      /* Store previous state as fault. Current state is anyway is fault.*/
+      Previous_Registored_State = Sensor_Fault;
+
+       //Debug_Trace("For High presure Sensor, Fault Time elapsed @ %d, and first detected @ %d", Temp_Time, Local_FaultDebouncing_Time);
+    }
+    else /* still timer is not expaired, So seding previously regustored state.*/
+    {
+      Sensor_HighPressure_Status = Previous_Registored_State;
+    }
+
+  } /* End of else if fault is detected. */
+
+  /*----------------------------------------------------------------------------------
+                  Fault Debouncing Logic Ended
+  -----------------------------------------------------------------------------------*/
+
   /* Exit from Critical Section. */
   portEXIT_CRITICAL(&Sensor_HighPressure_Mux);
 
@@ -995,6 +1039,15 @@ uint16 GetStatus_HighPresere_Sensor_Raw_Value(void)
  * *************************************************************************/
 Sensor_InputStatus_Status GetStatus_OverFlow(void)
 {
+
+  /* Variable to store the time at which valied state is found, otherthan Fault,
+    And register fault only after debouncing time is elapsed.
+    To avoid False positive fault can trigger.
+  */
+  static uint32 Local_FaultDebouncing_Time = 0;
+  /* Variable to store previous valied state.*/
+  static Sensor_InputStatus_Status Previous_Registored_State = Sensor_Fault;
+
   uint16 OverFlow_ADC_Value;
 
   /* Variable to store current Time ( To avoid in mutex protection)*/
@@ -1040,6 +1093,41 @@ Sensor_InputStatus_Status GetStatus_OverFlow(void)
     /* Reset the time*/
     Sensor_OverFlow_Start_Time = Temp_Time;
   }
+
+  /*----------------------------------------------------------------------------------
+                  Fault Debouncing Logic Started
+  -----------------------------------------------------------------------------------*/
+
+  /* Check if cirrent state is other than fault.*/
+  if (Sensor_OverFlow_Status != Sensor_Fault)
+  {
+    /* Reset the Fault debouncing timer.*/
+    Local_FaultDebouncing_Time = Temp_Time;
+
+    /* Store current registored state, to use same in fault state.*/
+    Previous_Registored_State = Sensor_OverFlow_Status;
+  }
+  else /* If fault is detected.*/
+  {
+    /* Check if Fault Debouncing timer expaired, If yes the confirm it as a fault.*/
+    if (Get_Time_Elapse(Local_FaultDebouncing_Time) >= ADC_Sensor_FaultDebouncing_Time_ms)
+    {
+      /* Store previous state as fault. Current state is anyway is fault.*/
+      Previous_Registored_State = Sensor_Fault;
+
+     //Debug_Trace("For Over flow Sensor, Fault Time elapsed @ %d, and first detected @ %d", Temp_Time, Local_FaultDebouncing_Time);
+
+    }
+    else /* still timer is not expaired, So seding previously regustored state.*/
+    {
+      Sensor_OverFlow_Status = Previous_Registored_State;
+    }
+
+  } /* End of else if fault is detected. */
+
+  /*----------------------------------------------------------------------------------
+                  Fault Debouncing Logic Ended
+  -----------------------------------------------------------------------------------*/
 
   /* Exit from Critical Section. */
   portEXIT_CRITICAL(&Sensor_OverFlow_Mux);
