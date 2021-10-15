@@ -22,7 +22,7 @@ Licence:-
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
     
 Auther:- Jerry James
-E-mail:- Jerrymbc@gmail.com
+E-mail:- Jerryonwork@gmail.com
 Date  :- 30 Aug 2021
 version:- V1.0.1
 
