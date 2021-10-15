@@ -4,6 +4,36 @@
 
 #include "MyStdTypes.h"
 
+/*****************************************************************************************************
+File belongings to  Automatic_Water_Purifier program in githib, 
+Link to Program GitHub Repository:- https://github.com/Embedded-Linux-Developement/Automatic-Water-Purifier
+Description:- On of the file  Automatic Water Purifier, 
+              Its a fully automatic water purifier Supporting code.
+
+Copy Write:- 
+Licence:- 
+    <Automatic Water Purifier>
+    Copyright (C) 2021  Jerry James
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Auther:- Jerry James
+E-mail:- Jerrymbc@gmail.com
+Date  :- 15 Sep 2021
+version:- V2.0.1
+
+*******************************************************************************************************/
 
 /*******************************************************************************
  *  NVM Configuration Start
@@ -52,8 +82,8 @@
 
 
 /* Following are the default Value for each NVM paramaters.*/
-const uint8 NVM_Default_Value_WiFiSSIDName[75]    = "Test";                       /*String to hold the default value for the NVM_ID_Value_WiFiSSIDName NVM paramater.*/
-const uint8 NVM_Default_Value_WiFiSSIDPasword[75] = "Test";                       /*String to hold the default value for the NVM_ID_Value_WiFiSSIDPasword NVM paramater.*/
+const uint8 NVM_Default_Value_WiFiSSIDName[75]    = "D-Link_DIR-600M";                       /*String to hold the default value for the NVM_ID_Value_WiFiSSIDName NVM paramater.*/
+const uint8 NVM_Default_Value_WiFiSSIDPasword[75] = "14299274@james";                       /*String to hold the default value for the NVM_ID_Value_WiFiSSIDPasword NVM paramater.*/
 const uint8 NVM_Default_Value_WiFiStsticIP[4]     = {198,168,1,10};               /*Array to hold the default value for the NVM_ID_Value_WiFiStsticIP NVM paramater.*/
 const uint8 NVM_Default_Value_WiFiServerName[75]  = "Automatic Water Purifier";   /*String to hold the default value for the NVM_ID_Value_WiFiServerName NVM paramater.*/
 const uint8 NVM_Default_Value_AdminPasword[30]    = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
