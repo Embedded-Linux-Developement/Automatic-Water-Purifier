@@ -144,6 +144,18 @@ version:- V2.0.1
 /* MAcro to Restart the Timming of the perodic statement.*/
 #define ReStart_Perodic_Statement(Statement_Name) P_S##Statement_Name##Timeout = Perodic_Statement_Invalid_Time;
 
+
+/*-------------------------------------------------------------------------------------
+              Generic Macro functions
+--------------------------------------------------------------------------------------*/
+
+/* MAcro function to det delay in ms.*/
+#define Delay_In_ms(DelayTime_in_Ms) delay((int)DelayTime_in_Ms / portTICK_PERIOD_MS)
+
+
+
+
+
 /*******************************************************************************
  *  Public Function Definations Functions
  *******************************************************************************/

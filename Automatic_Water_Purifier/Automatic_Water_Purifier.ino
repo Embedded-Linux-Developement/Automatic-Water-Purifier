@@ -10,6 +10,7 @@
 #include "System_Utilityes.h"
 #include "Asynchronous_Morse_Code_Generator.h"
 #include "Debug_Trace.h"
+#include "Web_Server.h"
 
 /*****************************************************************************************************
 File belongings to  Automatic_Water_Purifier program in githib, 

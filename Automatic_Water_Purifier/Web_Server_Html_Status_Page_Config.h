@@ -1,12 +1,12 @@
 
 /*****************************************************************************************************
-Header file  Html_Templates.h
+Header file  Web_Server_Html_Status_Page_Config.h
 Description:- Simple header file to store Html templates 
 
 *******************************************************************************************************/
 
-#ifndef Html_Templates_H
-#define Html_Templates_H
+#ifndef Web_Server_Html_Status_Page_Config_H
+#define Web_Server_Html_Status_Page_Config_H
 
 /*****************************************************************************************************
 File belongings to  Automatic_Water_Purifier program in githib, 
@@ -62,4 +62,4 @@ const char Html_Templates_Debug_Trace_Page_Footer[] = "</div> \n </body> \n\
 
 
 
-#endif /* End of  Html_Templates_H */
+#endif /* End of  Web_Server_Html_Status_Page_Config_H*/
