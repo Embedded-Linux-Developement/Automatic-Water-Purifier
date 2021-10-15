@@ -4,8 +4,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include "Automatic_Water_Purifier.h"
-#include "ESP32_NVM_Stack.h"
+#include "ESP32_NVM_Stack_Config.h"
+#include "MyStdTypes.h"
+
 
 #include <EEPROM.h>
 #include "CRC16.h"
@@ -44,6 +45,10 @@ version:- V2.0.1
 
 *******************************************************************************************************/
 
+CRC16 MY_CRC;
+
+
+
 /*******************************************************************************
  *  Variables and Constense
 *******************************************************************************/
@@ -71,7 +76,7 @@ portMUX_TYPE NVM_Mirror_Mux = portMUX_INITIALIZER_UNLOCKED; /* Mutex to protect 
  *  Class Objects.
 *******************************************************************************/
 
-CRC16 MY_CRC;
+
 
 
 /*
@@ -90,9 +95,11 @@ CRC16 MY_CRC;
 ===========================================================================
 */
 
-/* *************************************************************************
+/* 
+   *************************************************************************
  * Function to convert CRC in buffer to respective CRC value.
  * *************************************************************************/
+
 NVM_CRC_DataType Convert_STR_2_CRC(uint8 * InputBuffer)
 {
   uint8 Index;

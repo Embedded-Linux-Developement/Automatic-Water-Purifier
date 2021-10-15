@@ -2,5 +2,6 @@
     "files.associations": {
         "*.config": "cpp",
         "*.cfg": "cpp"
-    }
+    },
+    "C_Cpp.dimInactiveRegions": false
 }

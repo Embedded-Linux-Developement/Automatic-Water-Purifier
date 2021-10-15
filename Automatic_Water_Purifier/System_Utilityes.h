@@ -126,7 +126,7 @@ enum System_Operatation_Status
  *  Macro Functios
  *******************************************************************************/
 
-#define Delay_In_ms(DelayTime_in_Ms) delay((int)DelayTime_in_Ms / portTICK_PERIOD_MS)
+
 
 /*******************************************************************************
  *  Public Function Definations Functions
@@ -136,9 +136,6 @@ extern void Init_MCU(void);
 extern void Init_System_Utilityes_Variables(void);
 extern void Init_GPT_ICU(void);
 extern void Perform_Reset(void);
-
-extern void Web_Server_Init(void);
-extern void Web_Server_Processing(void);
 
 extern void Init_PulseCounter(void);
 extern void Clean_Water_Flow_Counters(void);
