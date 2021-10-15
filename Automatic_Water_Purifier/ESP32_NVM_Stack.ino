@@ -357,6 +357,11 @@ void Nvm_Read_From_EEPROM(NVMParam_ID_Enum Input_Requested_NVMParam)
     if (Stored_NVM_CRC != Calculated_NVM_CRC)
     {
       Debug_Trace("Error:- CRC calculation for paramater with ID %d is Not Successful after multiple attempt, So resterting...", Input_Requested_NVMParam);
+
+       Serial.write("Error:- CRC calculation for paramater with ID ");
+       Serial.print(Input_Requested_NVMParam, DEC);
+       Serial.write(" is Not Successful after multiple attempt, So resterting...");
+       Serial.write("\n");
       Perform_Reset();
     }
   }
@@ -465,6 +470,8 @@ void Init_NVM_Stack(void)
 
   if (E_OK != Error_Status)
   {
+    /* Give Delay to complete the printing of Debug trace, 10Sec*/
+    Delay_In_ms(10000);
     Perform_Reset();
   }
   NvmUtilization = ((float)((float)TotalNvm_Memory / (float)Max_Available_EEPROM) )* 100;

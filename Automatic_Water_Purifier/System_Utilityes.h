@@ -147,4 +147,6 @@ extern double Get_Instantinous_FlowRate_InLpM(void);
 extern int Is_HighWaterFlowRateDetected(void);
 extern int Is_LowWaterFlowRateDetected(void);
 
+extern void Process_ADC_BackEndFilter(void);
+
 #endif /* End of  System_Utilityes_H */

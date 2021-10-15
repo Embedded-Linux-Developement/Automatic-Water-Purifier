@@ -294,7 +294,6 @@ uint8 LowWater_Flow_Detected = false;
  *******************************************************************************/
 
 /*This function is to Control UV Lamp operatations*/
-static uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin);
 
 static void ShutDown_All(void);
 
@@ -2347,27 +2346,6 @@ int Is_LowWaterFlowRateDetected(void)
 
   /* Return true if detected*/
   return (LowWater_Flow_Detected == true);
-}
-
-
-/*
-===========================================================================
-===========================================================================
-          Functions ADC window filtering
-===========================================================================
-==========================================================================
-*/
-
-/* ************************************************************************
- * This Privite Function to read the processed ADC value based Filter designed.
- * *************************************************************************/
-uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin)
-{
-  uint16 Return_Value;
-  /* At present ADC filtering logic are not implemented so reading directely from the ADC.*/
-  Return_Value = analogRead(GPIO_Port_pin);
-
-  return (Return_Value);
 }
 
 

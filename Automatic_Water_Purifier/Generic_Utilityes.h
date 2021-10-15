@@ -166,4 +166,8 @@ extern unsigned long Get_Time_Elapse(unsigned long Reference_Time);
 extern void Get_Randam_String(uint16 String_Length, uint8 *OutPutStringBuffer);
 extern uint8 ADC_Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 ToleranceAllowed);
 
+extern void Init_ADC_BackEndFilter(void);
+extern uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin);
+extern void Process_ADC_BackEndFilter(void);
+
 #endif /* End of  Generic_Utilityes_H */

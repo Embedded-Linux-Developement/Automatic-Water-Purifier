@@ -56,6 +56,9 @@ TaskHandle_t ProcessControlSystem_Task_Handle;
 /* Handle for ProcessWaterFlowRate_Task */
 TaskHandle_t ProcessWaterFlowRate_Task_Handle;
 
+/* Handle for ADC_BackEndFilter_Task */
+TaskHandle_t ADC_BackEndFilter_Task_Handle;
+
 /*******************************************************************************
  *  Functions Extern deceleration
 *******************************************************************************/
@@ -96,6 +99,9 @@ void setup()
   /* Initialise all timmer and External interrupts*/
   Init_GPT_ICU();
 
+  /* Do init*/
+  Init_ADC_BackEndFilter();
+  
   /* Initate all required Perodic task*/
 
   /* Initate Low Priority Background Process Monitering Task */
@@ -128,6 +134,16 @@ void setup()
       NULL,                             /* parameter of the task */
       5,                               /* priority of the task, Grater the value Higher the priority.*/
       &ProcessWaterFlowRate_Task_Handle,/* Task handle to keep track of created task */
+      0);                               /* pin task to core 1, Along with loop() function. */
+
+  /* Initate Task for Calculating the water flow rate in Lpm. */
+  xTaskCreatePinnedToCore(
+      ADC_BackEndFilter_Task,        /* Task function. */
+      "ADC_BackEndFilter_Task",      /* name of task. */
+      1024,                             /* 5K Stack size of task */
+      NULL,                             /* parameter of the task */
+      2,                               /* priority of the task, Grater the value Higher the priority.*/
+      &ADC_BackEndFilter_Task_Handle,/* Task handle to keep track of created task */
       0);                               /* pin task to core 1, Along with loop() function. */
 
 
@@ -258,7 +274,7 @@ void ProcessControlSystem_Task( void * pvParameters ){
 /* ********************************************************************************
  * Task for process water flow rate
    Periodicity:-  1000ms
-   Priority   :-  5 (Highest)
+   Priority   :-  5 (Medium)
    Core       :-  0
  * *********************************************************************************/
 void ProcessWaterFlowRate_Task( void * pvParameters ){
@@ -276,6 +292,34 @@ void ProcessWaterFlowRate_Task( void * pvParameters ){
    
    /* Switch task for 1000ms */
    vTaskDelay(1000 / portTICK_PERIOD_MS);
+  }
+}
+
+
+
+
+/* ********************************************************************************
+ * Task for process foltering of ADC
+   Periodicity:-  30ms
+   Priority   :-  2 (Lowest)
+   Core       :-  0
+ * *********************************************************************************/
+void ADC_BackEndFilter_Task( void * pvParameters ){
+
+  /* Loop for the task.*/
+  for(;;){
+
+   /********************************************************************************
+    *  Add Code after this line....
+    * ******************************************************************************
+   */
+
+    /* Trigger the runnable to do processing in every 1000ms */
+    Process_ADC_BackEndFilter();
+
+   
+   /* Switch task for 1000ms */
+   vTaskDelay(30 / portTICK_PERIOD_MS);
   }
 }
 
