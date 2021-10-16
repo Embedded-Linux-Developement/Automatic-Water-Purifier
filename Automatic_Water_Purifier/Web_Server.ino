@@ -14,6 +14,9 @@
 // Load Wi-Fi library
 #include <WiFi.h>
 
+#include <ESPAsyncWebServer.h>
+
+
 /* Include required Html template header files*/
 #include "Web_Server_Html_Status_Page_Config.h"
 
@@ -53,8 +56,19 @@ version:- V2.0.1
 References used for developing This webserver..
 1. HTTP server with multiple pages ==>  https://www.arduinoslovakia.eu/blog/2019/4/esp8266---http-server-s-viac-strankami?lang=en  
 2. HTTP Request Methods: GET vs POST => https://randomnerdtutorials.com/esp32-http-get-post-arduino/
+3. for get Lib Path https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
+4. For support both AP and Station mode at same time.
 
 
+Required Libs:- 
+
+AsyncTCP = https://github.com/me-no-dev/AsyncTCP
+ESPAsyncWebServer = https://github.com/me-no-dev/ESPAsyncWebServer
+
+To install
+ You can find or change the location of your sketchbook folder at File > Preferences > Sketchbook location. 
+   Copy it in the “libraries” folder inside your sketchbook. Start the Arduino Software (IDE), 
+   go to Sketch > Include Library. Verify that the library you just added is available in the list.
 
 -------------------------------------------------------------------------------------------------*/
 
