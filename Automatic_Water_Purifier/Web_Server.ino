@@ -49,6 +49,19 @@ version:- V2.0.1
 
 *******************************************************************************************************/
 
+/*-----------------------------------------------------------------------------------------------
+References used for developing This webserver..
+1. HTTP server with multiple pages ==>  https://www.arduinoslovakia.eu/blog/2019/4/esp8266---http-server-s-viac-strankami?lang=en  
+2. HTTP Request Methods: GET vs POST => https://randomnerdtutorials.com/esp32-http-get-post-arduino/
+
+
+
+-------------------------------------------------------------------------------------------------*/
+
+
+
+
+
 /*******************************************************************************
  *  Variables and Constense
  *******************************************************************************/
@@ -61,6 +74,17 @@ version:- V2.0.1
 /* Golbal bariable to store the Buffer stream data.*/
 char BufferStream_ForDebugHTMLTrace[BufferStream_Max_Size + 10];
 
+/* Variable to store the HTTP request*/
+String Client_Header_Request;
+String currentLine;
+
+/* Previous time for time out purpose.*/
+unsigned long previousTime = 0;
+
+char ClientCurrent_Char;
+
+// Initialize the client library
+WiFiClient client;
 
 /*******************************************************************************
  *  Functions Extern deceleration
@@ -72,6 +96,43 @@ char BufferStream_ForDebugHTMLTrace[BufferStream_Max_Size + 10];
 
 /*Set web server port number to 80 */
 WiFiServer server(80);
+
+
+/*
+===========================================================================
+===========================================================================
+                      Privite functions
+===========================================================================
+===========================================================================
+*/
+
+/* ************************************************************************
+ * Function to Populate web page for Live status.
+ * *************************************************************************/
+void Web_Server_LiveStatus_Page(void)
+{
+
+  /* HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK) */
+  /* and a content-type so the client knows what's coming, then a blank line:*/
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-type:text/html");
+  client.println();
+
+  // Display the HTML web Header part
+  client.print(Html_Templates_Debug_Trace_Page_Header);
+
+  /* Get Queue string*/
+  Populate_BufferStream_FromQueue(BufferStream_ForDebugHTMLTrace, BufferStream_Max_Size);
+  /* Print HTML processed Page*/
+  client.print(BufferStream_ForDebugHTMLTrace);
+
+  /* Print Html Footer for the Debug trace*/
+  client.print(Html_Templates_Debug_Trace_Page_Footer);
+
+  // The HTTP response ends with another blank line
+  client.println();
+}
+
 /*
 ===========================================================================
 ===========================================================================
@@ -87,17 +148,8 @@ WiFiServer server(80);
 void Web_Server_Processing(void)
 {
 
-  /* Variable to store the HTTP request*/
-  String Client_Header_Request;
-  String currentLine;
-
-  /* Previous time for time out purpose.*/
-  unsigned long previousTime = 0;
-
-  char ClientCurrent_Char;
-
   /* Check if any  client has connected*/
-  WiFiClient client = server.available();
+  client = server.available();
 
   if (client)
   { /* If a new client connects,*/
@@ -131,25 +183,9 @@ void Web_Server_Processing(void)
           */
           if (currentLine.length() == 0)
           {
-            /* HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK) */
-            /* and a content-type so the client knows what's coming, then a blank line:*/
-            client.println("HTTP/1.1 200 OK");
-            client.println("Content-type:text/html");
-            client.println();
+            /* Trigger function to populate required webpage to show live status.*/
+            Web_Server_LiveStatus_Page();
 
-            // Display the HTML web Header part
-            client.print(Html_Templates_Debug_Trace_Page_Header);
-
-            /* Get Queue string*/
-            Populate_BufferStream_FromQueue(BufferStream_ForDebugHTMLTrace, BufferStream_Max_Size);
-            /* Print HTML processed Page*/
-            client.print(BufferStream_ForDebugHTMLTrace);
-
-            /* Print Html Footer for the Debug trace*/
-            client.print(Html_Templates_Debug_Trace_Page_Footer);
-
-            // The HTTP response ends with another blank line
-            client.println();
             // Break out of the while loop
             break;
           }
@@ -163,6 +199,9 @@ void Web_Server_Processing(void)
           currentLine += ClientCurrent_Char; // add it to the end of the currentLine
         }
       }
+
+
+
     }
     // Clear the header variable
     Client_Header_Request = "";

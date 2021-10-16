@@ -110,7 +110,7 @@ void setup()
       "Web_Server_Processing_Task",       /* name of task. */
       5120,                               /* 5K Stack size of task */
       NULL,                               /* parameter of the task */
-      1,                                  /* priority of the task, Grater the value Higher the priority.*/
+      0,                                  /* priority of the task, Grater the value Higher the priority.*/
       &Web_Server_Processing_Task_Handle, /* Task handle to keep track of created task */
       1);                                 /* pin task to core 1, Along with loop() function. */
 

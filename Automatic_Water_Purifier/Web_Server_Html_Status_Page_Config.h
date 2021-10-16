@@ -39,7 +39,6 @@ version:- V2.0.1
 
 *******************************************************************************************************/
 
-
 /* Define Header part*/
 const char Html_Templates_Debug_Trace_Page_Header[] = "<!DOCTYPE html> \n \
 <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">  \n \
@@ -51,13 +50,26 @@ const char Html_Templates_Debug_Trace_Page_Header[] = "<!DOCTYPE html> \n \
    <h1 style=\"background-color:Green;text-align: center;\">Live Debug trace for Water purifier</h1>   \n \
    <div style=\"text-align: center;\"> ";
 
-
-
 const char Html_Templates_Debug_Trace_Page_Footer[] = "</div> \n </body> \n\
 </html>";
 
+const char MAIN_page[] PROGMEM = R"=====(
+<!DOCTYPE html>
+<html>
+<body>
+<center>
+<h1>WiFi LED on off demo: 1</h1>
 
+Click to turn <a href="ledOn">LED ON</a>
 
+Click to turn <a href="ledOff">LED OFF</a>
+
+<hr>
+</center>
+
+</body>
+</html>
+)=====";
 
 
 
