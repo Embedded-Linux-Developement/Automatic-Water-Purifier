@@ -124,19 +124,18 @@ AsyncWebServer server(80);
 ===========================================================================
 */
 
+
+
+
+
+/* ************************************************************************
+ * Function to Populate Debug web page for Live status.
+ * *************************************************************************/
 void Web_Server_LiveStatus_Page(void)
 {
 
 Final_HTML_Page[Max_HTML_Page_Sizes -1] = 10;
 }
-
-
-
-#if 0
-/* ************************************************************************
- * Function to Populate web page for Live status.
- * *************************************************************************/
-
 
 /*
 ===========================================================================
@@ -145,80 +144,6 @@ Final_HTML_Page[Max_HTML_Page_Sizes -1] = 10;
 ===========================================================================
 ===========================================================================
 */
-
-
-/* ************************************************************************
- * Function to log latest status or to Monitor the provess..
- * *************************************************************************/
-void Web_Server_Processing(void)
-{
-
-  /* Check if any  client has connected*/
-  client = server.available();
-
-  if (client)
-  { /* If a new client connects,*/
-
-    /* Read current time.*/
-    previousTime = millis();
-
-    // Debug_Trace("New Clint has been connected...");
-
-    /* Clean the string to make a String to hold incoming data from the client*/
-    currentLine = "";
-
-    /*loop while the client's connected and No time out detected.*/
-    while ((client.connected()) && (Get_Time_Elapse(previousTime) <= html_TimeOut_Clint))
-    {
-
-      /* if there's bytes to read from the client, */
-      if (client.available())
-      {
-        /* Read each available Byte form client*/
-        ClientCurrent_Char = client.read();
-
-        /* Stor into a string variable.*/
-        Client_Header_Request += ClientCurrent_Char;
-
-        /* if the byte is a newline character */
-        if (ClientCurrent_Char == '\n')
-        {
-          /* if the current line is blank, you got two newline characters in a row.
-             that's the end of the client HTTP request, so send a response:
-          */
-          if (currentLine.length() == 0)
-          {
-            /* Trigger function to populate required webpage to show live status.*/
-            Web_Server_LiveStatus_Page();
-
-            // Break out of the while loop
-            break;
-          }
-          else
-          { // if you got a newline, then clear currentLine
-            currentLine = "";
-          }
-        }
-        else if (ClientCurrent_Char != '\r')
-        {                                    // if you got anything else but a carriage return character,
-          currentLine += ClientCurrent_Char; // add it to the end of the currentLine
-        }
-      }
-
-
-
-    }
-    // Clear the header variable
-    Client_Header_Request = "";
-    // Close the connection
-    client.stop();
-  }
-}
-
-#endif
-
-
-
 
 
 
