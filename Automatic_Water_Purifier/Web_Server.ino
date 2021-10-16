@@ -18,7 +18,11 @@
 
 
 /* Include required Html template header files*/
-#include "Web_Server_Html_Status_Page_Config.h"
+#include "Web_Server_Home_html.h"
+#include "Web_Server_Debug_Trace_html.h"
+#include "Web_Server_Calibration_html.h"
+#include "Web_Server_Settings_html.h"
+#include "Web_Server_About_html.h"
 
 
 /*****************************************************************************************************
@@ -72,10 +76,6 @@ To install
 
 -------------------------------------------------------------------------------------------------*/
 
-
-
-
-
 /*******************************************************************************
  *  Variables and Constense
  *******************************************************************************/
@@ -85,31 +85,35 @@ To install
 
 /* Macro to allocate Bufferstream memory.*/
 #define BufferStream_Max_Size 3000
+
 /* Golbal bariable to store the Buffer stream data.*/
 char BufferStream_ForDebugHTMLTrace[BufferStream_Max_Size + 10];
 
-/* Variable to store the HTTP request*/
-String Client_Header_Request;
-String currentLine;
+/* Local global to store the User names and paswords*/
+char WiFi_Nw_Current_ssid[52];
+char WiFi_Nw_Current_password[27];
 
-/* Previous time for time out purpose.*/
-unsigned long previousTime = 0;
+char WiFi_Soft_AP_Current_SSIS_Name[52];
+char WiFi_Soft_AP_Current_password[27];
 
-char ClientCurrent_Char;
 
-// Initialize the client library
-WiFiClient client;
+/*Macro to define Max allowed Sizes for the array to store html page.*/
+#define Max_HTML_Page_Sizes 20000
+/* Global array to Populate and store the required HTML page to be displayed.*/
+char Final_HTML_Page[Max_HTML_Page_Sizes];
+
 
 /*******************************************************************************
  *  Functions Extern deceleration
  *******************************************************************************/
+void WiFiEvent(WiFiEvent_t event);
 
 /*******************************************************************************
  *  Class Objects.
  *******************************************************************************/
 
 /*Set web server port number to 80 */
-WiFiServer server(80);
+AsyncWebServer server(80);
 
 
 /*
@@ -120,32 +124,19 @@ WiFiServer server(80);
 ===========================================================================
 */
 
-/* ************************************************************************
- * Function to Populate web page for Live status.
- * *************************************************************************/
 void Web_Server_LiveStatus_Page(void)
 {
 
-  /* HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK) */
-  /* and a content-type so the client knows what's coming, then a blank line:*/
-  client.println("HTTP/1.1 200 OK");
-  client.println("Content-type:text/html");
-  client.println();
-
-  // Display the HTML web Header part
-  client.print(Html_Templates_Debug_Trace_Page_Header);
-
-  /* Get Queue string*/
-  Populate_BufferStream_FromQueue(BufferStream_ForDebugHTMLTrace, BufferStream_Max_Size);
-  /* Print HTML processed Page*/
-  client.print(BufferStream_ForDebugHTMLTrace);
-
-  /* Print Html Footer for the Debug trace*/
-  client.print(Html_Templates_Debug_Trace_Page_Footer);
-
-  // The HTTP response ends with another blank line
-  client.println();
+Final_HTML_Page[Max_HTML_Page_Sizes -1] = 10;
 }
+
+
+
+#if 0
+/* ************************************************************************
+ * Function to Populate web page for Live status.
+ * *************************************************************************/
+
 
 /*
 ===========================================================================
@@ -224,46 +215,195 @@ void Web_Server_Processing(void)
   }
 }
 
+#endif
+
+
+
+
+
+
+/* ************************************************************************
+ * Function to Set On WiFi Event
+ * *************************************************************************/
+void WiFiEvent(WiFiEvent_t event)
+{
+
+  switch (event)
+  {
+  /* ----------------------------------------------------------
+           Events Related to Wifi Satiation connection.
+  -------------------------------------------------------------*/
+  case SYSTEM_EVENT_WIFI_READY:
+    Debug_Trace("WiFi interface ready");
+    break;
+  case SYSTEM_EVENT_SCAN_DONE:
+    Debug_Trace("%s:-Completed scan for access points", WiFi_Nw_Current_ssid);
+    break;
+  case SYSTEM_EVENT_STA_START:
+    Debug_Trace("%s:-WiFi client started", WiFi_Nw_Current_ssid);
+    break;
+  case SYSTEM_EVENT_STA_STOP:
+    Debug_Trace("%s:- WiFi clients stopped", WiFi_Nw_Current_ssid);
+    break;
+  case SYSTEM_EVENT_STA_CONNECTED:
+    Debug_Trace("%s:- Connected to access point", WiFi_Nw_Current_ssid);
+    break;
+  case SYSTEM_EVENT_STA_DISCONNECTED:
+    Debug_Trace("%s:- Disconnected from WiFi access point, So trying to reconnect.", WiFi_Nw_Current_ssid);
+    /* Try to Re-Connect to Wifi Network.*/
+    WiFi.begin(WiFi_Nw_Current_ssid, WiFi_Nw_Current_password);
+    break;
+  case SYSTEM_EVENT_STA_AUTHMODE_CHANGE:
+    Debug_Trace("%s:- Authentication mode of access point has changed", WiFi_Nw_Current_ssid);
+    break;
+  case SYSTEM_EVENT_STA_GOT_IP:
+    Debug_Trace("%s:- Obtained New IP address and is %s ", WiFi_Nw_Current_ssid, WiFi.localIP().toString().c_str());
+    break;
+  case SYSTEM_EVENT_STA_LOST_IP:
+    Debug_Trace("%s:- Lost IP address and IP address is reset to 0", WiFi_Nw_Current_ssid);
+    break;
+  case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
+    Debug_Trace("%s:- WiFi Protected Setup (WPS): succeeded in enrollee mode", WiFi_Nw_Current_ssid);
+    break;
+  case SYSTEM_EVENT_STA_WPS_ER_FAILED:
+    Debug_Trace("%s:- WiFi Protected Setup (WPS): failed in enrollee mode", WiFi_Nw_Current_ssid);
+    break;
+  case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
+    Debug_Trace("%s:- WiFi Protected Setup (WPS): timeout in enrollee mode", WiFi_Nw_Current_ssid);
+    break;
+  case SYSTEM_EVENT_STA_WPS_ER_PIN:
+    Debug_Trace("%s:- WiFi Protected Setup (WPS): pin code in enrollee mode", WiFi_Nw_Current_ssid);
+    break;
+
+    /* ----------------------------------------------------------
+             Events Related to Soft AP (Access Point)
+    -------------------------------------------------------------*/
+
+  case SYSTEM_EVENT_AP_START:
+    Debug_Trace("%s:- WiFi access point started and IP address is %s.", WiFi_Soft_AP_Current_SSIS_Name, WiFi.softAPIP().toString().c_str());
+    break;
+  case SYSTEM_EVENT_AP_STOP:
+    Debug_Trace("%s:- WiFi access point stopped.", WiFi_Soft_AP_Current_SSIS_Name);
+    break;
+  case SYSTEM_EVENT_AP_STACONNECTED:
+    Debug_Trace("%s:- a New Client connected.", WiFi_Soft_AP_Current_SSIS_Name);
+    break;
+  case SYSTEM_EVENT_AP_STADISCONNECTED:
+    Debug_Trace("%s:- aClient disconnected.", WiFi_Soft_AP_Current_SSIS_Name);
+    break;
+  case SYSTEM_EVENT_AP_STAIPASSIGNED:
+    Debug_Trace("%s:- Assigned IP address to client", WiFi_Soft_AP_Current_SSIS_Name);
+    break;
+  case SYSTEM_EVENT_AP_PROBEREQRECVED:
+    Debug_Trace("%s:- Received probe request", WiFi_Soft_AP_Current_SSIS_Name);
+    break;
+  case SYSTEM_EVENT_GOT_IP6:
+    Debug_Trace("%s:- IPv6 is preferred", WiFi_Soft_AP_Current_SSIS_Name);
+    break;
+
+  case SYSTEM_EVENT_ETH_START:
+    Debug_Trace("Ethernet started");
+    break;
+  case SYSTEM_EVENT_ETH_STOP:
+    Debug_Trace("Ethernet stopped");
+    break;
+  case SYSTEM_EVENT_ETH_CONNECTED:
+    Debug_Trace("Ethernet connected");
+    break;
+  case SYSTEM_EVENT_ETH_DISCONNECTED:
+    Debug_Trace("Ethernet disconnected");
+    break;
+  case SYSTEM_EVENT_ETH_GOT_IP:
+    Debug_Trace("Obtained IP address");
+    break;
+  default:
+    break;
+  } /* End of event switch.*/
+}
+
 /* ************************************************************************
  * Function to Init the Web server Required
  * *************************************************************************/
 void Web_Server_Init(void)
 {
-  /* change these values to match your network*/
-  char Current_ssid[100];
-  char Current_password[100];
 
-  /*Read SSID from NVM.*/
-  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDName, (uint8 *)Current_ssid);
-  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDPasword, (uint8 *)Current_password);
+  /* Set Call back Event for the Wifi Status*/
+  WiFi.onEvent(WiFiEvent);
 
-  /* Try to connect to Wifi Access point based on the configuration.*/
-  WiFi.begin(Current_ssid, Current_password);
 
-  /* Waite until it get connect*/
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    /* Waite for 100ns befor reading status again.*/
-    delay(100 / portTICK_PERIOD_MS);
-  }
+  /*Read Wifi SSID  and pasword from from NVM.*/
+  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDName, (uint8 *)WiFi_Nw_Current_ssid);
+  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDPasword, (uint8 *)WiFi_Nw_Current_password);
 
-  /* If connected began the server.*/
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    /* Start the server.*/
-    server.begin();
+  /*Read Soft Access Point SSID  and pasword from from NVM.*/
+  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDName, (uint8 *)WiFi_Soft_AP_Current_SSIS_Name);
+  Nvm_Read_Each(NVM_ID_Value_WiFiSSIDPasword, (uint8 *)WiFi_Soft_AP_Current_password);
 
-    Debug_Trace("WiFi get connected and IP address is %s", WiFi.localIP().toString().c_str());
-  }
-  /* If not able to connect to the Web server.*/
-  else
-  {
-    Debug_Trace("Failed to connect to the configured WiFi %s", NVM_ID_Value_WiFiSSIDName);
-  }
+
+
+ 
+ /* Set WiFi mode to work in Both Station and Soft Access Point*/
+  WiFi.mode(WIFI_MODE_APSTA);
+ 
+  /* Start Soft AP*/
+  WiFi.softAP(WiFi_Soft_AP_Current_SSIS_Name, WiFi_Soft_AP_Current_password);
+  /* Start Wifi Station.*/
+  WiFi.begin(WiFi_Nw_Current_ssid, WiFi_Nw_Current_password);
+
 
   /* Add additional logic for Time out and automatic switching between AP and WiFi station based on the availability.
     Reffer the Approach mentioned in https://techtutorialsx.com/2021/01/04/esp32-soft-ap-and-station-modes/
    */
+
+
+
+/* Server for Home Page.*/
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) 
+    {
+ 
+    request->send(200, "text/html", Html_Head_Home);
+  });
+
+
+
+/* Server for Debug Trace page.*/
+    server.on("/DebugTrace", HTTP_GET, [](AsyncWebServerRequest * request) 
+    {
+
+     Web_Server_LiveStatus_Page();
+ 
+    request->send(200, "text/html", Html_Head_Debug_Trace);
+  });
+
+
+/* Server for Calibration page.*/
+    server.on("/Calibration", HTTP_GET, [](AsyncWebServerRequest * request) 
+    {
+ 
+    request->send(200, "text/html", Html_Head_Calibration);
+  });
+
+
+/* Server for Settings page.*/
+    server.on("/Settings", HTTP_GET, [](AsyncWebServerRequest * request) 
+    {
+ 
+    request->send(200, "text/html", Html_Head_Settings);
+  });
+
+/* Server for About page.*/
+    server.on("/About", HTTP_GET, [](AsyncWebServerRequest * request) 
+    {
+ 
+    request->send(200, "text/html", Html_Head_About);
+  });
+
+
+
+ 
+
+  server.begin();
+
 }
 
 

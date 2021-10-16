@@ -57,6 +57,8 @@ enum  NVMParam_ID_Enum{
 
   NVM_ID_Value_WiFiSSIDName,                     /* This NVM paramater is storing the WiFi SSID Name set by the user.*/
   NVM_ID_Value_WiFiSSIDPasword,                  /* This NVM paramater is storing the WiFi SSID Pasword set by the user. Pasword shall Not store Securely*/
+  NVM_ID_Value_Soft_AP_SSIDName,                 /* This NVM paramater is storing the Soft AP SSID Name set by the user.*/
+  NVM_ID_Value_Soft_AP_Pasword,                  /* This NVM paramater is storing the Soft AP SSID Pasword set by the user. Pasword shall Not store Securely*/
   NVM_ID_Value_WiFiStsticIP,                     /* This NVM paramater is storing the Server IP, If user specify then only same shall be considered, Else shall ignore.*/
   NVM_ID_Value_WiFiServerName,                   /* This NVM paramater is storing the Server Custom Server Name, If user want to, Else Shall use default Server Name.*/
   NVM_ID_Value_AdminPasword,                     /* This NVM paramater is storing the Admin pasword User has been set. Default password shall be "Admin"*/

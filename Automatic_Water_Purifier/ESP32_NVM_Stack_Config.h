@@ -41,7 +41,7 @@ version:- V2.0.1
 *******************************************************************************/
 /* This Macro represent the maximum available, For ESP32, Its 512Bytes */
 #define Max_Available_EEPROM 512
-#define Total_NVM_Paramaters 20   /* Represent Max NVM paramater, Please make sure shall same as NVM_ID_Max*/
+#define Total_NVM_Paramaters 22   /* Represent Max NVM paramater, Please make sure shall same as NVM_ID_Max*/
 #define NVM_CRC_Polynomial   0x2869 /* Polynomial for calculate the CRC*/
 
 /* 
@@ -97,11 +97,15 @@ version:- V2.0.1
 *******************************************************************************/
 
 /* Following are the default Value for each NVM paramaters.*/
-const uint8 NVM_Default_Value_WiFiSSIDName[75]    = "Test";                       /*String to hold the default value for the NVM_ID_Value_WiFiSSIDName NVM paramater.*/
-const uint8 NVM_Default_Value_WiFiSSIDPasword[75] = "Test";                       /*String to hold the default value for the NVM_ID_Value_WiFiSSIDPasword NVM paramater.*/
-const uint8 NVM_Default_Value_WiFiStsticIP[4]     = {198,168,1,10};               /*Array to hold the default value for the NVM_ID_Value_WiFiStsticIP NVM paramater.*/
-const uint8 NVM_Default_Value_WiFiServerName[75]  = "Automatic Water Purifier";   /*String to hold the default value for the NVM_ID_Value_WiFiServerName NVM paramater.*/
-const uint8 NVM_Default_Value_AdminPasword[30]    = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
+const uint8 NVM_Default_Value_WiFiSSIDName[50]     = "Test";                      /*String to hold the default value for the NVM_ID_Value_WiFiSSIDName NVM paramater.*/
+const uint8 NVM_Default_Value_WiFiSSIDPasword[25]  = "Test";                       /*String to hold the default value for the NVM_ID_Value_WiFiSSIDPasword NVM paramater.*/
+
+const uint8 NVM_Default_Value_Soft_AP_SSIDName[50] = "WaterPurifier";         /*String to hold the default value for the NVM_ID_Value_Soft_AP_SSIDName NVM paramater.*/
+const uint8 NVM_Default_Value_Soft_AP_Pasword[25]  = "686517PWF2021";                       /*String to hold the default value for the NVM_ID_Value_Soft_AP_Pasword NVM paramater.*/
+
+const uint8 NVM_Default_Value_WiFiStsticIP[4]      = {198,168,1,10};               /*Array to hold the default value for the NVM_ID_Value_WiFiStsticIP NVM paramater.*/
+const uint8 NVM_Default_Value_WiFiServerName[75]   = "Automatic Water Purifier";   /*String to hold the default value for the NVM_ID_Value_WiFiServerName NVM paramater.*/
+const uint8 NVM_Default_Value_AdminPasword[30]     = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
 
       /* Byte arrangement after converting to uint32 Byte 0 - 3    {LSB0,LSB1,LSB2,MSB3}             */
 const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0xE8,0x03,0x00,0x00};  /*  1100Tick = 1L   = 0x03E8 Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
@@ -153,8 +157,12 @@ const NVM_Param_Config_Table_Type NVM_Param_Config_Table[Total_NVM_Paramaters] =
 /*========================================== Please add New NVM paramater below this Point Only.===================================================*/
 /* NVMParam_ID                                 , NVMParam_Length  ,  NVMParam_Type   ,            &NVMParam_Default         */
 
-{NVM_ID_Value_WiFiSSIDName                     ,        75U       ,  NVM_StringType  ,     NVM_Default_Value_WiFiSSIDName                          },   
-{NVM_ID_Value_WiFiSSIDPasword                  ,        75U       ,  NVM_StringType  ,     NVM_Default_Value_WiFiSSIDPasword                       },   
+{NVM_ID_Value_WiFiSSIDName                     ,        50U       ,  NVM_StringType  ,     NVM_Default_Value_WiFiSSIDName                          },   
+{NVM_ID_Value_WiFiSSIDPasword                  ,        25U       ,  NVM_StringType  ,     NVM_Default_Value_WiFiSSIDPasword                       },  
+
+{NVM_ID_Value_Soft_AP_SSIDName                 ,        50U       ,  NVM_StringType  ,     NVM_Default_Value_Soft_AP_SSIDName                      },   
+{NVM_ID_Value_Soft_AP_Pasword                  ,        25U       ,  NVM_StringType  ,     NVM_Default_Value_Soft_AP_Pasword                       },   
+
 {NVM_ID_Value_WiFiStsticIP                     ,        04U       ,  NVM_VoidType    ,     NVM_Default_Value_WiFiStsticIP                          },   
 {NVM_ID_Value_WiFiServerName                   ,        75U       ,  NVM_StringType  ,     NVM_Default_Value_WiFiServerName                        },   
 {NVM_ID_Value_AdminPasword                     ,        30U       ,  NVM_StringType  ,     NVM_Default_Value_AdminPasword                          },   

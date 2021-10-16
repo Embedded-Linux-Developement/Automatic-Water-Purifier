@@ -1,21 +1,65 @@
 <!DOCTYPE html>
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"> 
-   <title>Trace Debug</title> 
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=windows-1252"> 
+   <title>Water Purifier Trace Debug</title> 
    <!-- Add 1 Sec Auto refresh --> 
-   <meta http-equiv="refresh" content="1">  
+   <!-- <meta http-equiv="refresh" content="1">   -->
+
+   <style>
+    ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #333;
+    }
+
+    li {
+      float: left;
+    }
+
+    li a {
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    li a:hover:not(.active) {
+      background-color: #111;
+    }
+
+    .active {
+      background-color: #04AA6D;
+    }
+  </style>
+
  </head> 
  <body> 
-   <h1 style="background-color:Green;text-align: center;">Following are the Debug trace Live Output</h1>  
-   <div style="text-align: center;"> 
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a class="active" href="/DebugTrace">Debug Trace</a></li>
+    <li><a href="/Calibration">Calibration</a></li>
+    <li><a href="/Settings">Settings</a></li>
+    <li><a href="/About">About</a></li>
+  </ul>
+ 
 
-<h2> Debug Trace Error Hadling </h2><p style="color:red">
+   <h1 style="background-color:Green;text-align: center;">Following are the Debug trace Live Output</h1>  
+   <div style="text-align: left;"> 
+
+
+
+<h2 style="text-align: center;"> Debug Trace Error Hadling </h2><p style="color:red">
 
   No Queue Overflow detected Yet... <br>
   No Queue Timeout detected Yet... <br>
 
 </p><hr style="border: 1px dashed Green">
 
-<h2> Debug Trave Messages </h2> <p> 
+<h2 style="text-align: center;"> Debug Trave Messages </h2> <p> 
 
 00000055143: Index = 104 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
 00000055643: Index = 105 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
@@ -37,6 +81,9 @@
 
 </p><hr style="border: 1px dashed blue">
 
-</div> </body></html>
+
+</div> 
+
+</body></html>
 
 

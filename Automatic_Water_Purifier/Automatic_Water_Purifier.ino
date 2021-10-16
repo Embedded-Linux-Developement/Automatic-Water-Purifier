@@ -236,7 +236,7 @@ void Web_Server_Processing_Task( void * pvParameters ){
    */
 
     /* Trigger function to do monitering and log the info in every 200ms */
-     Web_Server_Processing();
+    // Web_Server_Processing();
 
    
    /* Switch task for 200ms */

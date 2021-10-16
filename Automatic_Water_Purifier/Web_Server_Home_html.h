@@ -1,12 +1,12 @@
 
 /*****************************************************************************************************
-Header file  Web_Server_Html_Status_Page_Config.h
-Description:- Simple header file to store Html templates 
+Header file  Web_Server_Home_html.h
+Description:- Simple header file to store Html templates for Home Page
 
 *******************************************************************************************************/
 
-#ifndef Web_Server_Html_Status_Page_Config_H
-#define Web_Server_Html_Status_Page_Config_H
+#ifndef Web_Server_Home_html_H
+#define Web_Server_Home_html_H
 
 /*****************************************************************************************************
 File belongings to  Automatic_Water_Purifier program in githib, 
@@ -40,38 +40,65 @@ version:- V2.0.1
 *******************************************************************************************************/
 
 /* Define Header part*/
-const char Html_Templates_Debug_Trace_Page_Header[] = "<!DOCTYPE html> \n \
-<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\">  \n \
-   <title>Payyampallil Water purifier Trace Debug</title>  \n \
-   <!-- Add 1 Sec Auto refresh -->  \n \
-   <meta http-equiv=\"refresh\" content=\"1\">   \n \
- </head>  \n \
- <body>  \n \
-   <h1 style=\"background-color:Green;text-align: center;\">Live Debug trace for Water purifier</h1>   \n \
-   <div style=\"text-align: center;\"> ";
 
-const char Html_Templates_Debug_Trace_Page_Footer[] = "</div> \n </body> \n\
-</html>";
-
-const char MAIN_page[] PROGMEM = R"=====(
+const char Html_Head_Home[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252"> 
+  <title>Water Purifier</title> 
+  <!-- Add 1 Sec Auto refresh --> 
+  <!-- <meta http-equiv="refresh" content="1">   -->
+<head>
+  <style>
+    ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #333;
+    }
+
+    li {
+      float: left;
+    }
+
+    li a {
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    li a:hover:not(.active) {
+      background-color: #111;
+    }
+
+    .active {
+      background-color: #04AA6D;
+    }
+  </style>
+</head>
+
 <body>
-<center>
-<h1>WiFi LED on off demo: 1</h1>
 
-Click to turn <a href="ledOn">LED ON</a>
+  <ul>
+    <li><a class="active" href="/">Home</a></li>
+    <li><a href="/DebugTrace">Debug Trace</a></li>
+    <li><a href="/Calibration">Calibration</a></li>
+    <li><a href="/Settings">Settings</a></li>
+    <li><a href="/About">About</a></li>
+  </ul>
 
-Click to turn <a href="ledOff">LED OFF</a>
-
-<hr>
-</center>
+  <h2 style="text-align: center;"> Welcome to Payyampallil Water Purifier </h2>
+  <p>
 
 </body>
+
 </html>
 )=====";
 
 
 
 
-#endif /* End of  Web_Server_Html_Status_Page_Config_H*/
+#endif /* End of  Web_Server_Home_html_H*/
