@@ -41,7 +41,7 @@ version:- V2.0.1
 *******************************************************************************/
 /* This Macro represent the maximum available, For ESP32, Its 512Bytes */
 #define Max_Available_EEPROM 512
-#define Total_NVM_Paramaters 18   /* Represent Max NVM paramater, Please make sure shall same as NVM_ID_Max*/
+#define Total_NVM_Paramaters 20   /* Represent Max NVM paramater, Please make sure shall same as NVM_ID_Max*/
 #define NVM_CRC_Polynomial   0x2869 /* Polynomial for calculate the CRC*/
 
 /* 
@@ -110,12 +110,15 @@ const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0xA0,0x0F,0x
 const uint8 NVM_Default_Calibration_HighPresureCollingTime[4]    = {0x10,0x27,0x00,0x00};  /* 10000ms  = 10S   = 0x2710 Array to hold the default value for the NVM_ID_Calibration_HighPresureCollingTime NVM paramater.*/
 const uint8 NVM_Default_Calibration_FlowRateWarningCollingTime[4]= {0x88,0x13,0x00,0x00};  /*  5000ms  =  5S   = 0x1388 Array to hold the default value for the NVM_ID_Calibration_FlowRateWarningCollingTime NVM paramater.*/
 const uint8 NVM_Default_Calibration_WaterTankOverflowCapacity[4] = {0x20,0x4E,0x00,0x00};  /* 20000mL  = 20L   = 0x4E20 Array to hold the default value for the NVM_ID_Calibration_WaterTankOverflowCapacity NVM paramater.*/
+const uint8 NVM_Default_Calibration_AutoModeBoosterStartTime[4]  = {0x20,0x4E,0x00,0x00};  /* 20000ms  = 20S   = 0x4E20 Array to hold the default value for the NVM_ID_Calibration_AutoModeBoosterStartTime NVM paramater.*/
+const uint8 NVM_Default_Calibration_MaxDryRunTimeTime[4]         = {0x60,0xEA,0x00,0x00};  /* 60000ms  = 60S   = 0xEA60 Array to hold the default value for the NVM_ID_Calibration_MaxDryRunTimeTime NVM paramater.*/
+
 
 const uint8 NVM_Default_Seting_WaterTankOverflowAction    = Recovery_On_PowerOn;       /*Variable to hold the default value for the NVM_ID_Seting_WaterTankOverflowAction NVM paramater.*/
 const uint8 NVM_Default_Seting_HighPresureAction          = Recovery_Time_Bound;       /*Variable to hold the default value for the NVM_ID_Seting_HighPresureAction NVM paramater.*/
 const uint8 NVM_Default_Seting_LowFlowRateWarningAction   = Recovery_Time_Bound;       /*Variable to hold the default value for the NVM_ID_Seting_LowFlowRateWarningAction NVM paramater.*/
 const uint8 NVM_Default_Seting_HighFlowRateWarningAction  = Recovery_Time_Bound;       /*Variable to hold the default value for the NVM_ID_Seting_HighFlowRateWarningAction NVM paramater.*/
-const uint8 NVM_Default_Seting_OperatationMode            = WF_Mode_Inline;            /*Variable to hold the default value for the NVM_ID_Seting_OperatationMode NVM paramater.*/
+const uint8 NVM_Default_Seting_OperatationMode            = WF_Mode_Auto;              /*Variable to hold the default value for the NVM_ID_Seting_OperatationMode NVM paramater.*/
 
 /* Below Variables and Macros are for setting the NVM Signature Value*/
 #define NVM_Start_Signature_Sizes  4U /* Define the sizes of Start Signature.*/
@@ -163,6 +166,8 @@ const NVM_Param_Config_Table_Type NVM_Param_Config_Table[Total_NVM_Paramaters] =
 {NVM_ID_Calibration_HighPresureCollingTime     ,        04U       ,  NVM_VoidType    ,     NVM_Default_Calibration_HighPresureCollingTime          },  
 {NVM_ID_Calibration_FlowRateWarningCollingTime ,        04U       ,  NVM_VoidType    ,     NVM_Default_Calibration_FlowRateWarningCollingTime      },  
 {NVM_ID_Calibration_WaterTankOverflowCapacity  ,        04U       ,  NVM_VoidType    ,     NVM_Default_Calibration_WaterTankOverflowCapacity       },  
+{NVM_ID_Calibration_AutoModeBoosterStartTime   ,        04U       ,  NVM_VoidType    ,     NVM_Default_Calibration_AutoModeBoosterStartTime        },  
+{NVM_ID_Calibration_MaxDryRunTimeTime          ,        04U       ,  NVM_VoidType    ,     NVM_Default_Calibration_MaxDryRunTimeTime               },  
                              
 /*For settings*/                             
 {NVM_ID_Seting_WaterTankOverflowAction         ,        01U       ,  NVM_VoidType    ,     &NVM_Default_Seting_WaterTankOverflowAction             },  

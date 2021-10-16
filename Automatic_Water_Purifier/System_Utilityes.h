@@ -152,8 +152,14 @@ extern double Get_Current_SectionWaterFlowedInL(void);
 extern void ProcessWaterFlowRate(void);
 extern void ReStartFlowRate_Processing(void);
 extern double Get_Instantinous_FlowRate_InLpM(void);
+
+/* Interface for monitering purpose only, These interface data may not corect always.
+     But can ok for monitering. This is because critical section protection is not used before reading.
+ */
 extern int Is_HighWaterFlowRateDetected(void);
 extern int Is_LowWaterFlowRateDetected(void);
+extern int Is_DryRunDetected(void);
+extern int Is_Tank_Emergency_StopDetected(void);
 
 
 

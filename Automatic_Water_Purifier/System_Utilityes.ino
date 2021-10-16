@@ -289,6 +289,9 @@ uint8 HighWater_Flow_Detected = false;
 /* Global Variable to store the High flow rate detected.*/
 uint8 LowWater_Flow_Detected = false;
 
+/* Global Variable to store the DryRun Detection detected.*/
+uint8 Dry_Run_Detected = false;
+
 /*******************************************************************************
  *  Functions Forward decleratations deceleration
  *******************************************************************************/
@@ -306,6 +309,7 @@ static Sys_Operatation_Status GetStatus_InLineInput(void);
 
 static void Control_BoostInput(Sys_Operatation_Status InputRequest);
 static Sys_Operatation_Status GetStatus_BoostInput(void);
+static void BoostInput_MainFunction(void);
 
 static void Control_ROInput(Sys_Operatation_Status InputRequest);
 static Sys_Operatation_Status GetStatus_ROInput(void);
@@ -680,7 +684,7 @@ void Control_BoostInput(Sys_Operatation_Status InputRequest)
   /* Enter in to Critical Section*/
   portENTER_CRITICAL(&InputBoost_Mux);
 
-  /* Check wheather support is enabled..*/
+  /* Check wheather support is enabled ..*/
   if (P13_InputBoostMotor_Support == STD_ON)
   {
 
@@ -692,9 +696,17 @@ void Control_BoostInput(Sys_Operatation_Status InputRequest)
       {
         /* Reset the Start time*/
         InputBoost_Start_Time = Temp_Time;
-
-        /*Print Debug Info.*/
-        Debug_Trace("Requested Booster pump to turn ON...");
+        /* Check the mode of the operatation*/
+        if (Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Auto)
+        {
+          /*Print Debug Info.*/
+          Debug_Trace("Booster pump shall Turn ON automaticaly if water flow rate reached Zero, because mode selected is \"WF_Mode_Auto\".");
+        }
+        else
+        {
+          /*Print Debug Info.*/
+          Debug_Trace("Requested Booster pump to turn ON...");
+        }
       }
       else
       {
@@ -734,6 +746,33 @@ void Control_BoostInput(Sys_Operatation_Status InputRequest)
     {
       /* Do Nothing...*/
     }
+
+    /* Check Mode configured..*/
+
+    /* if Mode configured is WF_Mode_Inline, Then Switch off the Motor and Solinode,*/
+    if(Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Inline)
+    {
+       /* Update the Output pin state, to make it always off.*/
+      Temp_MotorPinStatus = P16_InputBoostMotor_Relay_OFF_State;
+      Temp_SolenoidPinStatus = P19_InputBoostSolenoid_Relay_OFF_State;
+    }
+    /* If Auto selected, Then DO not allow to change state from here, 
+       insted same shall be updated from a main function.*/
+    else if(Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Auto)
+    {
+      /* To prevent to take any action, Only if New Request is ON, Off request excute Directely*/
+      if(InputBoost_Current_Status == Operatation_ON)
+      {  
+        Temp_MotorPinStatus = 0xFFU;
+        Temp_SolenoidPinStatus = 0xFFU;
+
+       }
+    }
+    else
+    {
+      /* Do nothing as, its WF_Mode_Via_Pump, So consider to make it on..*/      
+    }
+
   }
   else /* If Booster support is dissabled*/
   {
@@ -787,6 +826,105 @@ Sys_Operatation_Status GetStatus_BoostInput(void)
 
   return (Return_Value);
 }
+
+
+
+/* ************************************************************************
+ * This is to process the Booster motor when user selected the mode as WF_Mode_Auto.
+ * Expecting this main function shall call form some task only.
+ * *************************************************************************/
+void BoostInput_MainFunction(void)
+{
+  /*Flag to detect if its a first time after IN is requested.*/
+  static uint8 Booster_On_Check_flage = Sys_Flag_Init;
+  /* Flag to Indicate message is printed once*/
+  static uint8 Booster_Print_flag = Sys_Flag_Init;
+  /* Variable to store the start time after enter to ON state.*/
+  static uint32 Booster_Switch_To_ON_Time = 0;
+
+  /* Start processing only if mode is selected as Auto*/
+  if (Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Auto)
+  {
+    /* Enter in to Critical Section*/
+    portENTER_CRITICAL(&InputBoost_Mux);
+
+    /* Check if Now request is to make it ON*/
+    if (InputBoost_Current_Status == Operatation_ON)
+    {
+      /* If entering to Off state first time after last OFF state*/
+      if (Booster_On_Check_flage == Sys_Flag_Init)
+      {
+        /* Check if water flow is Zero*/
+        if (Get_Instantinous_FlowRate_InLpM() == 0)
+        {
+          /* Get current time stamp*/
+          Booster_Switch_To_ON_Time = millis();
+
+          /* Set the flag as true*/
+          Booster_On_Check_flage = Sys_Flag_True;
+        } /* End of flow check*/
+      }
+      /* If Water flow detected as Zero and waitting for time to elapse*/
+      else if ((Booster_On_Check_flage == Sys_Flag_True) &&                                                               /* Time started after flow rate detected as Zero*/
+               (Get_Time_Elapse(Booster_Switch_To_ON_Time) < Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime))) /* First start Time is NOT elapsed*/
+      {
+        /* Check If water flow is detected befor starting booster motor, Then reset the flag again.*/
+        if (Get_Instantinous_FlowRate_InLpM() != 0)
+        {
+          /* Reset the flag*/
+          Booster_On_Check_flage = Sys_Flag_Init;
+          /* Reset the timer*/
+          Booster_Switch_To_ON_Time = 0;
+        }
+      }
+      /* If timer is elapsed, Then Start the Booster pump*/
+      else if ((Booster_On_Check_flage == Sys_Flag_True) &&                                                                /* Time started after flow rate detected as Zero*/
+               (Get_Time_Elapse(Booster_Switch_To_ON_Time) >= Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime))) /* First start Time is NOT elapsed*/
+      {
+        /* Starting the booster bump and its solinode.*/
+        digitalWrite(P14_InputBoostMotor_Relay, P15_InputBoostMotor_Relay_ON_State);
+        digitalWrite(P17_InputBoostSolenoid_Relay, P18_InputBoostSolenoid_Relay_ON_State);
+
+        if (Booster_Print_flag == Sys_Flag_Init)
+        {
+          Debug_Trace("No Water flow detected after waiting for %dms time, To Starting Booster pump based on the configuration.", Get_Time_Elapse(Booster_Switch_To_ON_Time));
+
+          /* Set the print flag*/
+          Booster_Print_flag = Sys_Flag_True;
+        }
+      }
+      else
+      {
+        /* Do nothing, Because Dry run case is handled saperately based on its configured time.*/
+      }
+    } /* End of if operatation is ON*/
+    else
+    {
+      /* Shall be already in OFF state from the requested function.*/
+
+      /* Reset the flag*/
+      Booster_On_Check_flage = Sys_Flag_Init;
+      /* Reset the timer*/
+      Booster_Switch_To_ON_Time = 0;
+
+      /* Reset the flags */
+      Booster_Print_flag = Sys_Flag_Init;
+    }
+
+    /* Exit from Critical Section. */
+    portEXIT_CRITICAL(&InputBoost_Mux);
+  }/* End if If mode is WF_Mode_Auto*/
+  else
+  {
+          /* Reset the flag*/
+      Booster_On_Check_flage = Sys_Flag_Init;
+      /* Reset the timer*/
+      Booster_Switch_To_ON_Time = 0;
+      /* Reset the flags */
+      Booster_Print_flag = Sys_Flag_Init;
+  }
+
+} /* End of function.*/
 
 /* ************************************************************************
  * This function is to Control RO pump operatations
@@ -1168,7 +1306,10 @@ void Process_ControlSystem(void)
   uint8 Fault_State_Check;
 
   uint32 OverFlow_Tank_Not_Full_Loop_Index;
+  /* static variable to store the start time for dry run case.*/
+  static uint32 Dry_Run_Start_Time = 0;
 
+ 
   /* Get the State of Overflow, If over flow detected then Switch off..*/
 
   /* State Flow Is as mentioned below
@@ -1552,7 +1693,7 @@ void Process_ControlSystem(void)
             Start_Perodic_Statement(Filter_Block_Msg, (2 * 60 * 60 * 1000))
 
                 /* Just show the warning for the Low flow Rate*/
-                Debug_Trace("Potential Filer Jam. A Low flow of water is detected By the system based on the configuration. Current flow rate is %f, And Max Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(Nvm_Read_Each(NVM_ID_Calibration_LowFlowRate) / 1000));
+                Debug_Trace("Potential Filer Jam. A Low flow of water is detected By the system based on the configuration. Current flow rate is %f, And Min Acceptable flow Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(((double)Nvm_Read_Each(NVM_ID_Calibration_LowFlowRate)) / 1000));
 
             /* End above perodic statement */
             End_Perodic_Statement()
@@ -1568,6 +1709,38 @@ void Process_ControlSystem(void)
             LowWater_Flow_Detected = false;
           }
 
+          /*---------------------------------------------------------------------------------
+           *      Check wheather there is a dry run case, If Yes Swtch to Tank_Emergency_Stop.
+           *---------------------------------------------------------------------------------*/
+          /* If No water flow detected*/
+          if (Get_Instantinous_FlowRate_InLpM() == 0)
+          {
+            /* Check if Dry run time elapsed.*/
+            if (Get_Time_Elapse(Dry_Run_Start_Time) >= Nvm_Read_Each(NVM_ID_Calibration_MaxDryRunTimeTime))
+            {
+              Debug_Trace("System is running dry for last %dms, So based on the configuration switching to \"Tank_Emergency_Stop\" mode.", Get_Time_Elapse(Dry_Run_Start_Time) );
+
+              /* Trigger switch off*/
+              ShutDown_All();
+
+              /* Switch to Emergency shut down*/
+              Set_Current_Opp_State(Tank_Emergency_Stop);
+
+              /* Set Dry run detection flag*/
+              Dry_Run_Detected = true;
+            }
+          }
+          else /* Recovered from dry run.*/
+          {
+            /* Reset the timer.*/
+            Dry_Run_Start_Time = millis();
+            /* Clear Dry run detection flag*/
+            Dry_Run_Detected = false;
+          }
+
+          /*---------------------------------------------------------------------------------
+           *                   End of all checks in Normal operatation mode.
+           *---------------------------------------------------------------------------------*/
         }    /* End of if (Get_UV_Lamp_Feedback() == UV_Lamp_Feedback_ON)*/
         else /* Failed to detect the UV light*/
         {
@@ -1766,7 +1939,7 @@ void Process_ControlSystem(void)
     Control_ROInput(Operatation_OFF);
 
     /* Turn off the UV lamp once flow Rate is reached to Zero.*/
-    if (Get_Instantinous_FlowRate_InLpM == 0)
+    if (Get_Instantinous_FlowRate_InLpM() == 0)
     {
       /* Switch off the UV lamp, Because there was No Water flow.*/
       Control_UV_Lamp(UV_Lamp_OFF);
@@ -1997,6 +2170,10 @@ void Process_ControlSystem(void)
       Debug_Trace("Sensor fault detected in Normal Execution, SO Switching to state \"Tank_Sensor_Fault\" and Excute force shutdown.");
     }
   }
+
+  /* Trigger main function for booster motor.*/
+  BoostInput_MainFunction();
+
 
   /* Logic for Perodic reset to make sure every think work properly.
    * This is mainely to avoid misinterpretation of the values stored for different time related record.
@@ -2438,6 +2615,24 @@ int Is_LowWaterFlowRateDetected(void)
 }
 
 
+/* *********************************************************************************
+   Function to return wheather Dry run is detected
+*************************************************************************************/
+int Is_DryRunDetected(void)
+{
+  /* Return true if detected*/
+  return (Dry_Run_Detected == true);
+}
+
+
+/* *********************************************************************************
+   Function to return wheather Tank_Emergency_Stop is detected
+*************************************************************************************/
+int Is_Tank_Emergency_StopDetected(void)
+{
+  /* Return true if detected*/
+  return (Get_Current_Opp_State() == Tank_Emergency_Stop);
+}
 
 
 

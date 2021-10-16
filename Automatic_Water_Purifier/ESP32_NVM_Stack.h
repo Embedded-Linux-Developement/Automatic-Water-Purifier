@@ -67,13 +67,16 @@ enum  NVMParam_ID_Enum{
   NVM_ID_Calibration_HighPresureCollingTime,       /* This NVM paramater is storing the Cool off time in milli Second after High presure is being detected.*/
   NVM_ID_Calibration_FlowRateWarningCollingTime,   /* This NVM paramater is storing the Cool off time in milli Second after High / Low flow rate detected.*/
   NVM_ID_Calibration_WaterTankOverflowCapacity,    /* This NVM paramater is storing the Maximum Tank Capacity in milli Litter. After reaching this level if float sensor is not detected, Then will take action*/
+  NVM_ID_Calibration_AutoModeBoosterStartTime,     /* This NVM paramater is storing time to wait after water flow is detected as zero if NVM_ID_Seting_OperatationMode = WF_Mode_Auto, unit is in milli Seconds.*/
+  NVM_ID_Calibration_MaxDryRunTimeTime,            /* This NVM paramater is storing time for Maximum allowed Drt run time, unit is in milli Seconds, Once dry run detected shall swich to Emergency shut down mode.*/
+  
       
   NVM_ID_Seting_WaterTankOverflowAction,          /* This NVM paramater is storing Action to me considered once Potential Overflow is detected.*/
   NVM_ID_Seting_HighPresureAction,                /* This NVM paramater is storing Action to me considered once High presure is detected detected.*/
   NVM_ID_Seting_OperatationMode,                  /* This NVM paramater is storing Operatation mode of the filter.*/
   NVM_ID_Seting_LowFlowRateWarningAction,         /* This NVM paramater is storing Action to me considered once low Flow rate is detected.*/
   NVM_ID_Seting_HighFlowRateWarningAction,        /* This NVM paramater is storing Action to me considered once High Flow rate is detected.*/
-  
+
 
 /* ================================ Do Not add any new Paramater below this point.=============================*/
 

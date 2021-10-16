@@ -1239,6 +1239,12 @@ void NVM_READ_Write_Test(void)
   /* For paramater NVM_ID_Seting_HighFlowRateWarningAction */
   Debug_Trace("Value of NVM Paramater NVM_ID_Seting_HighFlowRateWarningAction = 0X%08X", Nvm_Read_Each(NVM_ID_Seting_HighFlowRateWarningAction));
 
+  /* For paramater NVM_ID_Calibration_AutoModeBoosterStartTime */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Calibration_AutoModeBoosterStartTime = 0X%08X", Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime));
+
+  /* For paramater NVM_ID_Calibration_MaxDryRunTimeTime */
+  Debug_Trace("Value of NVM Paramater NVM_ID_Calibration_MaxDryRunTimeTime = 0X%08X", Nvm_Read_Each(NVM_ID_Calibration_MaxDryRunTimeTime));
+
 
 
 
