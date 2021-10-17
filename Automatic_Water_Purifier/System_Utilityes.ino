@@ -301,8 +301,7 @@ uint8 Dry_Run_Detected = false;
 static void ShutDown_All(void);
 
 static void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest);
-static Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void);
-static char *GetStatus_UV_Lamp_Sensor_Raw_Value(void);
+
 
 static void Control_InLineInput(Sys_Operatation_Status InputRequest);
 static Sys_Operatation_Status GetStatus_InLineInput(void);
@@ -313,12 +312,6 @@ static void BoostInput_MainFunction(void);
 
 static void Control_ROInput(Sys_Operatation_Status InputRequest);
 static Sys_Operatation_Status GetStatus_ROInput(void);
-
-static Sensor_InputStatus_Status GetStatus_HighPresere(void);
-static uint16 GetStatus_HighPresere_Sensor_Raw_Value(void);
-
-static Sensor_InputStatus_Status GetStatus_OverFlow(void);
-static uint16 GetStatus_OverFlow_Sensor_Raw_Value(void);
 
 /*******************************************************************************
  *  Class Objects.
@@ -548,7 +541,7 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void)
 char *GetStatus_UV_Lamp_Sensor_Raw_Value(void)
 {
   /* Static variable to Keep the return pointer alive..*/
-  static char Return_Buffer[70];
+  static char Return_Buffer[100];
   uint16 UV_LDR_1_ADC_Value;
   uint16 UV_LDR_2_ADC_Value;
 
@@ -556,7 +549,7 @@ char *GetStatus_UV_Lamp_Sensor_Raw_Value(void)
   UV_LDR_1_ADC_Value = Sys_Read_Processed_ADC_Value(P04_UV_Lamp_Analog_LDR_1);
   UV_LDR_2_ADC_Value = Sys_Read_Processed_ADC_Value(P0A_UV_Lamp_Analog_LDR_2);
 
-  sprintf(Return_Buffer, "UV Sensor 1 = %d, UV Sensor 2 = %d ", UV_LDR_1_ADC_Value, UV_LDR_2_ADC_Value);
+  sprintf(Return_Buffer, "UV Sensor 1 Raw Value = %d, UV Sensor 2 Raw Value = %d ", UV_LDR_1_ADC_Value, UV_LDR_2_ADC_Value);
 
   return ((char *)&Return_Buffer[0]);
 }
@@ -2415,6 +2408,35 @@ double Get_Current_WaterFlowedInL(void)
 }
 
 /* *********************************************************************************
+   Function to get Flow Meter_Raw Value.
+*************************************************************************************/
+uint32 Get_Current_Flow_Raw_Value(void)
+{
+  uint32 Return_Water_Raw_Value;
+  int16_t Current_Counter_Value;
+ 
+
+  /* Enter in to Critical Section*/
+  portENTER_CRITICAL(&Waterflow_Mux);
+
+  /* Consider Over-flowed values*/
+  Return_Water_Raw_Value = CounterOverflow * PCNT_Overflow_LIM_VAL;
+
+  /* Exit from Critical Section. */
+  portEXIT_CRITICAL(&Waterflow_Mux);
+
+  /*Read the counter Value */
+  pcnt_get_counter_value(PCNT_UNIT_Used, &Current_Counter_Value);
+
+  /* Add Current Counter Value*/
+  Return_Water_Raw_Value += Current_Counter_Value;
+
+  return (Return_Water_Raw_Value);
+}
+
+
+
+/* *********************************************************************************
    Function to get total water flowed after started last time or Now ongoing section......
 *************************************************************************************/
 double Get_Current_SectionWaterFlowedInL(void)
@@ -2632,6 +2654,15 @@ int Is_Tank_Emergency_StopDetected(void)
 {
   /* Return true if detected*/
   return (Get_Current_Opp_State() == Tank_Emergency_Stop);
+}
+
+/* *********************************************************************************
+   Function to return Current Process status
+*************************************************************************************/
+System_Operatation_Status Get_Current_Processing_Status(void)
+{
+  /* Return the status*/
+  return (Get_Current_Opp_State());
 }
 
 

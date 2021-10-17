@@ -126,9 +126,6 @@ AsyncWebServer server(80);
 */
 
 
-
-
-
 /* ************************************************************************
  * Function to Populate Debug web page for Live status.
  * *************************************************************************/
@@ -147,6 +144,351 @@ void Web_Server_Populate_Debug_Trace_Page(void)
    /* Replace the String into Final HTML template*/
    Final_HTML_Page.replace("<h1>DO_NOT_REMOVE:-Custom_Add_Debug_String_Hear</h1>",BufferStream_ForDebugHTMLTrace);
 
+
+}
+
+
+/* ************************************************************************
+ * Function to Populate Home Page for Water Purifier.
+ * *************************************************************************/
+
+ /* String for storing the User Info*/
+ String UserInfo;
+
+ /* String to store the Perline INfo to be printed.*/
+ String PerLine_String_Info;
+ String PerLine_String_Info_2;
+/* Normal Array based string for population*/
+char Array_PerLine_String[300];
+
+
+void Web_Server_Populate_Home_Page(void)
+{
+
+/* Variable to store the sensor status*/
+Sensor_InputStatus_Status Current_Sensor_Status;
+Sys_UV_Lamp_Feedback_Status UV_Lamp_Current_Status;
+uint16 Current_Sensor_Raw_Value;
+uint32 U32Current_Sensor_Raw_Value;
+double DoubleCurrent_Sensor_Raw_Value;
+
+
+  /* Clear the string and Copy the content from the constand array*/
+  Final_HTML_Page = "";
+  Final_HTML_Page = Html_Head_Home;
+
+  PerLine_String_Info = "";
+  UserInfo = "<ol>\n";
+
+  /* Add 5 Sec Auto Refresh rate */
+  Final_HTML_Page.replace("<!-- <meta http-equiv=\"refresh\" content=\"1\">   -->", "<meta http-equiv=\"refresh\" content=\"5\">");
+
+  /* Get Over all status of the */
+  switch (Get_Current_Processing_Status())
+  {
+
+  case Init_State:
+  {
+    /* Update string for ID_1*/
+    PerLine_String_Info = "<button class=\"btn Gray\">Init In Progress</button>";
+    break;
+  }
+  case Normal_Tank_Not_Full:
+  {
+    /* Update string for ID_1*/
+    PerLine_String_Info = "<button class=\"btn Green\">OK, Filtering in Progress</button>";
+    break;
+  }
+  case OverFlow_Tank_Not_Full:
+  {
+    /* Update string for ID_1*/
+    PerLine_String_Info = "<button class=\"btn Amber\">Warning, More Water Filtered</button>";
+
+    /* Update string for ID_100*/
+    UserInfo += "<li>Consumed More Water, And Over flow Sensor Not detected. So Please Check Overflow Sensor position.</li>\n";
+
+    break;
+  }
+  case Tank_Full:
+  {
+    /* Update string for ID_1*/
+    PerLine_String_Info = "<button class=\"btn Green\">OK and Tank is Full</button>";
+    break;
+  }
+  case Tank_High_Presure:
+  {
+    /* Update string for ID_1*/
+    PerLine_String_Info = "<button class=\"btn Amber\">High Presure is Detected</button>";
+    break;
+  }
+  case Tank_Sensor_Fault:
+  {
+    /* Update string for ID_1*/
+    PerLine_String_Info = "<button class=\"btn Amber\">Fault Fault in Sensor</button>";
+
+    /* Update string for ID_100*/
+    UserInfo += "<li>Fault detected in one of the Sensor, Please check Debug Trace and take corrective action.</li>\n";
+
+    break;
+  }
+  case Tank_UV_Lamp_Fault:
+  {
+
+    /* Update string for ID_1*/
+    PerLine_String_Info = "<button class=\"btn Amber\">UV Lamp Stop working</button>";
+
+    /* Update string for ID_100*/
+    UserInfo += "<li>Fault detected in one / both sensors of the UV lamp, Please check Please check Lamp is its working, If not please replace with New UV lamp.</li>\n";
+
+    break;
+  }
+  case Tank_Emergency_Stop:
+  {
+    /* Check if Emergency Stop os because of Dry Run*/
+    if (Is_DryRunDetected())
+    {
+      /* Update string for ID_1*/
+      PerLine_String_Info = "<button class=\"btn Red\">Dry Run Detected</button>";
+
+      /* Update string for ID_100*/
+      UserInfo += "<li>Performed Emergency Stop, Because of Dry run detected. After addressing fault Re-Start System to recover from Emergency Fault.</li>\n";
+    }
+    else /* For all other fault*/
+    {
+
+      /* Update string for ID_1*/
+      PerLine_String_Info = "<button class=\"btn Red\">Performed Emergency Stop</button>";
+
+      /* Update string for ID_100*/
+      UserInfo += "<li>After fixing fault Re-Start System to recover from Emergency Fault.</li>\n";
+    }
+    break;
+  }
+  }
+
+  /* Replace ID_1 String*/
+  Final_HTML_Page.replace("<!--ID_1_Start--> <button class=\"btn Green\">Normal And OK</button>", PerLine_String_Info);
+
+  /* Update string for ID_2*/
+  PerLine_String_Info = "";
+  PerLine_String_Info_2 = "";
+  /* Read Float status*/
+  Current_Sensor_Status = GetStatus_OverFlow();
+  /* Read Raw value*/
+  Current_Sensor_Raw_Value = GetStatus_OverFlow_Sensor_Raw_Value();
+
+  if (Current_Sensor_Status == Sensor_ON)
+  {
+    /* Get String for ID_2*/
+    PerLine_String_Info = "<button class=\"Small_btn Green\">Tank Full</button>";
+
+    /* Get String for ID_33*/
+    PerLine_String_Info_2 = "<button class=\"Small_btn Green\">ON</button>";
+
+    /* Get String for ID_34*/
+    sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Green_Box\"> Raw Value = %d</button>", Current_Sensor_Raw_Value);
+  }
+  else if (Current_Sensor_Status == Sensor_OFF)
+  {
+    /* Get String for ID_2*/
+    PerLine_String_Info = "<button class=\"Small_btn Amber\">Tank NOT Full</button>";
+
+    /* Get String for ID_33*/
+    PerLine_String_Info_2 = "<button class=\"Small_btn Red\">OFF</button>";
+
+    /* Get String for ID_34*/
+    sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Red_Box\"> Raw Value = %d</button>", Current_Sensor_Raw_Value);
+  }
+  else if (Current_Sensor_Status == Sensor_Fault)
+  {
+    /* Get String for ID_2*/
+    PerLine_String_Info = "<button class=\"Small_btn Red\">Fault in Sensor</button>";
+
+    /* Get String for ID_33*/
+    PerLine_String_Info_2 = "<button class=\"Small_btn Amber\">Fault</button>";
+
+    /* Get String for ID_34*/
+    sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Amber_Box\"> Raw Value = %d</button>", Current_Sensor_Raw_Value);
+  }
+  else
+  {
+    /* Get String for ID_2*/
+    PerLine_String_Info = "<button class=\"Small_btn Red\">Error in Processing</button>";
+    /* Get String for ID_33*/
+    PerLine_String_Info_2 = "<button class=\"Small_btn Red\">Error</button>";
+    /* Get String for ID_34*/
+    sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Red_Box\"> Raw Value = %d</button>", Current_Sensor_Raw_Value);
+  }
+
+  /* Replace Html String for ID 2*/
+  Final_HTML_Page.replace("<!--ID_2_Start--> <button class=\"Small_btn Green\">Tank Full</button>", PerLine_String_Info);
+  /* Replace Html String for ID 33*/
+  Final_HTML_Page.replace("<!--ID_33_Start--><button class=\"Small_btn Green\">ON</button>", PerLine_String_Info_2);
+  /* Replace Html String for ID 34*/
+  Final_HTML_Page.replace("<!--ID_34_Start--> <button class=\"SmallBox_btn Gray_Box\"> Raw Value =2500</button>", Array_PerLine_String);
+
+  /* Get current flow rate for ID_4*/
+  DoubleCurrent_Sensor_Raw_Value = Get_Instantinous_FlowRate_InLpM();
+
+  /* Check if High Flow Rate detected.*/
+  if (Is_HighWaterFlowRateDetected())
+  {
+    /* Get String for ID_3*/
+    PerLine_String_Info = "<button class=\"Small_btn Red\">High Flow Rate Detected</button>";
+
+    /* Get String for ID_4*/
+    sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Red_Box\">%fLpM</button>", DoubleCurrent_Sensor_Raw_Value);
+  
+  }
+  /* Check if Low Flow Rate detected.*/
+  else if (Is_LowWaterFlowRateDetected())
+  {
+    /* Get String for ID_3*/
+    PerLine_String_Info = "<button class=\"Small_btn Amber\">Low Flow Rate Detected</button>";
+
+    /* Get String for ID_4*/
+    sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Amber_Box\">%fLpM</button>", DoubleCurrent_Sensor_Raw_Value);
+  }
+  else
+  {
+    /* Get String for ID_3*/
+    PerLine_String_Info = "<button class=\"Small_btn Green\">Flow is Normal</button>";
+
+    /* Get String for ID_4*/
+    sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Green_Box\">%fLpM</button>", DoubleCurrent_Sensor_Raw_Value);
+  }
+
+  /* Replace Html String for ID_3*/
+  Final_HTML_Page.replace("<!--ID_3_Start--> <button class=\"Small_btn Green\">Flow is Normal</button>", PerLine_String_Info);
+  /* Replace Html String for ID_4*/
+  Final_HTML_Page.replace("<!--ID_4_Start--> <button class=\"SmallBox_btn Green_Box\">4.5LpM</button>", Array_PerLine_String);
+
+
+  /* Get current flow rate for ID_5*/
+  DoubleCurrent_Sensor_Raw_Value = Get_Current_SectionWaterFlowedInL();
+  /* Get String for ID_5*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Green_Box\">%fL</button>", DoubleCurrent_Sensor_Raw_Value);
+  /* Replace Html String for ID_5*/
+  Final_HTML_Page.replace("<!--ID_5_Start--> <button class=\"SmallBox_btn Green_Box\">10L</button>", Array_PerLine_String);
+
+  /* Get current flow rate for ID_6*/
+  DoubleCurrent_Sensor_Raw_Value = Get_Current_WaterFlowedInL();
+  /* Get String for ID_6*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Green_Box\">%fL</button>", DoubleCurrent_Sensor_Raw_Value);
+  /* Replace Html String for ID_6*/
+  Final_HTML_Page.replace("<!--ID_6_Start--> <button class=\"SmallBox_btn Green_Box\">30L</button>", Array_PerLine_String);
+
+/* Get current UV lamp Status for ID_7*/
+UV_Lamp_Current_Status = Get_UV_Lamp_Feedback();
+
+/* Check if Lamp is OK*/
+if(UV_Lamp_Current_Status == UV_Lamp_Feedback_ON)
+{
+  /* Get String for ID_7*/
+  PerLine_String_Info = "<button class=\"Small_btn Green\">UV Lamp is ON and OK</button>";
+
+  /* Get String for ID_30*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Green_Box\">%s</button>", GetStatus_UV_Lamp_Sensor_Raw_Value());
+
+}
+else if(UV_Lamp_Current_Status == UV_Lamp_Feedback_OFF)
+{
+  /* Get String for ID_7*/
+  PerLine_String_Info = "<button class=\"Small_btn Green\">UV Lamp is OFF and OK</button>";
+
+  /* Get String for ID_30*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Green_Box\">%s</button>", GetStatus_UV_Lamp_Sensor_Raw_Value());
+}
+else if(UV_Lamp_Current_Status == UV_Lamp_Feedback_InProgres)
+{
+  /* Get String for ID_7*/
+  PerLine_String_Info = "<button class=\"Small_btn Gray\">UV Lamp state change is in Progres</button>";
+
+  /* Get String for ID_30*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Gray_Box\">%s</button>", GetStatus_UV_Lamp_Sensor_Raw_Value());
+}
+else if(UV_Lamp_Current_Status == UV_Lamp_Feedback_Fault)
+{
+  /* Get String for ID_7*/
+  PerLine_String_Info = "<button class=\"Small_btn Red\">Fault detected in UV lamp feedback.</button>";
+
+  /* Get String for ID_30*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Red_Box\">%s</button>", GetStatus_UV_Lamp_Sensor_Raw_Value());
+}
+else
+{
+  /* Get String for ID_7*/
+  PerLine_String_Info = "<button class=\"Small_btn Red\">Error detected in UV lamp feedback.</button>";
+  
+  /* Get String for ID_30*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Red_Box\">%s</button>", GetStatus_UV_Lamp_Sensor_Raw_Value());
+}
+
+  /* Replace Html String for ID_7*/
+  Final_HTML_Page.replace("<!--ID_7_Start--> <button class=\"Small_btn Green\">Working OK</button>", PerLine_String_Info);
+
+  /* Replace Html String for ID_30*/
+  Final_HTML_Page.replace("<!--ID_30_Start--> <button class=\"SmallBox_btn Gray_Box\">UV Sensor 1 = 2500, UV Sensor 2 = 2500</button>", Array_PerLine_String);
+
+/* Get Status and value for High Presure sensor. for ID_31 and ID_32*/
+Current_Sensor_Status = GetStatus_HighPresere();
+Current_Sensor_Raw_Value = GetStatus_HighPresere_Sensor_Raw_Value();
+
+/* check High preseure is ON*/
+if(Current_Sensor_Status == Sensor_ON)
+{
+  /* Get String for ID_31*/
+  PerLine_String_Info = "<button class=\"Small_btn Red\">ON</button>";
+
+  /* Get String for ID_32*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Red_Box\"> Raw Value = %d</button>", Current_Sensor_Raw_Value);
+
+}
+else if(Current_Sensor_Status == Sensor_OFF)
+{
+  /* Get String for ID_31*/
+  PerLine_String_Info = "<button class=\"Small_btn Green\">OFF</button>";
+
+  /* Get String for ID_32*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Green_Box\"> Raw Value = %d</button>", Current_Sensor_Raw_Value);
+
+}
+else if(Current_Sensor_Status == Sensor_Fault)
+{
+  /* Get String for ID_31*/
+  PerLine_String_Info = "<button class=\"Small_btn Amber\">Fault</button>";
+
+  /* Get String for ID_32*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Amber_Box\"> Raw Value = %d</button>", Current_Sensor_Raw_Value);
+
+}
+else
+{
+    /* Get String for ID_31*/
+  PerLine_String_Info = "<button class=\"Small_btn Gray\">Error</button>";
+
+  /* Get String for ID_32*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Gray_Box\"> Raw Value = %d</button>", Current_Sensor_Raw_Value);
+}
+
+  /* Replace Html String for ID_31*/
+  Final_HTML_Page.replace("<!--ID_31_Start--><button class=\"Small_btn Green\">ON</button>", PerLine_String_Info);
+
+  /* Replace Html String for ID_32*/
+  Final_HTML_Page.replace("<!--ID_32_Start--> <button class=\"SmallBox_btn Gray_Box\"> Raw Value =2500</button>", Array_PerLine_String);
+
+/* Read Flow Raw value for ID_35*/
+U32Current_Sensor_Raw_Value = Get_Current_Flow_Raw_Value();
+
+  /* Get String for ID_35*/
+  sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Gray_Box\"> Tick Value = %d</button>", U32Current_Sensor_Raw_Value);
+
+  /* Replace Html String for ID_35*/
+  Final_HTML_Page.replace("<!--ID_35_Start--> <button class=\"SmallBox_btn Gray_Box\"> Tick Value =2500</button>", Array_PerLine_String);
+
+UserInfo += "\n</ol> \n";
+  /* Replace Html String for ID_100*/
+  Final_HTML_Page.replace("<!--ID_100_Start--><p> 1. No Specific Issue Found</p>", UserInfo);
 
 
 }
@@ -294,45 +636,38 @@ void Web_Server_Init(void)
     Reffer the Approach mentioned in https://techtutorialsx.com/2021/01/04/esp32-soft-ap-and-station-modes/
    */
 
+  /* Server for Home Page.*/
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+      /* Populate string for home page.*/
+      Web_Server_Populate_Home_Page();
 
+    request->send(200, "text/html", Final_HTML_Page);
+    /* Clean the string */
+    Final_HTML_Page = ""; });
 
-/* Server for Home Page.*/
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) 
-    {
-    request->send(200, "text/html", Html_Head_Home);
-  });
-
-
-
-/* Server for Debug Trace page.*/
-    server.on("/DebugTrace", HTTP_GET, [](AsyncWebServerRequest * request) 
-    {
+  /* Server for Debug Trace page.*/
+  server.on("/DebugTrace", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+     /* Populate the Page.*/
      Web_Server_Populate_Debug_Trace_Page();
+
     request->send(200, "text/html", Final_HTML_Page);
 
     /* Clean the string */
-    Final_HTML_Page = "";
-  });
+    Final_HTML_Page = ""; });
 
+  /* Server for Calibration page.*/
+  server.on("/Calibration", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "text/html", Html_Head_Calibration); });
 
-/* Server for Calibration page.*/
-    server.on("/Calibration", HTTP_GET, [](AsyncWebServerRequest * request) 
-    {
-    request->send(200, "text/html", Html_Head_Calibration);
-  });
+  /* Server for Settings page.*/
+  server.on("/Settings", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "text/html", Html_Head_Settings); });
 
-
-/* Server for Settings page.*/
-    server.on("/Settings", HTTP_GET, [](AsyncWebServerRequest * request) 
-    {
-    request->send(200, "text/html", Html_Head_Settings);
-  });
-
-/* Server for About page.*/
-    server.on("/About", HTTP_GET, [](AsyncWebServerRequest * request) 
-    {
-    request->send(200, "text/html", Html_Head_About);
-  });
+  /* Server for About page.*/
+  server.on("/About", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "text/html", Html_Head_About); });
 
 
 

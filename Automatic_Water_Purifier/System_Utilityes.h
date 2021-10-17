@@ -148,6 +148,7 @@ extern void Perform_Reset(void);
 extern void Init_PulseCounter(void);
 extern void Clean_Water_Flow_Counters(void);
 extern double Get_Current_WaterFlowedInL(void);
+extern uint32 Get_Current_Flow_Raw_Value(void);
 extern double Get_Current_SectionWaterFlowedInL(void);
 extern void ProcessWaterFlowRate(void);
 extern void ReStartFlowRate_Processing(void);
@@ -160,7 +161,17 @@ extern int Is_HighWaterFlowRateDetected(void);
 extern int Is_LowWaterFlowRateDetected(void);
 extern int Is_DryRunDetected(void);
 extern int Is_Tank_Emergency_StopDetected(void);
+extern System_Operatation_Status Get_Current_Processing_Status(void);
 
+/* Following functions are to get the status.*/
+extern Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void);
+extern char *GetStatus_UV_Lamp_Sensor_Raw_Value(void);
+
+extern Sensor_InputStatus_Status GetStatus_HighPresere(void);
+extern uint16 GetStatus_HighPresere_Sensor_Raw_Value(void);
+
+extern Sensor_InputStatus_Status GetStatus_OverFlow(void);
+extern uint16 GetStatus_OverFlow_Sensor_Raw_Value(void);
 
 
 #endif /* End of  System_Utilityes_H */
