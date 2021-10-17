@@ -109,6 +109,7 @@ String Final_HTML_Page;
 const char OAT_UserName[50] = "JamesP_WP";
 const char OAT_Pasword[50] = "ThisServerIP_1024Retuen";
 
+uint32 Restart_Request = 0x00;
 
 /*******************************************************************************
  *  Functions Extern deceleration
@@ -698,6 +699,18 @@ if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
   server.on("/About", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(200, "text/html", Html_Head_About); });
 
+  /* Server for Perform Restart*/
+  server.on("/Perform_ReStart", HTTP_GET, [](AsyncWebServerRequest *request)
+            { 
+              /* Redirect the page Before Restarting, to avoid continue restart*/
+              request->redirect("/");
+              Restart_Request = 0x5555AAAA;
+
+               });
+
+
+
+
 
   /* Start OAT service.*/
   AsyncElegantOTA.begin(&server,OAT_UserName, OAT_Pasword);
@@ -715,15 +728,16 @@ if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
 void OAT_Web_Server_Processing(void)
 {
 
-/* Loop for OAT*/
-AsyncElegantOTA.loop();
+  /* Loop for OAT*/
+  AsyncElegantOTA.loop();
 
+  /* Re-Start is a Restart request is set*/
+  if (Restart_Request == 0x5555AAAA)
+  {
+    /* Add a 2 Sec Delay*/
+    Delay_In_ms(2000);
+
+    /* Perform Restart..*/
+    Perform_Reset();
+  }
 }
-
-
-
-
-
-
-
-
