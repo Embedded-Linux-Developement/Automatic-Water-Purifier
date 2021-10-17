@@ -702,7 +702,7 @@ if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
   /* Server for Perform Restart*/
   server.on("/Perform_ReStart", HTTP_GET, [](AsyncWebServerRequest *request)
             { 
-              Debug_Trace(" Reset Request received, Going to process...")
+              Debug_Trace(" Reset Request received, Going to process...");
               /* Redirect the page Before Restarting, to avoid continue restart*/
               request->redirect("/");
               Restart_Request = 0x5555AAAA;
