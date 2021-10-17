@@ -44,13 +44,22 @@ version:- V2.0.1
 const char Html_Head_Debug_Trace[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=windows-1252"> 
-   <title>Water Purifier Trace Debug</title> 
-   <!-- Add 1 Sec Auto refresh --> 
-   <!-- <meta http-equiv="refresh" content="1">   -->
 
-   <style>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <title>Water Purifier Trace Debug</title>
+  <!-- Add 1 Sec Auto refresh -->
+  <!-- <meta http-equiv="refresh" content="1">   -->
+
+  <style>
+    html {
+      height: 100%;
+    }
+
+    body {
+      min-height: 100%;
+    }
+
     ul {
       list-style-type: none;
       margin: 0;
@@ -80,8 +89,9 @@ const char Html_Head_Debug_Trace[] PROGMEM = R"=====(
     }
   </style>
 
- </head> 
- <body> 
+</head>
+
+<body>
   <ul>
     <li><a href="/">Home</a></li>
     <li><a class="active" href="/DebugTrace">Debug Trace</a></li>
@@ -89,46 +99,36 @@ const char Html_Head_Debug_Trace[] PROGMEM = R"=====(
     <li><a href="/Settings">Settings</a></li>
     <li><a href="/About">About</a></li>
   </ul>
- 
-
-   <h1 style="background-color:Green;text-align: center;">Following are the Debug trace Live Output</h1>  
-   <div style="text-align: left;"> 
 
 
-
-<h2 style="text-align: center;"> Debug Trace Error Hadling </h2><p style="color:red">
-
-  No Queue Overflow detected Yet... <br>
-  No Queue Timeout detected Yet... <br>
-
-</p><hr style="border: 1px dashed Green">
-
-<h2 style="text-align: center;"> Debug Trave Messages </h2> <p> 
-
-00000055143: Index = 104 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000055643: Index = 105 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000056143: Index = 106 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000056643: Index = 107 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000057143: Index = 108 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000057643: Index = 109 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000058143: Index = 110 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000058643: Index = 111 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000059143: Index = 112 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000059643: Index = 113 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000060143: Index = 114 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000060643: Index = 115 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000061143: Index = 116 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000061643: Index = 117 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000062143: Index = 118 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
-00000062643: Index = 119 Hello I am here, To Test the debug Trace printing_,To Test the debug T<br>
+  <h1 style="background-color:#04AA6D;text-align: center;">Following are the Debug trace Live Output</h1>
+  <div style="text-align: left;">
+    <!-- below line shall be replace with required Debug info at run time. -->
+    <h1>DO_NOT_REMOVE:-Custom_Add_Debug_String_Hear</h1>
 
 
-</p><hr style="border: 1px dashed blue">
+  </div>
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a class="active" href="/DebugTrace">Debug Trace</a></li>
+    <li><a href="/Calibration">Calibration</a></li>
+    <li><a href="/Settings">Settings</a></li>
+    <li><a href="/About">About</a></li>
+  </ul>
 
+  <script>
+    // Add below Script to scrole to the bottum 
+    //window.scrollTo(0, document.body.scrollHeight);
+    function scrollToBottom() {
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+    history.scrollRestoration = "manual";
+    window.onload = scrollToBottom;
+  </script>
 
-</div> 
+</body>
 
-</body></html>
+</html>
 )=====";
 
 

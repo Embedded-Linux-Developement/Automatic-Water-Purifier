@@ -283,7 +283,7 @@ Buffer streaming:-
    6. It shall only add Pre-delimoter string befor starting to populate Buffer, only once.
    7. It shall be helpfull to add html tags, as per the design.
 */
-#define DebugBufferStream_Pre_delimoter "<h2> Debug Trave Messages </h2> <p> "
+#define DebugBufferStream_Pre_delimoter "<h2 style=\"text-align: center;\"> Debug Trave Messages </h2> \n <p> \n"
 
 
 /* This Macro is to define the Post-delimoter After populating the Debug Queue buffer strings.
@@ -308,7 +308,7 @@ Buffer streaming:-
    8. Shall applicable only if error reporting is enabled, Enable_Error_Reporting = Config_ON.
    9. It shall only add Pre-delimoter string befor starting to populate Bufferstream for Error messages, only once.
 */
-#define ErrorDebugBufferStream_Pre_delimoter "<h2> Debug Trace Error Hadling </h2><p style=\"color:red\">"
+#define ErrorDebugBufferStream_Pre_delimoter "<h2 style=\"text-align: center;\"> Debug Trace Error Hadling </h2>\n <p style=\"color:red\">"
 
 /* This Macro is to define the Post-delimoter after compliting populating the Error strings into buffer stream, at once.
    1. By default "" being used, Indicating No start charactor/ string
@@ -321,7 +321,7 @@ Buffer streaming:-
    8. Shall applicable only if error reporting is enabled, Enable_Error_Reporting = Config_ON.
    9. It shall only add Post-delimoter at the end after the population of Bufferstream for Error messages, only once.
 */
-#define ErrorDebugBufferStream_Post_delimoter "</p><hr style=\"border: 1px dashed Green\">"
+#define ErrorDebugBufferStream_Post_delimoter "</p>\n <hr style=\"border: 1px dashed Green\">"
 
 /*-----------------------------------------------------------------------------
  *  Debug Trace and Buffer streaming Configuration END

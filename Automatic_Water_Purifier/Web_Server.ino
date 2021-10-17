@@ -138,6 +138,17 @@ void Web_Server_Populate_Debug_Trace_Page(void)
    Final_HTML_Page = "";
    Final_HTML_Page = Html_Head_Debug_Trace;
 
+   /* Get Debug Info into a global variable.*/
+   Populate_BufferStream_FromQueue(BufferStream_ForDebugHTMLTrace, BufferStream_Max_Size);
+
+   /* Add 5 Sec Auto Refresh rate */
+   Final_HTML_Page.replace("<!-- <meta http-equiv=\"refresh\" content=\"1\">   -->","<meta http-equiv=\"refresh\" content=\"5\">");
+
+   /* Replace the String into Final HTML template*/
+   Final_HTML_Page.replace("<h1>DO_NOT_REMOVE:-Custom_Add_Debug_String_Hear</h1>",BufferStream_ForDebugHTMLTrace);
+
+
+
 }
 
 /*
@@ -288,7 +299,6 @@ void Web_Server_Init(void)
 /* Server for Home Page.*/
     server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) 
     {
- 
     request->send(200, "text/html", Html_Head_Home);
   });
 
@@ -297,9 +307,7 @@ void Web_Server_Init(void)
 /* Server for Debug Trace page.*/
     server.on("/DebugTrace", HTTP_GET, [](AsyncWebServerRequest * request) 
     {
-
      Web_Server_Populate_Debug_Trace_Page();
- 
     request->send(200, "text/html", Final_HTML_Page);
 
     /* Clean the string */
@@ -310,7 +318,6 @@ void Web_Server_Init(void)
 /* Server for Calibration page.*/
     server.on("/Calibration", HTTP_GET, [](AsyncWebServerRequest * request) 
     {
- 
     request->send(200, "text/html", Html_Head_Calibration);
   });
 
@@ -318,14 +325,12 @@ void Web_Server_Init(void)
 /* Server for Settings page.*/
     server.on("/Settings", HTTP_GET, [](AsyncWebServerRequest * request) 
     {
- 
     request->send(200, "text/html", Html_Head_Settings);
   });
 
 /* Server for About page.*/
     server.on("/About", HTTP_GET, [](AsyncWebServerRequest * request) 
     {
- 
     request->send(200, "text/html", Html_Head_About);
   });
 
