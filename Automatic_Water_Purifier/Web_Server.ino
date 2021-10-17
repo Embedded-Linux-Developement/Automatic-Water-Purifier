@@ -346,6 +346,9 @@ double DoubleCurrent_Sensor_Raw_Value;
 
     /* Get String for ID_4*/
     sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Red_Box\">%fLpM</button>", DoubleCurrent_Sensor_Raw_Value);
+
+    /* Update string for ID_100*/
+    UserInfo += "<li>Water Flow Rate is Very High, Please Consider Changing for water leak or Damaged filter from indide.</li>\n";
   
   }
   /* Check if Low Flow Rate detected.*/
@@ -356,6 +359,10 @@ double DoubleCurrent_Sensor_Raw_Value;
 
     /* Get String for ID_4*/
     sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Amber_Box\">%fLpM</button>", DoubleCurrent_Sensor_Raw_Value);
+
+   /* Update string for ID_100*/
+    UserInfo += "<li>Water Flow Rate is Low, Please Consider Changing Filter, If Input water supplay is good.</li>\n";
+
   }
   else
   {
@@ -496,7 +503,7 @@ U32Current_Sensor_Raw_Value = Get_Current_Flow_Raw_Value();
 
 UserInfo += "\n</ol> \n";
   /* Replace Html String for ID_100*/
-  Final_HTML_Page.replace("<!--ID_100_Start--><p> 1. No Specific Issue Found</p>", UserInfo);
+  Final_HTML_Page.replace("<!--ID_100_Start-->", UserInfo);
 
 
 }
@@ -624,6 +631,9 @@ IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8); // optional
 IPAddress secondaryDNS(8, 8, 4, 4); // optional
+
+
+WiFi.disconnect(true); 
 
   /* Set Call back Event for the Wifi Status*/
   WiFi.onEvent(WiFiEvent);

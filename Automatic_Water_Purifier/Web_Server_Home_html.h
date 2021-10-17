@@ -81,7 +81,6 @@ const char Html_Head_Home[] PROGMEM = R"=====(
       color: black;
       padding: 4px 8px;
       font-size: 12px;
-      cursor: pointer;
       border-radius: 8px;
     }
 
@@ -92,7 +91,6 @@ const char Html_Head_Home[] PROGMEM = R"=====(
       color: black;
       padding: 14px 28px;
       font-size: 16px;
-      cursor: pointer;
       border-radius: 8px;
     }
 
@@ -156,7 +154,6 @@ const char Html_Head_Home[] PROGMEM = R"=====(
       color: white;
       padding: 8px 8px;
       font-size: 12px;
-      cursor: pointer;
       border-radius: 8px;
 
     }
@@ -166,7 +163,6 @@ const char Html_Head_Home[] PROGMEM = R"=====(
       color: white;
       padding: 14px 28px;
       font-size: 16px;
-      cursor: pointer;
       border-radius: 8px;
 
     }
@@ -310,10 +306,10 @@ const char Html_Head_Home[] PROGMEM = R"=====(
 
 
   <h2>Any Specific Action Required from User:- </h2>
-  
-  <!--ID_100_Start--><p> 1. No Specific Issue Found</p>
-  <p>...</p>
-
+  <div>
+    <!--ID_100_Start-->
+    <p>...</p>
+  </div>
   <ul>
     <li><a class="active" href="/">Home</a></li>
     <li><a href="/DebugTrace">Debug Trace</a></li>
