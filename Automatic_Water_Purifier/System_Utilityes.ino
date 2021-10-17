@@ -106,7 +106,7 @@ Config_Var uint8 P11_InLineInputSolenoid_Relay_ON_State = LOW;   /*  Indicate on
 Config_Var uint8 P12_InLineInputSolenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater represent time to Solenoid to take action / water start flow.*/
-Config_Var uint16 P31_InLineInput_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to Solenoid action get effective.. */
+Config_Var uint16 P31_InLineInput_Delay_Time_In_ms = 2000; /*  Indicate the configuration for the time to Solenoid action get effective.. */
 
 /*===========================================================================================*/
 /*      Paramaters Related to Booster Pump                                                   */
@@ -125,7 +125,7 @@ Config_Var uint8 P18_InputBoostSolenoid_Relay_ON_State = LOW;   /*  Indicate on 
 Config_Var uint8 P19_InputBoostSolenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater represent time to Booster Motor & Solinode to take action / water start flow.*/
-Config_Var uint16 P33_InputBoost_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to Booster Motor & Solinode action get effective.. */
+Config_Var uint16 P33_InputBoost_Delay_Time_In_ms = 2000; /*  Indicate the configuration for the time to Booster Motor & Solinode action get effective.. */
 
 /*===========================================================================================*/
 /*      Paramaters Related to RO motor Pump                                                  */
@@ -145,7 +145,7 @@ Config_Var uint8 P1F_RO_Solenoid_Relay_ON_State = LOW;   /*  Indicate on which P
 Config_Var uint8 P20_RO_Solenoid_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater represent time to RO Motor & Solinode to take action / water start flow.*/
-Config_Var uint16 P35_RO_Delay_Time_In_ms = 1000; /*  Indicate the configuration for the time to RO Motor & Solinode action get effective.. */
+Config_Var uint16 P35_RO_Delay_Time_In_ms = 2000; /*  Indicate the configuration for the time to RO Motor & Solinode action get effective.. */
 
 /*===========================================================================================*/
 /*      Other Analog Input Port  paramaters                                                  */
@@ -580,8 +580,22 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
       /* Reset the Start time*/
       InLineInput_Start_Time = Temp_Time;
 
-      /*Print Debug Info.*/
-      Debug_Trace("Requested Inline solenoid valve to turn ON...");
+      /* Check the mode of the operatation*/
+      if (Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Auto)
+      {
+        /*Print Debug Info.*/
+        Debug_Trace("Inline solenoid valve to turn ON and Turn OFF automaticaly if water flow rate reached Zero, because mode selected is \"WF_Mode_Auto\".");
+      }
+      else if (Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Via_Pump)
+      {
+        /*Print Debug Info.*/
+        Debug_Trace("Requested Inline solenoid valve to turn ON, Shall Not consider because Mode is configured as  WF_Mode_Via_Pump, Work only with Booster motor...");
+      }
+      else
+      {
+        /*Print Debug Info.*/
+        Debug_Trace("Requested Inline solenoid valve to turn ON...");
+      }
     }
     else
     {
@@ -618,6 +632,29 @@ void Control_InLineInput(Sys_Operatation_Status InputRequest)
   else
   {
     /* Do Nothing...*/
+  }
+
+  /* Check Mode configured..*/
+
+  /* if Mode configured is WF_Mode_Via_Pump, Then Switch off the Inlet Option,*/
+  if (Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Via_Pump)
+  {
+    /* Update the Output pin state, to make it always off.*/
+    Temp_PinStatus = P12_InLineInputSolenoid_Relay_OFF_State;
+  }
+  /* If Auto selected, Then DO not allow to change state from here,
+     insted same shall be updated from a main function.*/
+  else if (Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Auto)
+  {
+    /* To prevent to take any action, Only if New Request is ON, Off request excute Directely*/
+    if (InLineInput_Current_Status == Operatation_ON)
+    {
+      Temp_PinStatus = 0xFFU;
+    }
+  }
+  else
+  {
+    /* Do nothing as, its WF_Mode_Inline, So consider to make it on..*/
   }
 
   /* Exit from Critical Section. */
@@ -694,6 +731,11 @@ void Control_BoostInput(Sys_Operatation_Status InputRequest)
         {
           /*Print Debug Info.*/
           Debug_Trace("Booster pump shall Turn ON automaticaly if water flow rate reached Zero, because mode selected is \"WF_Mode_Auto\".");
+        }
+        else if(Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Inline)
+        {
+          /*Print Debug Info.*/
+          Debug_Trace("Requested Booster pump to turn ON, But shall Not consider because Mode is configured as  WF_Mode_Inline, Work only Inlet Water flow...");
         }
         else
         {
@@ -821,7 +863,6 @@ Sys_Operatation_Status GetStatus_BoostInput(void)
 }
 
 
-
 /* ************************************************************************
  * This is to process the Booster motor when user selected the mode as WF_Mode_Auto.
  * Expecting this main function shall call form some task only.
@@ -841,9 +882,16 @@ void BoostInput_MainFunction(void)
     /* Enter in to Critical Section*/
     portENTER_CRITICAL(&InputBoost_Mux);
 
-    /* Check if Now request is to make it ON*/
-    if (InputBoost_Current_Status == Operatation_ON)
+    /* Check if any one is ON request is to make it ON, 
+     It Mode If On request came for Inlet or Boster, then same sequence shall be followed, 
+        Case 1. Make Inlet ON and Booter OFF for NVM_ID_Calibration_AutoModeBoosterStartTime time configured in NVM.
+        Case 2. Make Inlet OFF and Booter OFF for ( NVM_ID_Calibration_AutoModeBoosterStartTime + P31_InLineInput_Delay_Time_In_ms) time configured in NVM. 
+        Case 3. In case 1 OR 2 if any flow detected then Restart from Case 1
+        Case 4. Make Inlet OFF and Booter ON for, Until next On OFF request. */
+
+    if ( (InputBoost_Current_Status == Operatation_ON) || (InLineInput_Current_Status == Operatation_ON))
     {
+      /* Case 1 */
       /* If entering to Off state first time after last OFF state*/
       if (Booster_On_Check_flage == Sys_Flag_Init)
       {
@@ -856,7 +904,16 @@ void BoostInput_MainFunction(void)
           /* Set the flag as true*/
           Booster_On_Check_flage = Sys_Flag_True;
         } /* End of flow check*/
+
+        /* Make Inlet ON*/
+        digitalWrite(P10_InLineInputSolenoid_Relay, P11_InLineInputSolenoid_Relay_ON_State);
+        /* Turn OFF the booster bump and its solinode.*/
+        digitalWrite(P14_InputBoostMotor_Relay, P16_InputBoostMotor_Relay_OFF_State);
+        digitalWrite(P17_InputBoostSolenoid_Relay, P19_InputBoostSolenoid_Relay_OFF_State);
+
+
       }
+      /* Case 2 */
       /* If Water flow detected as Zero and waitting for time to elapse*/
       else if ((Booster_On_Check_flage == Sys_Flag_True) &&                                                               /* Time started after flow rate detected as Zero*/
                (Get_Time_Elapse(Booster_Switch_To_ON_Time) < Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime))) /* First start Time is NOT elapsed*/
@@ -869,12 +926,44 @@ void BoostInput_MainFunction(void)
           /* Reset the timer*/
           Booster_Switch_To_ON_Time = 0;
         }
+
+        /* Make Inlet ON*/
+        digitalWrite(P10_InLineInputSolenoid_Relay, P11_InLineInputSolenoid_Relay_ON_State);
+        /* Turn OFF the booster bump and its solinode.*/
+        digitalWrite(P14_InputBoostMotor_Relay, P16_InputBoostMotor_Relay_OFF_State);
+        digitalWrite(P17_InputBoostSolenoid_Relay, P19_InputBoostSolenoid_Relay_OFF_State);
+
       }
+      /* Case 3 */
+      /* If Water flow detected as Zero and waitting for time for P31_InLineInput_Delay_Time_In_ms*/
+      else if ((Booster_On_Check_flage == Sys_Flag_True) &&                                                               /* Time started after flow rate detected as Zero*/
+               (Get_Time_Elapse(Booster_Switch_To_ON_Time) < (Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime) + P31_InLineInput_Delay_Time_In_ms))) /* First start Time is NOT elapsed*/
+      {
+        /* Check If water flow is detected befor starting booster motor, Then reset the flag again.*/
+        if (Get_Instantinous_FlowRate_InLpM() != 0)
+        {
+          /* Reset the flag*/
+          Booster_On_Check_flage = Sys_Flag_Init;
+          /* Reset the timer*/
+          Booster_Switch_To_ON_Time = 0;
+        }
+
+        /* Make Inlet OFF*/
+        digitalWrite(P10_InLineInputSolenoid_Relay, P12_InLineInputSolenoid_Relay_OFF_State);
+        /* Turn OFF the booster bump and its solinode.*/
+        digitalWrite(P14_InputBoostMotor_Relay, P16_InputBoostMotor_Relay_OFF_State);
+        digitalWrite(P17_InputBoostSolenoid_Relay, P19_InputBoostSolenoid_Relay_OFF_State);
+
+      }
+      /* Case 4 */
       /* If timer is elapsed, Then Start the Booster pump*/
       else if ((Booster_On_Check_flage == Sys_Flag_True) &&                                                                /* Time started after flow rate detected as Zero*/
                (Get_Time_Elapse(Booster_Switch_To_ON_Time) >= Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime))) /* First start Time is NOT elapsed*/
       {
-        /* Starting the booster bump and its solinode.*/
+
+        /* Make Inlet OFF*/
+        digitalWrite(P10_InLineInputSolenoid_Relay, P12_InLineInputSolenoid_Relay_OFF_State);
+        /* Turn ON Starting the booster bump and its solinode.*/
         digitalWrite(P14_InputBoostMotor_Relay, P15_InputBoostMotor_Relay_ON_State);
         digitalWrite(P17_InputBoostSolenoid_Relay, P18_InputBoostSolenoid_Relay_ON_State);
 
@@ -1511,6 +1600,11 @@ void Process_ControlSystem(void)
 
       /* Restart flow rate calculation. */
       ReStartFlowRate_Processing();
+
+      /* Reset the timer.*/
+      Dry_Run_Start_Time = millis();
+      /* Clear Dry run detection flag*/
+      Dry_Run_Detected = false;
     }
 
     /* Indicate current sate is executed.*/
