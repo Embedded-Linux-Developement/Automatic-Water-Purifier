@@ -84,7 +84,7 @@ To install
 #define html_TimeOut_Clint 2000
 
 /* Macro to allocate Bufferstream memory.*/
-#define BufferStream_Max_Size 3000
+#define BufferStream_Max_Size 6000
 
 /* Golbal bariable to store the Buffer stream data.*/
 char BufferStream_ForDebugHTMLTrace[BufferStream_Max_Size + 10];
@@ -100,13 +100,14 @@ char WiFi_Soft_AP_Current_password[27];
 /*Macro to define Max allowed Sizes for the array to store html page.*/
 #define Max_HTML_Page_Sizes 20000
 /* Global array to Populate and store the required HTML page to be displayed.*/
-char Final_HTML_Page[Max_HTML_Page_Sizes];
+String Final_HTML_Page;
 
 
 /*******************************************************************************
  *  Functions Extern deceleration
  *******************************************************************************/
 void WiFiEvent(WiFiEvent_t event);
+void Web_Server_Populate_Debug_Trace_Page(void);
 
 /*******************************************************************************
  *  Class Objects.
@@ -131,10 +132,12 @@ AsyncWebServer server(80);
 /* ************************************************************************
  * Function to Populate Debug web page for Live status.
  * *************************************************************************/
-void Web_Server_LiveStatus_Page(void)
+void Web_Server_Populate_Debug_Trace_Page(void)
 {
+   /* Clear the string and Copy the content from the constand array*/
+   Final_HTML_Page = "";
+   Final_HTML_Page = Html_Head_Debug_Trace;
 
-Final_HTML_Page[Max_HTML_Page_Sizes -1] = 10;
 }
 
 /*
@@ -295,9 +298,12 @@ void Web_Server_Init(void)
     server.on("/DebugTrace", HTTP_GET, [](AsyncWebServerRequest * request) 
     {
 
-     Web_Server_LiveStatus_Page();
+     Web_Server_Populate_Debug_Trace_Page();
  
-    request->send(200, "text/html", Html_Head_Debug_Trace);
+    request->send(200, "text/html", Final_HTML_Page);
+
+    /* Clean the string */
+    Final_HTML_Page = "";
   });
 
 
