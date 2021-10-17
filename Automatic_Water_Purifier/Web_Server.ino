@@ -13,8 +13,8 @@
 
 // Load Wi-Fi library
 #include <WiFi.h>
-
 #include <ESPAsyncWebServer.h>
+#include <AsyncElegantOTA.h>
 
 
 /* Include required Html template header files*/
@@ -68,6 +68,7 @@ Required Libs:-
 
 AsyncTCP = https://github.com/me-no-dev/AsyncTCP
 ESPAsyncWebServer = https://github.com/me-no-dev/ESPAsyncWebServer
+AsyncElegantOTA = https://github.com/me-no-dev/ESPAsyncWebServer
 
 To install
  You can find or change the location of your sketchbook folder at File > Preferences > Sketchbook location. 
@@ -95,12 +96,18 @@ char WiFi_Nw_Current_password[27];
 
 char WiFi_Soft_AP_Current_SSIS_Name[52];
 char WiFi_Soft_AP_Current_password[27];
+/*Get The Host Name*/
+char WiFi_Station_Name[75];
 
 
 /*Macro to define Max allowed Sizes for the array to store html page.*/
 #define Max_HTML_Page_Sizes 20000
 /* Global array to Populate and store the required HTML page to be displayed.*/
 String Final_HTML_Page;
+
+/* Following are the User name and Pasword for OAT*/
+const char OAT_UserName[50] = "JamesP_WP";
+const char OAT_Pasword[50] = "ThisServerIP_1024Retuen";
 
 
 /*******************************************************************************
@@ -608,6 +615,15 @@ void WiFiEvent(WiFiEvent_t event)
 void Web_Server_Init(void)
 {
 
+// Set your Static IP address
+IPAddress local_IP(192, 168, 0, 180);
+// Set your Gateway IP address
+IPAddress gateway(192, 168, 0, 1);
+
+IPAddress subnet(255, 255, 255, 0);
+IPAddress primaryDNS(8, 8, 8, 8); // optional
+IPAddress secondaryDNS(8, 8, 4, 4); // optional
+
   /* Set Call back Event for the Wifi Status*/
   WiFi.onEvent(WiFiEvent);
 
@@ -620,6 +636,9 @@ void Web_Server_Init(void)
   Nvm_Read_Each(NVM_ID_Value_WiFiSSIDName, (uint8 *)WiFi_Soft_AP_Current_SSIS_Name);
   Nvm_Read_Each(NVM_ID_Value_WiFiSSIDPasword, (uint8 *)WiFi_Soft_AP_Current_password);
 
+  Nvm_Read_Each(NVM_ID_Value_WiFiServerName, (uint8 *)WiFi_Station_Name);
+
+
 
 
  
@@ -628,6 +647,16 @@ void Web_Server_Init(void)
  
   /* Start Soft AP*/
   WiFi.softAP(WiFi_Soft_AP_Current_SSIS_Name, WiFi_Soft_AP_Current_password);
+
+// Configures static IP address
+if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+  Debug_Trace("STA Failed to configure");
+}
+
+  //WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
+  WiFi.setHostname(WiFi_Station_Name); //define hostname
+
+
   /* Start Wifi Station.*/
   WiFi.begin(WiFi_Nw_Current_ssid, WiFi_Nw_Current_password);
 
@@ -670,7 +699,8 @@ void Web_Server_Init(void)
             { request->send(200, "text/html", Html_Head_About); });
 
 
-
+  /* Start OAT service.*/
+  AsyncElegantOTA.begin(&server,OAT_UserName, OAT_Pasword);
  
 
   server.begin();
@@ -679,7 +709,16 @@ void Web_Server_Init(void)
 
 
 
+/* ************************************************************************
+ * Function to process OAT request periodicity.
+ * *************************************************************************/
+void OAT_Web_Server_Processing(void)
+{
 
+/* Loop for OAT*/
+AsyncElegantOTA.loop();
+
+}
 
 
 

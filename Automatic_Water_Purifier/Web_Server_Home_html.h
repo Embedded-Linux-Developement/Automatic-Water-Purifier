@@ -256,6 +256,7 @@ const char Html_Head_Home[] PROGMEM = R"=====(
     <li><a href="/Calibration">Calibration</a></li>
     <li><a href="/Settings">Settings</a></li>
     <li><a href="/About">About</a></li>
+    <li><a href="/update">OAT</a></li>
   </ul>
   <div style="text-align: center;">
     <h1> Welcome to Payyampallil Water Purifier </h1>
@@ -319,6 +320,7 @@ const char Html_Head_Home[] PROGMEM = R"=====(
     <li><a href="/Calibration">Calibration</a></li>
     <li><a href="/Settings">Settings</a></li>
     <li><a href="/About">About</a></li>
+    <li><a href="/update">OAT</a></li>
   </ul>
 </body>
 

@@ -98,6 +98,7 @@ const char Html_Head_Debug_Trace[] PROGMEM = R"=====(
     <li><a href="/Calibration">Calibration</a></li>
     <li><a href="/Settings">Settings</a></li>
     <li><a href="/About">About</a></li>
+    <li><a href="/update">OAT</a></li>
   </ul>
 
 
@@ -114,6 +115,7 @@ const char Html_Head_Debug_Trace[] PROGMEM = R"=====(
     <li><a href="/Calibration">Calibration</a></li>
     <li><a href="/Settings">Settings</a></li>
     <li><a href="/About">About</a></li>
+    <li><a href="/update">OAT</a></li>
   </ul>
 
   <script>

@@ -236,11 +236,11 @@ void Web_Server_Processing_Task( void * pvParameters ){
    */
 
     /* Trigger function to do monitering and log the info in every 200ms */
-    // Web_Server_Processing();
+    OAT_Web_Server_Processing();
 
    
    /* Switch task for 200ms */
-   vTaskDelay(200 / portTICK_PERIOD_MS);
+   vTaskDelay(50 / portTICK_PERIOD_MS);
   }
 }
 

@@ -88,6 +88,7 @@ const char Html_Head_About[] PROGMEM = R"=====(
     <li><a href="/Calibration">Calibration</a></li>
     <li><a href="/Settings">Settings</a></li>
     <li><a class="active" href="/About">About</a></li>
+    <li><a href="/update">OAT</a></li>
   </ul>
 
   <div style="text-align: center;">

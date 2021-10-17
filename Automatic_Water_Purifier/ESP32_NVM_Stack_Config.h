@@ -48,7 +48,7 @@ version:- V2.0.1
  * This paramater is to indicate wheather all NVM mirror values to be printed. 
  *  Recommenced to be STD_OFF on production, As it can compermise the Security Informatations in NVM.
 */
-#define Debug_Print_All_NVM_Read_All_Value STD_ON  
+#define Debug_Print_All_NVM_Read_All_Value STD_OFF  
 /* 
  * This paramater is to perform the destractive Test, Will write New Data and read it back to verify.
  *   Its always Recomented to STD_OFF, Because will corrept the NVM data on every restart, Only meant for testing NVM stack.. 
@@ -78,7 +78,7 @@ version:- V2.0.1
  * 1. This Test shall just read the NVM paramater using the interface and Print to show the value.
  * 2. Recommenced to be STD_OFF on production, As it can compermise the Security Informatations in NVM.
  */
-#define NVM_Stack_Read_And_Display_Test STD_ON
+#define NVM_Stack_Read_And_Display_Test STD_OFF
 
 
 /* 
@@ -103,7 +103,7 @@ const uint8 NVM_Default_Value_WiFiSSIDPasword[25]  = "Test";                    
 const uint8 NVM_Default_Value_Soft_AP_SSIDName[50] = "WaterPurifier";         /*String to hold the default value for the NVM_ID_Value_Soft_AP_SSIDName NVM paramater.*/
 const uint8 NVM_Default_Value_Soft_AP_Pasword[25]  = "686517PWF2021";                       /*String to hold the default value for the NVM_ID_Value_Soft_AP_Pasword NVM paramater.*/
 
-const uint8 NVM_Default_Value_WiFiStsticIP[4]      = {198,168,1,10};               /*Array to hold the default value for the NVM_ID_Value_WiFiStsticIP NVM paramater.*/
+const uint8 NVM_Default_Value_WiFiStsticIP[4]      = {198,168,0,180};               /*Array to hold the default value for the NVM_ID_Value_WiFiStsticIP NVM paramater.*/
 const uint8 NVM_Default_Value_WiFiServerName[75]   = "Automatic Water Purifier";   /*String to hold the default value for the NVM_ID_Value_WiFiServerName NVM paramater.*/
 const uint8 NVM_Default_Value_AdminPasword[30]     = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
 
