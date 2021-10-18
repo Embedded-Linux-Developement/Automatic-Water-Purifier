@@ -186,6 +186,7 @@ double DoubleCurrent_Sensor_Raw_Value;
   Final_HTML_Page = Html_Head_Home;
 
   PerLine_String_Info = "";
+  PerLine_String_Info_2 = "";
   UserInfo = "<ol>\n";
 
   /* Add 5 Sec Auto Refresh rate */
