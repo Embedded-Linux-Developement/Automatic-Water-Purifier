@@ -153,7 +153,7 @@ Config_Var uint16 P35_RO_Delay_Time_In_ms = 2000; /*  Indicate the configuration
 
 /* Paramater for High Presere Detection, to Avoid malfunctioning*/
 Config_Var uint8 P21_Analog_HighPresere = 32;             /*  Mapped to ADC 1_4, GPIO 32 @Port Pin 10 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P22_Analog_HighPresere_ON_Volt = 3800;  /*  Represent the Voltage level representing the High presure is Not Full. OFF for Over flow sensor.*/
+Config_Var uint16 P22_Analog_HighPresere_ON_Volt = 3900;  /*  Represent the Voltage level representing the High presure is Not Full. OFF for Over flow sensor.*/
 Config_Var uint16 P24_Analog_HighPresere_OFF_Volt = 1834; /*  Represent the Voltage level representing the High presure is Not Full. OFF for Over flow sensor.*/
 Config_Var uint8 P26_Analog_HighPresere_Tolerance = 20;   /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
@@ -163,7 +163,7 @@ Config_Var uint16 P37_HighPresere_CollingTime_In_ms = 5000; /*  Indicate the Hig
 
 /* Paramater for OverFlow Detection and to stop the filtering. */
 Config_Var uint8 P27_Analog_OverFlow = 33;             /*  Mapped to ADC 1_5, GPIO 33 @Port Pin 9 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P28_Analog_OverFlow_ON_Volt = 3800;  /*  Represent the Voltage level representing the Tank is Full. ON for Over flow sensor.*/
+Config_Var uint16 P28_Analog_OverFlow_ON_Volt = 3900;  /*  Represent the Voltage level representing the Tank is Full. ON for Over flow sensor.*/
 Config_Var uint16 P2A_Analog_OverFlow_OFF_Volt = 1843; /*  Represent the Voltage level representing the Tank is Not Full. OFF for Over flow sensor.*/
 Config_Var uint8 P2C_Analog_OverFlow_Tolerance = 20;   /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 

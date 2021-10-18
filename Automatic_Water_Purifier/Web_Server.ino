@@ -147,7 +147,7 @@ void Web_Server_Populate_Debug_Trace_Page(void)
    Populate_BufferStream_FromQueue(BufferStream_ForDebugHTMLTrace, BufferStream_Max_Size);
 
    /* Add 5 Sec Auto Refresh rate */
-   Final_HTML_Page.replace("<!-- <meta http-equiv=\"refresh\" content=\"1\">   -->","<meta http-equiv=\"refresh\" content=\"5\">");
+   Final_HTML_Page.replace("<!-- <meta http-equiv=\"refresh\" content=\"1\">   -->","<meta http-equiv=\"refresh\" content=\"1\">");
 
    /* Replace the String into Final HTML template*/
    Final_HTML_Page.replace("<h1>DO_NOT_REMOVE:-Custom_Add_Debug_String_Hear</h1>",BufferStream_ForDebugHTMLTrace);
@@ -190,7 +190,7 @@ double DoubleCurrent_Sensor_Raw_Value;
   UserInfo = "<ol>\n";
 
   /* Add 5 Sec Auto Refresh rate */
-  Final_HTML_Page.replace("<!-- <meta http-equiv=\"refresh\" content=\"1\">   -->", "<meta http-equiv=\"refresh\" content=\"5\">");
+  Final_HTML_Page.replace("<!-- <meta http-equiv=\"refresh\" content=\"1\">   -->", "<meta http-equiv=\"refresh\" content=\"1\">");
 
   /* Get Over all status of the */
   switch (Get_Current_Processing_Status())
