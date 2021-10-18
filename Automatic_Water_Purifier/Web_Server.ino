@@ -212,8 +212,8 @@ double DoubleCurrent_Sensor_Raw_Value;
     /* Update string for ID_1*/
     PerLine_String_Info = "<button class=\"btn Amber\">Warning, More Water Filtered</button>";
 
-    /* Update string for ID_100*/
-    UserInfo += "<li>Consumed More Water, And Over flow Sensor Not detected. So Please Check Overflow Sensor position.</li>\n";
+    /* Update string for ID_100 */
+    UserInfo += "<li style=\"float: none;\">Consumed More Water, And Over flow Sensor Not detected. So Please Check Overflow Sensor position.</li>\n";
 
     break;
   }
@@ -235,7 +235,7 @@ double DoubleCurrent_Sensor_Raw_Value;
     PerLine_String_Info = "<button class=\"btn Amber\">Fault Fault in Sensor</button>";
 
     /* Update string for ID_100*/
-    UserInfo += "<li>Fault detected in one of the Sensor, Please check Debug Trace and take corrective action.</li>\n";
+    UserInfo += "<li style=\"float: none;\">Fault detected in one of the Sensor, Please check Debug Trace and take corrective action.</li>\n";
 
     break;
   }
@@ -246,7 +246,7 @@ double DoubleCurrent_Sensor_Raw_Value;
     PerLine_String_Info = "<button class=\"btn Amber\">UV Lamp Stop working</button>";
 
     /* Update string for ID_100*/
-    UserInfo += "<li>Fault detected in one / both sensors of the UV lamp, Please check Please check Lamp is its working, If not please replace with New UV lamp.</li>\n";
+    UserInfo += "<li style=\"float: none;\">Fault detected in one / both sensors of the UV lamp, Please check Please check Lamp is its working, If not please replace with New UV lamp.</li>\n";
 
     break;
   }
@@ -259,7 +259,7 @@ double DoubleCurrent_Sensor_Raw_Value;
       PerLine_String_Info = "<button class=\"btn Red\">Dry Run Detected</button>";
 
       /* Update string for ID_100*/
-      UserInfo += "<li>Performed Emergency Stop, Because of Dry run detected. After addressing fault Re-Start System to recover from Emergency Fault.</li>\n";
+      UserInfo += "<li style=\"float: none;\">Performed Emergency Stop, Because of Dry run detected. After addressing fault Re-Start System to recover from Emergency Fault.</li>\n";
     }
     else /* For all other fault*/
     {
@@ -268,7 +268,7 @@ double DoubleCurrent_Sensor_Raw_Value;
       PerLine_String_Info = "<button class=\"btn Red\">Performed Emergency Stop</button>";
 
       /* Update string for ID_100*/
-      UserInfo += "<li>After fixing fault Re-Start System to recover from Emergency Fault.</li>\n";
+      UserInfo += "<li style=\"float: none;\">After fixing fault Re-Start System to recover from Emergency Fault.</li>\n";
     }
     break;
   }
@@ -348,7 +348,7 @@ double DoubleCurrent_Sensor_Raw_Value;
     sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Red_Box\">%fLpM</button>", DoubleCurrent_Sensor_Raw_Value);
 
     /* Update string for ID_100*/
-    UserInfo += "<li>Water Flow Rate is Very High, Please Consider Changing for water leak or Damaged filter from indide.</li>\n";
+    UserInfo += "<li style=\"float: none;\">Water Flow Rate is Very High, Please Consider Changing for water leak or Damaged filter from indide.</li>\n";
   
   }
   /* Check if Low Flow Rate detected.*/
@@ -361,7 +361,7 @@ double DoubleCurrent_Sensor_Raw_Value;
     sprintf(Array_PerLine_String, "<button class=\"SmallBox_btn Amber_Box\">%fLpM</button>", DoubleCurrent_Sensor_Raw_Value);
 
    /* Update string for ID_100*/
-    UserInfo += "<li>Water Flow Rate is Low, Please Consider Changing Filter, If Input water supplay is good.</li>\n";
+    UserInfo += "<li style=\"float: none;\">Water Flow Rate is Low, Please Consider Changing Filter, If Input water supplay is good.</li>\n";
 
   }
   else
@@ -501,10 +501,13 @@ U32Current_Sensor_Raw_Value = Get_Current_Flow_Raw_Value();
   /* Replace Html String for ID_35*/
   Final_HTML_Page.replace("<!--ID_35_Start--> <button class=\"SmallBox_btn Gray_Box\"> Tick Value =2500</button>", Array_PerLine_String);
 
-UserInfo += "\n</ol> \n";
+/* Check if required to update*/
+if(UserInfo.length() >=9)
+{
+ UserInfo += "\n</ol> \n";
   /* Replace Html String for ID_100*/
-  Final_HTML_Page.replace("<!--ID_100_Start-->", UserInfo);
-
+  Final_HTML_Page.replace("<!--ID_100_Start--><p>Nothing Specific For Now...</p>", UserInfo);
+}
 
 }
 
