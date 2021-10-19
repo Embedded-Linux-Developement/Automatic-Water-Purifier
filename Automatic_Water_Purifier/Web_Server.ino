@@ -23,7 +23,7 @@
 #include "Web_Server_Calibration_html.h"
 #include "Web_Server_Settings_html.h"
 #include "Web_Server_About_html.h"
-
+#include "Asynchronous_Morse_Code_Generator.h"
 
 /*****************************************************************************************************
 File belongings to  Automatic_Water_Purifier program in githib, 
@@ -168,7 +168,7 @@ void Web_Server_Populate_Debug_Trace_Page(void)
  String PerLine_String_Info_2;
 /* Normal Array based string for population*/
 char Array_PerLine_String[300];
-
+char String_For_Morse_Code[150];
 
 void Web_Server_Populate_Home_Page(void)
 {
@@ -527,6 +527,7 @@ if(UserInfo.length() >=9)
  * *************************************************************************/
 void WiFiEvent(WiFiEvent_t event)
 {
+ Define_Perodic_Statement(SYSTEM_EVENT_STA_DISCONNECTED_Message);
 
   switch (event)
   {
@@ -549,15 +550,29 @@ void WiFiEvent(WiFiEvent_t event)
     Debug_Trace("%s:- Connected to access point", WiFi_Nw_Current_ssid);
     break;
   case SYSTEM_EVENT_STA_DISCONNECTED:
-    Debug_Trace("%s:- Disconnected from WiFi access point, So trying to reconnect.", WiFi_Nw_Current_ssid);
-    /* Try to Re-Connect to Wifi Network.*/
-    WiFi.begin(WiFi_Nw_Current_ssid, WiFi_Nw_Current_password);
+
+    Start_Perodic_Statement(SYSTEM_EVENT_STA_DISCONNECTED_Message, 10000)
+        Debug_Trace("%s:- Disconnected from WiFi access point, So trying to reconnect.", WiFi_Nw_Current_ssid);
+
+    End_Perodic_Statement()
+
+    sprintf(String_For_Morse_Code,"WiFi Station %s Disconnected, Trying to Reconnect",WiFi_Nw_Current_ssid);
+    /*Send Morse Code for Status*/
+    Morse_Code_Sent(String_For_Morse_Code,MorseCodeBUffer_2);
+
+        /* Try to Re-Connect to Wifi Network.*/
+        WiFi.begin(WiFi_Nw_Current_ssid, WiFi_Nw_Current_password);
     break;
   case SYSTEM_EVENT_STA_AUTHMODE_CHANGE:
     Debug_Trace("%s:- Authentication mode of access point has changed", WiFi_Nw_Current_ssid);
     break;
   case SYSTEM_EVENT_STA_GOT_IP:
     Debug_Trace("%s:- Obtained New IP address and is %s ", WiFi_Nw_Current_ssid, WiFi.localIP().toString().c_str());
+
+    sprintf(String_For_Morse_Code,"Obtained New IP address %s",WiFi.localIP().toString().c_str());
+    /*Send Morse Code for Status*/
+    Morse_Code_Sent(String_For_Morse_Code,MorseCodeBUffer_2);
+
     break;
   case SYSTEM_EVENT_STA_LOST_IP:
     Debug_Trace("%s:- Lost IP address and IP address is reset to 0", WiFi_Nw_Current_ssid);
@@ -743,6 +758,7 @@ if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
 void OAT_Web_Server_Processing(void)
 {
 
+
   /* Loop for OAT*/
   AsyncElegantOTA.loop();
 
@@ -755,4 +771,6 @@ void OAT_Web_Server_Processing(void)
     /* Perform Restart..*/
     Perform_Reset();
   }
+
+
 }

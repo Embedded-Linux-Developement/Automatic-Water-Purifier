@@ -9,6 +9,7 @@
 #include "ESP32_NVM_Stack.h"
 #include "Generic_Utilityes.h"
 #include "System_Utilityes.h"
+#include "Asynchronous_Morse_Code_Generator.h"
 
 
 
@@ -153,8 +154,8 @@ Config_Var uint16 P35_RO_Delay_Time_In_ms = 2000; /*  Indicate the configuration
 
 /* Paramater for High Presere Detection, to Avoid malfunctioning*/
 Config_Var uint8 P21_Analog_HighPresere = 32;             /*  Mapped to ADC 1_4, GPIO 32 @Port Pin 10 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P22_Analog_HighPresere_ON_Volt = 3900;  /*  Represent the Voltage level representing the High presure is Not Full. OFF for Over flow sensor.*/
-Config_Var uint16 P24_Analog_HighPresere_OFF_Volt = 1834; /*  Represent the Voltage level representing the High presure is Not Full. OFF for Over flow sensor.*/
+Config_Var uint16 P22_Analog_HighPresere_ON_Volt = 1834;  /*  Represent the Voltage level representing the High presure is Not Full. OFF for Over flow sensor.*/
+Config_Var uint16 P24_Analog_HighPresere_OFF_Volt =  3900; /*  Represent the Voltage level representing the High presure is Not Full. OFF for Over flow sensor.*/
 Config_Var uint8 P26_Analog_HighPresere_Tolerance = 20;   /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
 /* Paramater represent High Pressure colling Time .
@@ -1582,6 +1583,8 @@ void Process_ControlSystem(void)
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Normal_Tank_Not_Full\" state.");
 
+    /*Send Morse Code for Status*/
+    Morse_Code_Sent("Normal_Tank_Not_Full",MorseCodeBUffer_0);
     /* If first time Entering this state from any other state.*/
     if (Is_Opp_State_Changed())
     {
@@ -1883,6 +1886,9 @@ void Process_ControlSystem(void)
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"OverFlow_Tank_Not_Full\" state.");
 
+    /*Send Morse Code for Status*/
+    Morse_Code_Sent("OverFlow_Tank_Not_Full",MorseCodeBUffer_0);
+
     /* If first time Entering this state from any other state.*/
     if (Is_Opp_State_Changed())
     {
@@ -1967,6 +1973,8 @@ void Process_ControlSystem(void)
   {
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Tank_Full\" state.");
+    /*Send Morse Code for Status*/
+    Morse_Code_Sent("Tank_Full",MorseCodeBUffer_0);
 
     /* Wait for overflow colling time based on the paramayer P39_OverFlow_CollingTime_In_ms*/
     /* If first time Entering this state from any other state.*/
@@ -2008,6 +2016,9 @@ void Process_ControlSystem(void)
   {
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Tank_High_Presure\" state.");
+
+    /*Send Morse Code for Status*/
+    Morse_Code_Sent("Tank_High_Presure",MorseCodeBUffer_0);
 
     /* Wait for overflow colling time based on the paramayer P39_OverFlow_CollingTime_In_ms*/
     /* If first time Entering this state from any other state.*/
@@ -2065,6 +2076,10 @@ void Process_ControlSystem(void)
   {
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Tank_Sensor_Fault\" state.");
+
+    /*Send Morse Code for Status*/
+    Morse_Code_Sent("Tank_Sensor_Fault",MorseCodeBUffer_0);
+
     /* Indicate current sate is executed.*/
     State_Change_completed();
 
@@ -2161,6 +2176,10 @@ void Process_ControlSystem(void)
   {
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Tank_UV_Lamp_Fault\" state.");
+
+    /*Send Morse Code for Status*/
+    Morse_Code_Sent("Tank_UV_Lamp_Fault",MorseCodeBUffer_0);
+
     /* Indicate current sate is executed.*/
     State_Change_completed();
 
@@ -2220,6 +2239,8 @@ void Process_ControlSystem(void)
   {
     /*Print State change Message*/
     Log_State_Changed("Water Filer Operatation state changed to \"Tank_Emergency_Stop\" state.");
+    /*Send Morse Code for Status*/
+    Morse_Code_Sent("Tank_Emergency_Stop",MorseCodeBUffer_0);
     /* Indicate current sate is executed.*/
     State_Change_completed();
 

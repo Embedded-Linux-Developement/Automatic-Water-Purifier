@@ -70,10 +70,10 @@ version:- V1.0.1
 /* Character representing the Dash sound */
 #define Morse_Dash_Char  '_'
 /* Represent sizes of each buffer.*/
-#define MC_Sizes_Buffer_0 25
+#define MC_Sizes_Buffer_0 50
 #define MC_Sizes_Buffer_1 50
 #define MC_Sizes_Buffer_2 250
-#define MC_Sizes_MirrorBuffer 255 /* Must be grates or grater than of all buffer.*/
+#define MC_Sizes_MirrorBuffer 100 /* Must be grates or grater than of all buffer.*/
 
 /* Represent maximum number of buffer*/
 #define MC_Max_NumberOfBuffer 3 
@@ -87,9 +87,9 @@ version:- V1.0.1
   each buffer have different sizes, and shall sent cyclicly until respective buffer is get cleared.
   The back ground process shall first sent buffer 0, then 1, and then 2. and will keep on respite, until it get cleared.
   Current memory allocation for each buffer are 
-     Buffer 0  => 25 Bytes
+     Buffer 0  => 50 Bytes
      Buffer 1  => 50 Bytes
-     Buffer 2  => 250 Bytes ( Can use for bigger information to be transmitted) )
+     Buffer 2  => 100 Bytes ( Can use for bigger information to be transmitted) )
 */
 enum  Morse_Code_Out_BUffer{
   MorseCodeBUffer_0     = 0,                      /* Indicate 0th Buffer  */
