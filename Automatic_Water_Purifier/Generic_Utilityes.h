@@ -168,6 +168,7 @@ extern uint8 ADC_Check_Tolerance(uint32 InputValue, uint32 TargetedValue, uint8 
 
 extern void Init_ADC_BackEndFilter(void);
 extern uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin);
+extern uint16 NON_CriticalSys_Read_Processed_ADC_Value(int GPIO_Port_pin);
 extern void Process_ADC_BackEndFilter(void);
 
 #endif /* End of  Generic_Utilityes_H */

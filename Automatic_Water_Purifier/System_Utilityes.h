@@ -164,13 +164,14 @@ extern int Is_Tank_Emergency_StopDetected(void);
 extern System_Operatation_Status Get_Current_Processing_Status(void);
 
 /* Following functions are to get the status.*/
-extern Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void);
+extern Sys_UV_Lamp_Feedback_Status NON_Critical_Get_UV_Lamp_Feedback(void);
 extern char *GetStatus_UV_Lamp_Sensor_Raw_Value(void);
 
-extern Sensor_InputStatus_Status GetStatus_HighPresere(void);
+extern Sensor_InputStatus_Status NON_Critical_GetStatus_HighPresere(void);
 extern uint16 GetStatus_HighPresere_Sensor_Raw_Value(void);
 
-extern Sensor_InputStatus_Status GetStatus_OverFlow(void);
+
+Sensor_InputStatus_Status NON_Critical_GetStatus_OverFlow(void);
 extern uint16 GetStatus_OverFlow_Sensor_Raw_Value(void);
 
 

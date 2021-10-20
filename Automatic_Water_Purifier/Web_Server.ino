@@ -282,7 +282,7 @@ double DoubleCurrent_Sensor_Raw_Value;
   PerLine_String_Info = "";
   PerLine_String_Info_2 = "";
   /* Read Float status*/
-  Current_Sensor_Status = GetStatus_OverFlow();
+  Current_Sensor_Status = NON_Critical_GetStatus_OverFlow();
   /* Read Raw value*/
   Current_Sensor_Raw_Value = GetStatus_OverFlow_Sensor_Raw_Value();
 
@@ -395,7 +395,7 @@ double DoubleCurrent_Sensor_Raw_Value;
   Final_HTML_Page.replace("<!--ID_6_Start--> <button class=\"SmallBox_btn Green_Box\">30L</button>", Array_PerLine_String);
 
 /* Get current UV lamp Status for ID_7*/
-UV_Lamp_Current_Status = Get_UV_Lamp_Feedback();
+UV_Lamp_Current_Status = NON_Critical_Get_UV_Lamp_Feedback();
 
 /* Check if Lamp is OK*/
 if(UV_Lamp_Current_Status == UV_Lamp_Feedback_ON)
@@ -447,7 +447,7 @@ else
   Final_HTML_Page.replace("<!--ID_30_Start--> <button class=\"SmallBox_btn Gray_Box\">UV Sensor 1 = 2500, UV Sensor 2 = 2500</button>", Array_PerLine_String);
 
 /* Get Status and value for High Presure sensor. for ID_31 and ID_32*/
-Current_Sensor_Status = GetStatus_HighPresere();
+Current_Sensor_Status = NON_Critical_GetStatus_HighPresere();
 Current_Sensor_Raw_Value = GetStatus_HighPresere_Sensor_Raw_Value();
 
 /* check High preseure is ON*/

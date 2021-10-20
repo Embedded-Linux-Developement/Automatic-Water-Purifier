@@ -291,6 +291,62 @@ uint16 Sys_Read_Processed_ADC_Value(int GPIO_Port_pin)
 }
 
 /* ************************************************************************
+ * This Privite Function to read the processed ADC value for Non critical features only...
+ * *************************************************************************/
+uint16 NON_CriticalSys_Read_Processed_ADC_Value(int GPIO_Port_pin)
+{
+  uint16 ADC_Return_Value = Invalid_ADC_Value;
+  uint16 LoopIndex;
+  double Current_Accumulated_Average;
+  uint16 Calculated_Window_Tick;
+  uint32 Current_Channel_Time;
+
+  /* Loop for Each channel to get the matching Index.*/
+  for (LoopIndex = 0; ((LoopIndex < Max_Filter_Configured_ADC) && (ADC_Return_Value == Invalid_ADC_Value)); LoopIndex++)
+  {
+    /* Check if matching with requested ID.*/
+    if (ADC_filter_Config_Table[LoopIndex].ADC_ChannelGPIO_ID == GPIO_Port_pin)
+    {
+
+
+      Current_Accumulated_Average = ADC_filter_RunTime_Table[LoopIndex].ADC_PreFiltered_Value;
+      Current_Channel_Time = ADC_filter_RunTime_Table[LoopIndex].LastProcessedTime;
+
+      /* Check if Last processing time passed Dead time.*/
+      if (Get_Time_Elapse(Current_Channel_Time) <= ADC_filter_Config_Table[LoopIndex].Max_Dead_Time_ms)
+      {
+        /* Calculate Tick for this ADC channel*/
+        Calculated_Window_Tick = (uint16)(ADC_filter_Config_Table[LoopIndex].FilterWindowTime_ms / ADC_Filtering_Task_Periodicity_ms);
+
+        /* Calculate final filtered value.*/
+        ADC_Return_Value = (uint16)(Current_Accumulated_Average / Calculated_Window_Tick);
+      }
+      else /* Last processed time is elapsed grater than Dead time*/
+      {
+        Debug_Trace(" ADC filtering for Channel mapped to GPIO ID %d, missed for more than configured dead time (%dms).", GPIO_Port_pin, ADC_filter_Config_Table[LoopIndex].Max_Dead_Time_ms);
+        /* Exit the loop*/
+        LoopIndex = Max_Filter_Configured_ADC + 1;
+        /* Do Direct Reading*/
+        ADC_Return_Value = analogRead(GPIO_Port_pin);
+      }
+
+    } /* End of If matching the GPIO ID*/
+  }   /* End of for loop*/
+
+  /* If requested ADC channel is not configured for filtering.*/
+  if (ADC_Return_Value == Invalid_ADC_Value)
+  {
+    Debug_Trace(" ADC filtering Not configured for Channel mapped to GPIO ID %d, Do doing direct read...", GPIO_Port_pin);
+    /* At present ADC filtering logic are not implemented so reading directely from the ADC.*/
+    ADC_Return_Value = analogRead(GPIO_Port_pin);
+  }
+
+  return (ADC_Return_Value);
+}
+
+
+
+/* ************************************************************************
  * Function to Init the ADC processing dates.
  * *************************************************************************/
 void Init_ADC_BackEndFilter(void)

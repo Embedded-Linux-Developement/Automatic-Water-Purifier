@@ -84,13 +84,13 @@ uint8 P2E_UV_Feedback_Support = UV_Feedback_Both; /*  Indicate the configuration
 
 /* Paramater for LDR 1 , to detect UV light operatation*/
 Config_Var uint8 P04_UV_Lamp_Analog_LDR_1 = 35;            /*  Mapped to ADC 1_7, GPIO 35 @Port Pin 11 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 2500; /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
+Config_Var uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 1500; /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
 Config_Var uint16 P07_UV_Lamp_Analog_LDR_1_OFF_Volt = 125; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
 Config_Var uint8 P09_UV_Lamp_Analog_LDR_1_Tolerance = 15;  /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
 /* Paramater for LDR 2 , to detect UV light operatation*/
 Config_Var uint8 P0A_UV_Lamp_Analog_LDR_2 = 34;            /*  Mapped to ADC 1_6, GPIO 34 @Port Pin 12 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 2500; /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
+Config_Var uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 1150; /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
 Config_Var uint16 P0D_UV_Lamp_Analog_LDR_2_OFF_Volt = 125; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
 Config_Var uint8 P0F_UV_Lamp_Analog_LDR_2_Tolerance = 15;  /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
@@ -302,6 +302,7 @@ uint8 Dry_Run_Detected = false;
 static void ShutDown_All(void);
 
 static void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest);
+static Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void);
 
 
 static void Control_InLineInput(Sys_Operatation_Status InputRequest);
@@ -313,6 +314,10 @@ static void BoostInput_MainFunction(void);
 
 static void Control_ROInput(Sys_Operatation_Status InputRequest);
 static Sys_Operatation_Status GetStatus_ROInput(void);
+
+static Sensor_InputStatus_Status GetStatus_HighPresere(void);
+
+static Sensor_InputStatus_Status GetStatus_OverFlow(void);
 
 /*******************************************************************************
  *  Class Objects.
@@ -411,6 +416,10 @@ void Control_UV_Lamp(Sys_UV_Lamp_Status InputRequest)
     digitalWrite(P01_UV_Lamp_Relay, Temp_PinStatus);
   }
 }
+
+
+
+
 
 /* ************************************************************************
  * This function is to Get Feedback status of UV Lamp operatations.
@@ -534,6 +543,130 @@ Sys_UV_Lamp_Feedback_Status Get_UV_Lamp_Feedback(void)
   return (ReturnStatus);
 }
 
+
+
+
+/* ************************************************************************
+ * This function is to Get Feedback status of UV Lamp operatations.
+ * *************************************************************************/
+Sys_UV_Lamp_Feedback_Status NON_Critical_Get_UV_Lamp_Feedback(void)
+{
+  /* Return variable..*/
+  Sys_UV_Lamp_Feedback_Status ReturnStatus = UV_Lamp_Feedback_Fault;
+  Sys_UV_Lamp_Feedback_Status LDR_1_Status = UV_Lamp_Feedback_Fault;
+  Sys_UV_Lamp_Feedback_Status LDR_2_Status = UV_Lamp_Feedback_Fault;
+  uint16 UV_LDR_1_ADC_Value;
+  uint16 UV_LDR_2_ADC_Value;
+
+  /* Read ADC value of both LDR. Filtering of ADC is not considered for now... */
+  UV_LDR_1_ADC_Value = NON_CriticalSys_Read_Processed_ADC_Value(P04_UV_Lamp_Analog_LDR_1);
+  UV_LDR_2_ADC_Value = NON_CriticalSys_Read_Processed_ADC_Value(P0A_UV_Lamp_Analog_LDR_2);
+
+
+  /* Check if configuration of feedback is enabled*/
+  if (UV_Feedback_None != P2E_UV_Feedback_Support)
+  {
+
+    /* Check if enough time elapsed after UV Lamp is turned ON*/
+    if (Get_Time_Elapse(UV_Lamp_Start_Time) >= P2F_UV_On_Delay_Time_In_ms)
+    {
+
+      /* Check if LDR 1 detected as UV light ON*/
+      if (ADC_Check_Tolerance((uint32)UV_LDR_1_ADC_Value, (uint32)P05_UV_Lamp_Analog_LDR_1_ON_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
+      {
+        /* Check if Current UV lamp state is also ON, Else decleared as fault*/
+        LDR_1_Status = (UV_Lamp_Current_Status == UV_Lamp_ON) ? UV_Lamp_Feedback_ON : UV_Lamp_Feedback_Fault;
+      }
+      /* Check wheather status is OFF.*/
+      else if (ADC_Check_Tolerance((uint32)UV_LDR_1_ADC_Value, (uint32)P07_UV_Lamp_Analog_LDR_1_OFF_Volt, P09_UV_Lamp_Analog_LDR_1_Tolerance) == E_OK)
+      {
+        /* Check if Current UV lamp state is also OFF, Else decleared as fault*/
+        LDR_1_Status = (UV_Lamp_Current_Status == UV_Lamp_OFF) ? UV_Lamp_Feedback_OFF : UV_Lamp_Feedback_Fault;
+      }
+      else /* Unknown State detected, So setting as fault.*/
+      {
+        LDR_1_Status = UV_Lamp_Feedback_Fault;
+      }
+
+      /* Check if LDR 2 detected as UV light ON*/
+      if (ADC_Check_Tolerance((uint32)UV_LDR_2_ADC_Value, (uint32)P0B_UV_Lamp_Analog_LDR_2_ON_Volt, P0F_UV_Lamp_Analog_LDR_2_Tolerance) == E_OK)
+      {
+        /* Check if Current UV lamp state is also ON, Else decleared as fault*/
+        LDR_2_Status = (UV_Lamp_Current_Status == UV_Lamp_ON) ? UV_Lamp_Feedback_ON : UV_Lamp_Feedback_Fault;
+      }
+      /* Check wheather status is OFF.*/
+      else if (ADC_Check_Tolerance((uint32)UV_LDR_2_ADC_Value, (uint32)P0D_UV_Lamp_Analog_LDR_2_OFF_Volt, P0F_UV_Lamp_Analog_LDR_2_Tolerance) == E_OK)
+      {
+        /* Check if Current UV lamp state is also OFF, Else decleared as fault*/
+        LDR_2_Status = (UV_Lamp_Current_Status == UV_Lamp_OFF) ? UV_Lamp_Feedback_OFF : UV_Lamp_Feedback_Fault;
+      }
+      else /* Unknown State detected, So setting as fault.*/
+      {
+        LDR_2_Status = UV_Lamp_Feedback_Fault;
+      }
+
+      /* If feedback config is to check Both then, */
+      if (P2E_UV_Feedback_Support == UV_Feedback_Any)
+      {
+        /* Check if any LDR report same status are not fault detected.*/
+        if (((LDR_1_Status == UV_Lamp_Feedback_OFF) || (LDR_1_Status == UV_Lamp_Feedback_ON)) && (LDR_1_Status != UV_Lamp_Feedback_Fault))
+        {
+          /* Update correct status.*/
+          ReturnStatus = LDR_1_Status;
+        }
+        /* Check Second LDR status.*/
+        else if (((LDR_2_Status == UV_Lamp_Feedback_OFF) || (LDR_2_Status == UV_Lamp_Feedback_ON)) && (LDR_2_Status != UV_Lamp_Feedback_Fault))
+        {
+          /* Update correct status.*/
+          ReturnStatus = LDR_2_Status;
+        }
+        else /* Report fault as both LDR get failed.*/
+        {
+          ReturnStatus = UV_Lamp_Feedback_Fault;
+        }
+      }
+      else /* All other cases inclusing Both are enabled...*/
+      {
+        /* Check if Both LDR report same status are not fault detected.*/
+        if ((LDR_2_Status == LDR_1_Status) && (LDR_1_Status != UV_Lamp_Feedback_Fault))
+        {
+          /* Update correct status.*/
+          ReturnStatus = LDR_1_Status;
+        }
+        else /* Report fault.*/
+        {
+          ReturnStatus = UV_Lamp_Feedback_Fault;
+        }
+      }
+    }
+    else /* If time is Not Elapsed yet to read the feedback status.*/
+    {
+      /* Set status feedback is in progress..*/
+      ReturnStatus = UV_Lamp_Feedback_InProgres;
+    }
+  }
+  else /* If Feedback is Dissabled.*/
+  {
+    /* Check if current state is UN-Init*/
+    if (UV_Lamp_UnInit != UV_Lamp_Current_Status)
+    {
+      /* Set the return value based on the current status.*/
+      ReturnStatus = ((UV_Lamp_Current_Status == UV_Lamp_ON) ? UV_Lamp_Feedback_ON : UV_Lamp_Feedback_OFF);
+    }
+    else
+    {
+      /* DO Nothing...*/
+    }
+  }
+
+
+  /* Return final status*/
+  return (ReturnStatus);
+}
+
+
+
+
 /* ************************************************************************
  * This function is get the High Presere Sensor Raw Value.
  * Value shall be process and converted in to string
@@ -547,8 +680,8 @@ char *GetStatus_UV_Lamp_Sensor_Raw_Value(void)
   uint16 UV_LDR_2_ADC_Value;
 
   /* Read ADC value of both LDR. Filtering of ADC is not considered for now... */
-  UV_LDR_1_ADC_Value = Sys_Read_Processed_ADC_Value(P04_UV_Lamp_Analog_LDR_1);
-  UV_LDR_2_ADC_Value = Sys_Read_Processed_ADC_Value(P0A_UV_Lamp_Analog_LDR_2);
+  UV_LDR_1_ADC_Value = NON_CriticalSys_Read_Processed_ADC_Value(P04_UV_Lamp_Analog_LDR_1);
+  UV_LDR_2_ADC_Value = NON_CriticalSys_Read_Processed_ADC_Value(P0A_UV_Lamp_Analog_LDR_2);
 
   sprintf(Return_Buffer, "UV Sensor 1 Raw Value = %d, UV Sensor 2 Raw Value = %d ", UV_LDR_1_ADC_Value, UV_LDR_2_ADC_Value);
 
@@ -887,7 +1020,7 @@ void BoostInput_MainFunction(void)
      It Mode If On request came for Inlet or Boster, then same sequence shall be followed, 
         Case 1. Make Inlet ON and Booter OFF for NVM_ID_Calibration_AutoModeBoosterStartTime time configured in NVM.
         Case 2. Make Inlet OFF and Booter OFF for ( NVM_ID_Calibration_AutoModeBoosterStartTime + P31_InLineInput_Delay_Time_In_ms) time configured in NVM. 
-        Case 3. In case 1 OR 2 if any flow detected then Restart from Case 1
+        Case 3. Pressure release time. Here No Flow detection logic, Because Can expect a Negative Flow because of previous prusher build, And Can cause False flow detection... 
         Case 4. Make Inlet OFF and Booter ON for, Until next On OFF request. */
 
     if ( (InputBoost_Current_Status == Operatation_ON) || (InLineInput_Current_Status == Operatation_ON))
@@ -938,17 +1071,9 @@ void BoostInput_MainFunction(void)
       /* Case 3 */
       /* If Water flow detected as Zero and waitting for time for P31_InLineInput_Delay_Time_In_ms*/
       else if ((Booster_On_Check_flage == Sys_Flag_True) &&                                                               /* Time started after flow rate detected as Zero*/
-               (Get_Time_Elapse(Booster_Switch_To_ON_Time) < (Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime) + P31_InLineInput_Delay_Time_In_ms))) /* First start Time is NOT elapsed*/
+               (Get_Time_Elapse(Booster_Switch_To_ON_Time) < (Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime) + P31_InLineInput_Delay_Time_In_ms + 1000))) /* First start Time is NOT elapsed*/
       {
-        /* Check If water flow is detected befor starting booster motor, Then reset the flag again.*/
-        if (Get_Instantinous_FlowRate_InLpM() != 0)
-        {
-          /* Reset the flag*/
-          Booster_On_Check_flage = Sys_Flag_Init;
-          /* Reset the timer*/
-          Booster_Switch_To_ON_Time = 0;
-        }
-
+         /* Here No Flow detection logic, Because Can expect a Negative Flow because of previous prusher build, And Can cause False flow detection... */
         /* Make Inlet OFF*/
         digitalWrite(P10_InLineInputSolenoid_Relay, P12_InLineInputSolenoid_Relay_OFF_State);
         /* Turn OFF the booster bump and its solinode.*/
@@ -1238,6 +1363,48 @@ Sensor_InputStatus_Status GetStatus_HighPresere(void)
   return (Sensor_HighPressure_Status);
 }
 
+
+/* ************************************************************************
+ * This function is get the status of the High Presere Indication
+ * Return value meaning
+ *    Sensor_ON    ==> Indicate High Presure detected.
+ *    Sensor_OFF   ==> Indicate NO High Presure detected.
+ * *************************************************************************/
+Sensor_InputStatus_Status NON_Critical_GetStatus_HighPresere(void)
+{
+  /* Variable to store the time at which valied state is found, otherthan Fault,
+    And register fault only after debouncing time is elapsed.
+    To avoid False positive fault can trigger.
+  */
+
+  Sensor_InputStatus_Status Local_Sensor_HighPressure_Status = Sensor_Fault;
+
+  uint16 HighPressure_ADC_Value;
+
+  /* Read Current ADC value for High Presure */
+  HighPressure_ADC_Value = NON_CriticalSys_Read_Processed_ADC_Value(P21_Analog_HighPresere);
+
+  /* Check if its detected as ON*/
+  if (ADC_Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P22_Analog_HighPresere_ON_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
+  {
+    /* Set Status to ON*/
+    Local_Sensor_HighPressure_Status = Sensor_ON;
+  }
+  /* Check wheather its status is OFF*/
+  else if (ADC_Check_Tolerance((uint32)HighPressure_ADC_Value, (uint32)P24_Analog_HighPresere_OFF_Volt, P26_Analog_HighPresere_Tolerance) == E_OK)
+  {
+
+    /* Set Status to ON*/
+    Local_Sensor_HighPressure_Status = Sensor_OFF;
+  }
+  else /* Fault detected.*/
+  {
+    /*Switching to fault shall be immidate*/
+    Local_Sensor_HighPressure_Status = Sensor_Fault;
+  }
+  return (Local_Sensor_HighPressure_Status);
+}
+
 /* ************************************************************************
  * This function is get the High Presere Sensor Raw Value.
  * *************************************************************************/
@@ -1246,7 +1413,7 @@ uint16 GetStatus_HighPresere_Sensor_Raw_Value(void)
   uint16 ADC_Raw_Value;
 
   /* Read Current ADC value for High Presere */
-  ADC_Raw_Value = Sys_Read_Processed_ADC_Value(P21_Analog_HighPresere);
+  ADC_Raw_Value = NON_CriticalSys_Read_Processed_ADC_Value(P21_Analog_HighPresere);
 
   /*Return Raw Value*/
   return (ADC_Raw_Value);
@@ -1356,6 +1523,47 @@ Sensor_InputStatus_Status GetStatus_OverFlow(void)
   return (Sensor_OverFlow_Status);
 }
 
+
+/* ************************************************************************
+ * This function is get the status of the OverFlow Indication
+ * Return value meaning
+ *    Sensor_ON    ==> Indicate Overflow detected.
+ *    Sensor_OFF   ==> Indicate Overflow NOT detected.
+ * *************************************************************************/
+Sensor_InputStatus_Status NON_Critical_GetStatus_OverFlow(void)
+{
+
+  /* Variable to store previous valied state.*/
+  Sensor_InputStatus_Status Local_Sensor_OverFlow_Status = Sensor_Fault;
+
+  uint16 OverFlow_ADC_Value;
+
+  /* Read Current ADC value for overflow */
+  OverFlow_ADC_Value = NON_CriticalSys_Read_Processed_ADC_Value(P27_Analog_OverFlow);
+
+  /* Check if its detected as ON*/
+  if (ADC_Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P28_Analog_OverFlow_ON_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
+  {
+
+    /* Set Status to ON*/
+    Local_Sensor_OverFlow_Status = Sensor_ON;
+  }
+  /* Check wheather its status is OFF*/
+  else if (ADC_Check_Tolerance((uint32)OverFlow_ADC_Value, (uint32)P2A_Analog_OverFlow_OFF_Volt, P2C_Analog_OverFlow_Tolerance) == E_OK)
+  {
+
+    /* Set Status to ON*/
+    Local_Sensor_OverFlow_Status = Sensor_OFF;
+  }
+  else /* Fault detected.*/
+  {
+    /*Switching to fault shall be immidate*/
+    Local_Sensor_OverFlow_Status = Sensor_Fault;
+  }
+
+  return (Local_Sensor_OverFlow_Status);
+}
+
 /* ************************************************************************
  * This function is get the OverFlow Sensor Raw Value.
  * *************************************************************************/
@@ -1364,7 +1572,7 @@ uint16 GetStatus_OverFlow_Sensor_Raw_Value(void)
   uint16 ADC_Raw_Value;
 
   /* Read Current ADC value for overflow */
-  ADC_Raw_Value = Sys_Read_Processed_ADC_Value(P27_Analog_OverFlow);
+  ADC_Raw_Value = NON_CriticalSys_Read_Processed_ADC_Value(P27_Analog_OverFlow);
 
   /*Return Raw Value*/
   return (ADC_Raw_Value);

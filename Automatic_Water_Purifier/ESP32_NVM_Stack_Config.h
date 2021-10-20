@@ -108,7 +108,7 @@ const uint8 NVM_Default_Value_WiFiServerName[75]   = "Automatic Water Purifier";
 const uint8 NVM_Default_Value_AdminPasword[30]     = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
 
       /* Byte arrangement after converting to uint32 Byte 0 - 3    {LSB0,LSB1,LSB2,MSB3}             */
-const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0xE8,0x03,0x00,0x00};  /*  1100Tick = 1L   = 0x03E8 Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
+const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x69,0x00,0x00,0x00};  /*  105Tick = 1L    = 0x0069 Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
 const uint8 NVM_Default_Calibration_LowFlowRate[4]               = {0xF4,0x01,0x00,0x00};  /*  500mLpM = 0.5LpM= 0x01F4 Array to hold the default value for the NVM_ID_Calibration_LowFlowRate NVM paramater.*/
 const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0xA0,0x0F,0x00,0x00};  /* 4000mLpM = 4LpM  = 0x0FA0 Array to hold the default value for the NVM_ID_Calibration_HighFlowRate NVM paramater.*/
 const uint8 NVM_Default_Calibration_HighPresureCollingTime[4]    = {0x10,0x27,0x00,0x00};  /* 10000ms  = 10S   = 0x2710 Array to hold the default value for the NVM_ID_Calibration_HighPresureCollingTime NVM paramater.*/
