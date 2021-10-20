@@ -337,7 +337,7 @@ double DoubleCurrent_Sensor_Raw_Value;
   Final_HTML_Page.replace("<!--ID_34_Start--> <button class=\"SmallBox_btn Gray_Box\"> Raw Value =2500</button>", Array_PerLine_String);
 
   /* Get current flow rate for ID_4*/
-  DoubleCurrent_Sensor_Raw_Value = Get_Instantinous_FlowRate_InLpM();
+  DoubleCurrent_Sensor_Raw_Value = NON_Critical_Get_Instantinous_FlowRate_InLpM();
 
   /* Check if High Flow Rate detected.*/
   if (Is_HighWaterFlowRateDetected())

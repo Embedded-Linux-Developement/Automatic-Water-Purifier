@@ -153,6 +153,7 @@ extern double Get_Current_SectionWaterFlowedInL(void);
 extern void ProcessWaterFlowRate(void);
 extern void ReStartFlowRate_Processing(void);
 extern double Get_Instantinous_FlowRate_InLpM(void);
+extern double NON_Critical_Get_Instantinous_FlowRate_InLpM(void);
 
 /* Interface for monitering purpose only, These interface data may not corect always.
      But can ok for monitering. This is because critical section protection is not used before reading.

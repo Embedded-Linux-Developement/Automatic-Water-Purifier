@@ -80,19 +80,19 @@ Config_Var uint8 P02_UV_Lamp_Relay_ON_State = LOW;   /*  Indicate on which Port 
 Config_Var uint8 P03_UV_Lamp_Relay_OFF_State = HIGH; /*  Indicate on which Port pin State UV lamp relay make Lamp OFF  */
 
 /* Paramater to configure UV lamp Support*/
-uint8 P2E_UV_Feedback_Support = UV_Feedback_Both; /*  Indicate the configuration for the UV lamp feedback.. */
+uint8 P2E_UV_Feedback_Support = UV_Feedback_Any; /*  Indicate the configuration for the UV lamp feedback.. */
 
 /* Paramater for LDR 1 , to detect UV light operatation*/
 Config_Var uint8 P04_UV_Lamp_Analog_LDR_1 = 35;            /*  Mapped to ADC 1_7, GPIO 35 @Port Pin 11 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 1500; /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
+Config_Var uint16 P05_UV_Lamp_Analog_LDR_1_ON_Volt = 2000; /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 1.*/
 Config_Var uint16 P07_UV_Lamp_Analog_LDR_1_OFF_Volt = 125; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 1.*/
-Config_Var uint8 P09_UV_Lamp_Analog_LDR_1_Tolerance = 15;  /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
+Config_Var uint8 P09_UV_Lamp_Analog_LDR_1_Tolerance = 20;  /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
 /* Paramater for LDR 2 , to detect UV light operatation*/
 Config_Var uint8 P0A_UV_Lamp_Analog_LDR_2 = 34;            /*  Mapped to ADC 1_6, GPIO 34 @Port Pin 12 ( Based on the Pin layout in ESP32_Used_Pin_Layout.jpg) */
-Config_Var uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 1150; /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
+Config_Var uint16 P0B_UV_Lamp_Analog_LDR_2_ON_Volt = 1800; /*  Represent the Voltage level representing the Active State / When UV is ON for LDR 2.*/
 Config_Var uint16 P0D_UV_Lamp_Analog_LDR_2_OFF_Volt = 125; /*  Represent the Voltage level representing the Active State / When UV is OFF for LDR 2.*/
-Config_Var uint8 P0F_UV_Lamp_Analog_LDR_2_Tolerance = 15;  /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
+Config_Var uint8 P0F_UV_Lamp_Analog_LDR_2_Tolerance = 20;  /*  Persentage (%) of Max valye 4095, to make Tolerance a linear scale acceptable tolerance which can be considered.*/
 
 /* Paramater to Set UV lamp turn ON Delay.*/
 Config_Var uint16 P2F_UV_On_Delay_Time_In_ms = 5000; /*  Indicate the configuration for the UV lamp turned ON time.. */
@@ -1020,8 +1020,9 @@ void BoostInput_MainFunction(void)
      It Mode If On request came for Inlet or Boster, then same sequence shall be followed, 
         Case 1. Make Inlet ON and Booter OFF for NVM_ID_Calibration_AutoModeBoosterStartTime time configured in NVM.
         Case 2. Make Inlet OFF and Booter OFF for ( NVM_ID_Calibration_AutoModeBoosterStartTime + P31_InLineInput_Delay_Time_In_ms) time configured in NVM. 
-        Case 3. Pressure release time. Here No Flow detection logic, Because Can expect a Negative Flow because of previous prusher build, And Can cause False flow detection... 
-        Case 4. Make Inlet OFF and Booter ON for, Until next On OFF request. */
+        Case 3. All Valve Off for P31_InLineInput_Delay_Time_In_ms duration, Pressure release time. Here No Flow detection logic, Because Can expect a Negative Flow because of previous prusher build, And Can cause False flow detection... 
+        Case 4. Open Booster Valve alone for  duration, Pressure release time. Here No Flow detection logic, Because Can expect a Negative Flow because of previous prusher build, And Can cause False flow detection... 
+        Case 5. Make Inlet OFF and Booter Motor ON for, Until next On OFF request. */
 
     if ( (InputBoost_Current_Status == Operatation_ON) || (InLineInput_Current_Status == Operatation_ON))
     {
@@ -1071,7 +1072,7 @@ void BoostInput_MainFunction(void)
       /* Case 3 */
       /* If Water flow detected as Zero and waitting for time for P31_InLineInput_Delay_Time_In_ms*/
       else if ((Booster_On_Check_flage == Sys_Flag_True) &&                                                               /* Time started after flow rate detected as Zero*/
-               (Get_Time_Elapse(Booster_Switch_To_ON_Time) < (Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime) + P31_InLineInput_Delay_Time_In_ms + 1000))) /* First start Time is NOT elapsed*/
+               (Get_Time_Elapse(Booster_Switch_To_ON_Time) < (Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime) + P31_InLineInput_Delay_Time_In_ms))) /* First start Time is NOT elapsed*/
       {
          /* Here No Flow detection logic, Because Can expect a Negative Flow because of previous prusher build, And Can cause False flow detection... */
         /* Make Inlet OFF*/
@@ -1082,9 +1083,22 @@ void BoostInput_MainFunction(void)
 
       }
       /* Case 4 */
+      /* If Water flow detected as Zero and waitting for time for P31_InLineInput_Delay_Time_In_ms*/
+      else if ((Booster_On_Check_flage == Sys_Flag_True) &&                                                               /* Time started after flow rate detected as Zero*/
+               (Get_Time_Elapse(Booster_Switch_To_ON_Time) < (Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime) + P31_InLineInput_Delay_Time_In_ms + P33_InputBoost_Delay_Time_In_ms))) /* First start Time is NOT elapsed*/
+      {
+         /* Here No Flow detection logic, Because Can expect a Negative Flow because of previous prusher build, And Can cause False flow detection... */
+        /* Make Inlet OFF*/
+        digitalWrite(P10_InLineInputSolenoid_Relay, P12_InLineInputSolenoid_Relay_OFF_State);
+        /* Turn OFF the booster Pump  and Turn On booster  solinode Valve.*/
+        digitalWrite(P14_InputBoostMotor_Relay, P16_InputBoostMotor_Relay_OFF_State);
+        digitalWrite(P17_InputBoostSolenoid_Relay, P18_InputBoostSolenoid_Relay_ON_State);
+
+      }
+      /* Case 5 */
       /* If timer is elapsed, Then Start the Booster pump*/
       else if ((Booster_On_Check_flage == Sys_Flag_True) &&                                                                /* Time started after flow rate detected as Zero*/
-               (Get_Time_Elapse(Booster_Switch_To_ON_Time) >= Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime))) /* First start Time is NOT elapsed*/
+               (Get_Time_Elapse(Booster_Switch_To_ON_Time) >= (Nvm_Read_Each(NVM_ID_Calibration_AutoModeBoosterStartTime) + P31_InLineInput_Delay_Time_In_ms + P33_InputBoost_Delay_Time_In_ms))) /* First start Time is NOT elapsed*/
       {
 
         /* Make Inlet OFF*/
@@ -1600,7 +1614,9 @@ void Process_ControlSystem(void)
   /* static variable to store the start time for dry run case.*/
   static uint32 Dry_Run_Start_Time = 0;
 
- 
+/* Static Variable to store the first High Flow rate detection Time*/
+ static uint32 First_High_Flow_Rate_Detection_Time = 0;
+
   /* Get the State of Overflow, If over flow detected then Switch off..*/
 
   /* State Flow Is as mentioned below
@@ -1816,6 +1832,9 @@ void Process_ControlSystem(void)
       Dry_Run_Start_Time = millis();
       /* Clear Dry run detection flag*/
       Dry_Run_Detected = false;
+
+      /*Init the first High flow Rate detection Time*/
+      First_High_Flow_Rate_Detection_Time =  millis();
     }
 
     /* Indicate current sate is executed.*/
@@ -1944,38 +1963,57 @@ void Process_ControlSystem(void)
           /* If higher water flow detected.*/
           if (((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000))) > (Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate)))
           {
-            /* switchoff the Inlet relay and both motor to avoid any damage*/
-            ShutDown_All();
-            Debug_Trace("A high flow of water is detected By the system based on the configuration, So Switching Off. Current flow rate is %f, And Max Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate) / 1000));
+            /* When High Flow Rate detected First Time*/
+            if (HighWater_Flow_Detected == false)
+            {
+              /*Init the first High flow Rate detection Time*/
+              First_High_Flow_Rate_Detection_Time = millis();
+
+              Debug_Trace("A high flow of water is detected By the system based on the configuration.. Current flow rate is %f, And Max Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate) / 1000));
+            }
 
             /* Set Global variable for High Presure Detection.*/
             HighWater_Flow_Detected = true;
-
-            /* Take Action for High water flow rate */
-            if ((Setting_Recovery_Actions)Nvm_Read_Each(NVM_ID_Seting_HighFlowRateWarningAction) == Recovery_Time_Bound)
+/* Dissabling the Auto switch off due to High water flow, Due to High Noice.. */
+#if 0
+            /* Check if Time 30 Sec time is elapsed, To confirm High flow rate.... */
+            if (Get_Time_Elapse(First_High_Flow_Rate_Detection_Time) >= (30 * 1000))
             {
-              Debug_Trace("Waitting for High flow rate to recover..");
-              /* Wait for configured time and then switch back to same state, Come out only once Water flow go below required level.*/
-              do
+              /* switchoff the Inlet relay and both motor to avoid any damage*/
+              ShutDown_All();
+              Debug_Trace("A high flow of water is detected By the system based on the configuration, So Switching OFF. Current flow rate is %f, And Max Limit is %f ", Get_Instantinous_FlowRate_InLpM(), (double)(Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate) / 1000));
+
+              /* Take Action for High water flow rate */
+              if ((Setting_Recovery_Actions)Nvm_Read_Each(NVM_ID_Seting_HighFlowRateWarningAction) == Recovery_Time_Bound)
               {
+                Debug_Trace("Waitting for High flow rate to recover..");
+                /* Wait for configured time and then switch back to same state, Come out only once Water flow go below required level.*/
+                do
+                {
 
-                Delay_In_ms(Nvm_Read_Each(NVM_ID_Calibration_FlowRateWarningCollingTime));
+                  Delay_In_ms(Nvm_Read_Each(NVM_ID_Calibration_FlowRateWarningCollingTime));
 
-                /* Wait until flow rate is reduced.*/
-              } while (((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000))) > Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate));
+                  /* Wait until flow rate is reduced.*/
+                } while (((uint32)(floor(Get_Instantinous_FlowRate_InLpM() * 1000))) > Nvm_Read_Each(NVM_ID_Calibration_HighFlowRate));
+              }
+              /* If recover is after Next power on, Then switch to Tank_Emergency_Stop state.*/
+              else if ((Setting_Recovery_Actions)Nvm_Read_Each(NVM_ID_Seting_HighFlowRateWarningAction) == Recovery_On_PowerOn)
+              {
+                Debug_Trace("Switch state to \"Tank_Emergency_Stop\" because of Higher flow rate, And shall remain Down until Next Power ON.");
+                /* Switch to the state representing overflow detected.*/
+                Set_Current_Opp_State(Tank_Emergency_Stop);
+              }
             }
-            /* If recover is after Next power on, Then switch to Tank_Emergency_Stop state.*/
-            else if ((Setting_Recovery_Actions)Nvm_Read_Each(NVM_ID_Seting_HighFlowRateWarningAction) == Recovery_On_PowerOn)
-            {
-              Debug_Trace("Switch state to \"Tank_Emergency_Stop\" because of Higher flow rate, And shall remain Down until Next Power ON.");
-              /* Switch to the state representing overflow detected.*/
-              Set_Current_Opp_State(Tank_Emergency_Stop);
-            }
+#endif
+
           }
           else /* High water flow did not detected.*/
           {
             /* Set Global variable for High Presure Detection.*/
             HighWater_Flow_Detected = false;
+
+            /*Init the first High flow Rate detection Time*/
+            First_High_Flow_Rate_Detection_Time = millis();
           }
 
           /* Check if water flow rate is above the mentioned Limit..*/
@@ -2927,6 +2965,29 @@ double Get_Instantinous_FlowRate_InLpM(void)
 
   /* Exit from Critical Section. */
   portEXIT_CRITICAL(&Waterflow_Mux);
+
+  /* Check is Its Invalid, If so return Zero*/
+  if (Temp_Local_Current_Value == Invalue_Flow_Value_InL)
+  {
+    /* Set Return to Zero.*/
+    Temp_Local_Current_Value = 0;
+  }
+
+  /* Return the value.*/
+  return (Temp_Local_Current_Value);
+}
+
+/* *********************************************************************************
+   Function to get Instantinous FlowRate In LpM
+*************************************************************************************/
+double NON_Critical_Get_Instantinous_FlowRate_InLpM(void)
+{
+
+  double Temp_Local_Current_Value;
+
+
+
+  Temp_Local_Current_Value = Final_Instantinous_Flow_In_LpM;
 
   /* Check is Its Invalid, If so return Zero*/
   if (Temp_Local_Current_Value == Invalue_Flow_Value_InL)

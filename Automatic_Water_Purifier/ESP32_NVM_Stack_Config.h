@@ -108,12 +108,12 @@ const uint8 NVM_Default_Value_WiFiServerName[75]   = "Automatic Water Purifier";
 const uint8 NVM_Default_Value_AdminPasword[30]     = "Admin";                      /*String to hold the default value for the NVM_ID_Value_AdminPasword NVM paramater.*/
 
       /* Byte arrangement after converting to uint32 Byte 0 - 3    {LSB0,LSB1,LSB2,MSB3}             */
-const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x69,0x00,0x00,0x00};  /*  105Tick = 1L    = 0x0069 Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
+const uint8 NVM_Default_Calibration_FlowMeaterFactor[4]          = {0x6E,0x00,0x00,0x00};  /*  110Tick = 1L    = 0x006E Array to hold the default value for the NVM_ID_Calibration_FlowMeaterFactor NVM paramater.*/
 const uint8 NVM_Default_Calibration_LowFlowRate[4]               = {0xF4,0x01,0x00,0x00};  /*  500mLpM = 0.5LpM= 0x01F4 Array to hold the default value for the NVM_ID_Calibration_LowFlowRate NVM paramater.*/
-const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0xA0,0x0F,0x00,0x00};  /* 4000mLpM = 4LpM  = 0x0FA0 Array to hold the default value for the NVM_ID_Calibration_HighFlowRate NVM paramater.*/
+const uint8 NVM_Default_Calibration_HighFlowRate[4]              = {0x70,0x17,0x00,0x00};  /* 6000mLpM = 6LpM  = 0x1770 Array to hold the default value for the NVM_ID_Calibration_HighFlowRate NVM paramater.*/
 const uint8 NVM_Default_Calibration_HighPresureCollingTime[4]    = {0x10,0x27,0x00,0x00};  /* 10000ms  = 10S   = 0x2710 Array to hold the default value for the NVM_ID_Calibration_HighPresureCollingTime NVM paramater.*/
 const uint8 NVM_Default_Calibration_FlowRateWarningCollingTime[4]= {0x88,0x13,0x00,0x00};  /*  5000ms  =  5S   = 0x1388 Array to hold the default value for the NVM_ID_Calibration_FlowRateWarningCollingTime NVM paramater.*/
-const uint8 NVM_Default_Calibration_WaterTankOverflowCapacity[4] = {0x20,0x4E,0x00,0x00};  /* 20000mL  = 20L   = 0x4E20 Array to hold the default value for the NVM_ID_Calibration_WaterTankOverflowCapacity NVM paramater.*/
+const uint8 NVM_Default_Calibration_WaterTankOverflowCapacity[4] = {0x40,0x9C,0x00,0x00};  /* 40000mL  = 40L   = 0x9C40 Array to hold the default value for the NVM_ID_Calibration_WaterTankOverflowCapacity NVM paramater.*/
 const uint8 NVM_Default_Calibration_AutoModeBoosterStartTime[4]  = {0x20,0x4E,0x00,0x00};  /* 20000ms  = 20S   = 0x4E20 Array to hold the default value for the NVM_ID_Calibration_AutoModeBoosterStartTime NVM paramater.*/
 const uint8 NVM_Default_Calibration_MaxDryRunTimeTime[4]         = {0x60,0xEA,0x00,0x00};  /* 60000ms  = 60S   = 0xEA60 Array to hold the default value for the NVM_ID_Calibration_MaxDryRunTimeTime NVM paramater.*/
 
@@ -122,7 +122,7 @@ const uint8 NVM_Default_Seting_WaterTankOverflowAction    = Recovery_On_PowerOn;
 const uint8 NVM_Default_Seting_HighPresureAction          = Recovery_Time_Bound;       /*Variable to hold the default value for the NVM_ID_Seting_HighPresureAction NVM paramater.*/
 const uint8 NVM_Default_Seting_LowFlowRateWarningAction   = Recovery_Time_Bound;       /*Variable to hold the default value for the NVM_ID_Seting_LowFlowRateWarningAction NVM paramater.*/
 const uint8 NVM_Default_Seting_HighFlowRateWarningAction  = Recovery_Time_Bound;       /*Variable to hold the default value for the NVM_ID_Seting_HighFlowRateWarningAction NVM paramater.*/
-const uint8 NVM_Default_Seting_OperatationMode            = WF_Mode_Auto;              /*Variable to hold the default value for the NVM_ID_Seting_OperatationMode NVM paramater.*/
+const uint8 NVM_Default_Seting_OperatationMode            = WF_Mode_Inline;            /*Variable to hold the default value for the NVM_ID_Seting_OperatationMode NVM paramater.*/
 
 /* Below Variables and Macros are for setting the NVM Signature Value*/
 #define NVM_Start_Signature_Sizes  4U /* Define the sizes of Start Signature.*/
