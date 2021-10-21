@@ -2048,30 +2048,34 @@ void Process_ControlSystem(void)
           /*---------------------------------------------------------------------------------
            *      Check wheather there is a dry run case, If Yes Swtch to Tank_Emergency_Stop.
            *---------------------------------------------------------------------------------*/
-          /* If No water flow detected*/
-          if (Get_Instantinous_FlowRate_InLpM() == 0)
+          /* Check Dry run only when pump is working..*/
+          if((Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Auto) || (Nvm_Read_Each(NVM_ID_Seting_OperatationMode) == WF_Mode_Via_Pump)) 
           {
-            /* Check if Dry run time elapsed.*/
-            if (Get_Time_Elapse(Dry_Run_Start_Time) >= Nvm_Read_Each(NVM_ID_Calibration_MaxDryRunTimeTime))
+            /* If No water flow detected*/
+            if (Get_Instantinous_FlowRate_InLpM() == 0)
             {
-              Debug_Trace("System is running dry for last %dms, So based on the configuration switching to \"Tank_Emergency_Stop\" mode.", Get_Time_Elapse(Dry_Run_Start_Time) );
+              /* Check if Dry run time elapsed.*/
+              if (Get_Time_Elapse(Dry_Run_Start_Time) >= Nvm_Read_Each(NVM_ID_Calibration_MaxDryRunTimeTime))
+              {
+                Debug_Trace("System is running dry for last %dms, So based on the configuration switching to \"Tank_Emergency_Stop\" mode.", Get_Time_Elapse(Dry_Run_Start_Time));
 
-              /* Trigger switch off*/
-              ShutDown_All();
+                /* Trigger switch off*/
+                ShutDown_All();
 
-              /* Switch to Emergency shut down*/
-              Set_Current_Opp_State(Tank_Emergency_Stop);
+                /* Switch to Emergency shut down*/
+                Set_Current_Opp_State(Tank_Emergency_Stop);
 
-              /* Set Dry run detection flag*/
-              Dry_Run_Detected = true;
+                /* Set Dry run detection flag*/
+                Dry_Run_Detected = true;
+              }
             }
-          }
-          else /* Recovered from dry run.*/
-          {
-            /* Reset the timer.*/
-            Dry_Run_Start_Time = millis();
-            /* Clear Dry run detection flag*/
-            Dry_Run_Detected = false;
+            else /* Recovered from dry run.*/
+            {
+              /* Reset the timer.*/
+              Dry_Run_Start_Time = millis();
+              /* Clear Dry run detection flag*/
+              Dry_Run_Detected = false;
+            }
           }
 
           /*---------------------------------------------------------------------------------
